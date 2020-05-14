@@ -2,7 +2,7 @@
 # Description:   Provides a two-step mechanism for entering arming mode
 # Author:        0xdade
 # Version:       1.0
-# Category:      Example
+# Category:      antiforensics
 #
 # This script requires modification to croc_framework as of version 1.2_475
 # In order to use it, you need to be able to source croc_framework, 
