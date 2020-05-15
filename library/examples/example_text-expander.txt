@@ -1,0 +1,9 @@
+# Title:         Text Expander
+# Description:   Example text expander
+# Author:        Hak5
+# Version:       1.0
+# Category:      Example
+#
+#
+MATCH pineapples
+QUACK STRING " are yummy"

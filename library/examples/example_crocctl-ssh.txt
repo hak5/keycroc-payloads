@@ -1,0 +1,12 @@
+# Title:         SSH Server Starter
+# Description:   Starts SSH Server
+# Author:        Hak5Darren
+# Version:       1.0
+# Category:      Example
+#
+#
+MATCH __crocctl-ssh
+/etc/init.d/ssh start
+QUACK ENTER
+QUACK STRING Started SSH Server
+QUACK ENTER

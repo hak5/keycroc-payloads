@@ -1,0 +1,26 @@
+# Title:         Text Replacer
+# Description:   Example text replacer
+# Author:        Hak5
+# Version:       1.0
+# Category:      Example
+#
+
+MATCH nano
+MATCH vim
+chance=$((1 + RANDOM % 10))
+if [[ "$LOOT" == "vim" ]];then
+    if [ "$chance" -gt 5 ]; then
+      QUACK BACKSPACE
+      QUACK BACKSPACE
+      QUACK BACKSPACE
+      QUACK nano
+    fi
+else
+    if [ "$chance" -gt 5 ]; then
+      QUACK BACKSPACE
+      QUACK BACKSPACE
+      QUACK BACKSPACE
+      QUACK BACKSPACE
+      QUACK vim
+    fi
+fi

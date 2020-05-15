@@ -1,0 +1,11 @@
+# Title:         WLAN IP Info
+# Description:   Returns IPv4 address of wlan0 interface
+# Author:        Hak5Darren
+# Version:       1.0
+# Category:      Example
+#
+#
+MATCH __crocctl-ipinfo
+QUACK ENTER
+QUACK STRING $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)
+QUACK ENTER

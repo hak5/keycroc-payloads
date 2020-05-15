@@ -1,0 +1,11 @@
+# Title:         Loot Info
+# Description:   Returns Loot Info
+# Author:        Hak5Darren
+# Version:       1.0
+# Category:      Example
+#
+#
+MATCH __crocctl-lootinfo
+QUACK ENTER
+ls -lh /root/loot | while read line; do QUACK STRING $line; QUACK ENTER; done
+QUACK ENTER
