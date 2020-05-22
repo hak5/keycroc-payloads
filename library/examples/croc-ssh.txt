@@ -1,0 +1,25 @@
+# Title:         Key Croc ssh login
+# Description:   Logs into key croc over ssh
+# Author:        RootJunky
+# Version:       1.0
+# Category:      Key Croc
+#
+#
+MATCH crocssh
+QUACK LOCK
+QUACK BACKSPACE
+QUACK BACKSPACE
+QUACK BACKSPACE
+QUACK BACKSPACE
+QUACK BACKSPACE
+QUACK BACKSPACE
+QUACK BACKSPACE
+QUACK STRING "ssh root@"
+QUACK STRING $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)
+QUACK DELAY 1000
+QUACK ENTER
+QUACK DELAY 1000
+QUACK STRING "hak5croc"
+QUACK ENTER
+QUACK ENTER
+QUACK UNLOCK
