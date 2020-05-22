@@ -1,0 +1,54 @@
+# Title:         Key Croc Info Grabber
+# Description:   Returns Info on the Key Croc
+# Author:        RootJunky
+# Version:       1.0
+# Category:      Key Croc
+#
+#
+MATCH crocinfo
+QUACK LOCK
+QUACK ENTER
+QUACK ENTER
+QUACK STRING "CROC FIRMWARE: "
+QUACK STRING $(cat /root/udisk/version.txt)
+QUACK ENTER
+QUACK ENTER
+QUACK STRING "IP: "
+QUACK STRING $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)
+QUACK ENTER
+QUACK STRING "DNS: "
+QUACK STRING $(sed -n -e 4p /etc/resolv.conf)
+QUACK ENTER
+QUACK STRING "DNS: "
+QUACK STRING $(sed -n -e 5p /etc/resolv.conf)
+QUACK ENTER
+QUACK ENTER
+QUACK STRING "USER: "
+QUACK STRING $(whoami)
+QUACK ENTER
+QUACK ENTER
+QUACK STRING "PASSWORD: "
+QUACK STRING "hak5croc"
+QUACK ENTER
+QUACK ENTER
+QUACK STRING "HOSTNAME: "
+QUACK STRING $(cat /proc/sys/kernel/hostname)
+QUACK ENTER
+QUACK ENTER
+QUACK STRING "SSH: "
+QUACK STRING "ssh root@"
+QUACK STRING $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)
+QUACK ENTER
+QUACK ENTER
+QUACK STRING "MODE: "
+QUACK STRING $(cat /tmp/mode)
+QUACK ENTER
+QUACK ENTER
+QUACK UNLOCK
+
+
+
+#Default Settings
+#username: root
+#password: hak5croc
+#hostname: croc
