@@ -22,7 +22,9 @@ The Key Croc is ready for deployment.
 3. Cross your fingers and leave
 
 *Turn Skeleton Key*
+
 You get two shots at it! Afterwards, just analyze the log file.
+
 1. Do not disconnect the Key Croc
 2. Enter an incorrect password so you receive "The PIN / password is incorrect - try again" message with the OK button. _Do not click the OK button_ - instead...
 3. Type the secret phrase `skeletonknock`
