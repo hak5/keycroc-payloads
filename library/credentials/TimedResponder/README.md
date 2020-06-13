@@ -7,10 +7,11 @@ The payload was tested on Windows 10.
 
 *Setup*
 1. Connect the Key Croc on your PC in ARMING mode
-2. Place `timedresponder.txt` in the payloads directory
-3. Change the `GATHER_FOR` variable to the number of seconds to run responder
-4. Optionally change the MATCH string to a unique passphrase of your choice
-5. Eject the Key Croc safely
+2. If you haven't already, get the additional tools using the INSTALL_EXTRAS script
+3. Place `timedresponder.txt` in the payloads directory
+4. Change the `GATHER_FOR` variable to the number of seconds to run responder
+5. Optionally change the MATCH string to a unique passphrase of your choice
+6. Eject the Key Croc safely
 
 The Key Croc is ready for deployment.
 
