@@ -1,0 +1,30 @@
+# Title: Keep the PC from locking - default 1 hour
+#        When executed from command line without MATCH can specify time
+# Author: Saint Crossbow
+# Version: 1.0
+
+MATCH __staylive
+LED ATTACK
+if [ $# -eq 0 ]
+  then
+    TOTAL_SEC=3600
+    echo "Default time of 60 minutes used"
+  else
+    echo "Running for total $1 seconds"
+    TOTAL_SEC=$1
+fi
+
+echo $TOTAL_SEC
+
+i=1
+while [ "$i" -le "$TOTAL_SEC" ]; do
+  echo -n "."
+  Q CONTROL
+  sleep 1
+  i=$(($i + 1))
+done
+
+echo
+LED FINISH
+sleep 1
+LED OFF
