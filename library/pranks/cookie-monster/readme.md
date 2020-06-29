@@ -18,4 +18,4 @@ Types messages asking for a cookie. until the user type cookie
 start_monster
 
 ## Configuration
-The line: `if tail -c 6 "$crocKeys" | grep -q cookie; then` may need changing in the file is unicode to: `if tail -c 12 "$crocKeys" | grep -q cookie; then`
+The line: `if tail -c 6 "$crocKeys" | grep -q cookie; then` may need changing if the file is unicode to: `if tail -c 12 "$crocKeys" | grep -q cookie; then`
