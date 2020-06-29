@@ -15,7 +15,6 @@ Hides the Window Start bar
 
 ## Match
 hide_start
-
 show_start
 
 ## Configuration
