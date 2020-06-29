@@ -14,9 +14,8 @@
 Hides the Window Start bar
 
 ## Match
-hide_start
-show_start
+* hide_start
+* show_start
 
 ## Configuration
-Change hex to hide or show
-0x0080 = SWP_HIDEWINDOW, 0x0040 = SWP_SHOWWINDOW
+set DUCKY_LANG
