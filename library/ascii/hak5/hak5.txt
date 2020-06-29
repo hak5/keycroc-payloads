@@ -1,0 +1,116 @@
+# Title:        Hak5
+# Description:  Replaces hak5 with ascii art
+# Author:       Cribbit
+# Version:      1.0
+# Category:     ASCII
+#
+MATCH (?i)hak5
+
+QUACK BACKSPACE
+QUACK BACKSPACE
+QUACK BACKSPACE
+QUACK BACKSPACE
+
+QUACK STRING "       M8BMMMMMMMMMMM.                  .MMMMMMMMMMMM0Mi"
+QUACK ENTER
+QUACK STRING "       MMMMMMMMMMMMMM                    MMMMMMMMMMM87M,                                                                                        :i::::::::::::::::::::::::::::::,,,,,,,..."
+QUACK ENTER
+QUACK STRING "       :;.MMMMMMMMMMM                    MMMMMMMMMM  BM                                                                                       :MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM0X."
+QUACK ENTER
+QUACK STRING "       ,70MMMMMMMMMMM                    MMMMMMMMZ BMMM                                                                                        rBMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM."
+QUACK ENTER
+QUACK STRING "       M@0X8ZMMMMMMMM                    aZBMMMMM@BMMMM                                                                                          ;MWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW@@@@MM;"
+QUACK ENTER
+QUACK STRING "       MM0   M;WMMMMM                       0XMMMMMMMMM                                                                                      .;S8WWBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBWWWW@8"
+QUACK ENTER
+QUACK STRING "       2MMMBMMWMa@MMM                    iZMXMMMMS:M08M       ,                                                                            ZMMMMM@WBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBWBBBBBBW@@@@8"
+QUACK ENTER
+QUACK STRING "       MMMMMMMMSSMMMM                    MMM  MM   2MMM       r     .@                                                                    2MMMM@WWBBBBBBBBBBBBBBBBBBWWWWBBBBBBBBBBBWWWWWBBWZ: i;"     
+QUACK ENTER
+QUACK STRING "       MMMMMMMW   702                    MMWZM0    8MMM       ra ,  ;MMM0Zar;a222;                     MM0S              ;MMMMMS  ZMX7Ma  iM@WWBBBBBBBBBBBBBBBBBWW@@@@@@@@@@@WWWWW@M:,M@@@M8.i20r"
+QUACK ENTER
+QUACK STRING "       MMMMMMMMMM;,MM                    aZ   ..,MMMMMM        : X;B  MMMMMMXMMMMM               8W..r@MMS              8MMMMMMMMMMMM:    @MWBBBBBBBBBBBBBBBBBWW87i,..::;7X2aZZZZ2X,  X7r;;XSSXX;"
+QUACK ENTER
+QUACK STRING "       MMMMMMMMMMMMMW                     :WM2   M@@Mi       .7   7, MMMMMMM.MMMMM@              WMMMMMMMMaS:       i:,MMM0,MMMMMMMM0    rMWBBBBBBBBBBBBBBBBBBB"
+QUACK ENTER
+QUACK STRING "       MMMMMMMM BMMMM2:  .:,             M 0MX@M;M0M7         i:i@8 SMMBBMMMMMMMMMM;             ZMMMMMMMMMMZ        aMMMMMSMMMMMMS      MMWBBBBBBBBBBBBBBBBBW"
+QUACK ENTER
+QUACK STRING "       MMMMMMMMaZ7MMMWXMMMMMMM8@8W@MMMMMMMMMB  MMMM@X.         .iM  MMMM8MMMMaSBMMMM             2MMMMMMMMMMS S.    MMMMMM@8MMMM@      .MMWBBBBBBBBBBBBBBBBBW8"
+QUACK ENTER
+QUACK STRING "       MMMMMMMMMMM2r, .:BMMMMBMMMMMMMMMMMM0  :BMMMMrXMM,        :M 8M0MMWZ80W@BWMMMM0            SMMMMMMMMMM2     XMMMMMMMBZMMMr       MM@BBBBBBBBBBBBBBBBBWMB"
+QUACK ENTER
+QUACK STRING "       MMMMMMMMMMMW,  , 7MMi ;. MMMMMMM;.      8MiBMMMM          7MMMMMMMWBMMMMMMMMMM,           SMMMMMMMMMMZ    @MMMMMMMMMMMW    , ;  MMWBBBBBBBBBBBBBBBBW0X.             2BWWB0ar."
+QUACK ENTER
+QUACK STRING "       MMMZMMMMMMMMiWMMMMMMaZM2:@MMMMWr    X   B@WMMMMM           MMMMMMMMM8@MMMMMMMMM           2MMMMMMMMMM8  SMMMMMMMMMMMMWX :r,7 .  W@BBBBBBBBBBBBBBBB0  X    iS0MMMMM2 MMMMMMMMMMMWZ:"
+QUACK ENTER
+QUACK STRING "       MM@SMMMMMMMMMMMMMM00ZMMMMWMMMi   XS  rMMMMMMMMMM          MMMMMMMMMM .MMMMMMMMM2          XMWWZMMSZMMB7MMMMMMMMMMMMZ          ,MMWBBBBBBBBBBBBBBBWZ WM:ZMMMMMMMMMMMMMMM@MMMMMMMMMM@,"
+QUACK ENTER
+QUACK STRING "       MMMMMMMMMMMMMMMMZMa  iM8,ZMMMBZX2MM:,2MMMMMMMMMM 7MMM    aMMMMMMMMMS  MMMMMMMMMM.         XMMMZZZ80MM@MM8SMMMMMMMB           ;MMWBBBBBBBBBBBBBBBBWMMMMMMMMMM@@@W@MM@WWWWWWWWW@@MMMMMr"
+QUACK ENTER
+QUACK STRING "       MMMMMMMMMMWrMMMMMM; :,MS  .MMMMMM0XMMMMMMMMMMMMM .M0X   ,MMMMMMMMMM ,S:MMMMMMMMMM          XM00M@MM@8MB ;iS iBMB0Z          iMMWBBBBBBBBBBBBBBBBBW@@@MM@@WWWBBBBWWWBBBBBBBBBBBWWW@MMM,"
+QUACK ENTER
+QUACK STRING "       .2MMMMMMMM0W0     ::   ::.        aMMMMMMMMMMMMM        MMMMMMMMMM7   :MMMMMMMMMMr i       8MaBMMMMMMMWMMW i:8MMMMM        .MMWBBBBBBBBBBBBBBBBBBBBWWWWWBBBBBBBBBBBBBBBBBBBBBBBBBWWMM2"
+QUACK ENTER
+QUACK STRING "         XMMM@8MMMMa                     MMMMMMMMMMMWSM       MMMMMMMMMMM     aMMMMMMMMMM S7      BMMMMMMMM@2MM@ 0MMMMMMM:W2      WMWBBBBBBBBBBBBBBBBBBBBWWWWW@@WWWBBBBBBBBBBBBBBBBBBBBBBW@M"
+QUACK ENTER
+QUACK STRING "       r  MM. 2MMMMM          i          8MMMMMMMMM   W:     .MMMMMMMMMM:   .  MMMMMMMMMMMM7      BMMBMMMr   X0SZMMr7MMMMMMM8    ZM@WBBBBBBBBBBBBBBBBBBW@BiZ0SXS8M@WBBBBBBBBBBBBBBBBBBBBBB@Z"
+QUACK ENTER
+QUACK STRING "       MMMMM8ZMMMMMM,         8          8MMMMMMMMMr  @:     0MMMMMMMMM0        MMMMMMMMMM        0MM, X0       ,MZ2MMWMMMB,0M   MMWBBBBBBBBBBBBBBBBBW@8,         8@BBBBBBBBBBBBBBBBBBBBBBM."
+QUACK ENTER
+QUACK STRING "       MMMMM7MMMMMMMM        8S          XMMMMMMMMMMMMM     .MMMMMMMMMMi ,:,.:  WMMMMMMMMMM       0MMMXMi a0:      ;@   XaBMMMM XMWWBBBBBBBBBBBBBBBW@Z            SMWBBBBBBBBBBBBBBBBBBBBWB"
+QUACK ENTER
+QUACK STRING "       WMMW :XMMMMMMM    7:. Mr          iMMMMMMMMMMMMM     MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMZ  .   0MMMWiMX. @M      S    SMMMMMXB@WWWW@@@@@@@@@@@@@2              W@BBBBBBBBBBBBBBBBBBBBB@r"
+QUACK ENTER
+QUACK STRING "       MMM8r0MMMMMMMM   8a.W             WMMMMMMMMMMMMM    2MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM 7B   0MMMr MM  ; .Mr.  MM. MMMMWWMMWWrS22222SSSSSXXXXX  .;.         iMWBBBBBBBBBBBBBBBBBBBBWM"
+QUACK ENTER
+QUACK STRING "       MMMMMM8 rXMMMM;  . ;S             Mi,MMMMMMMMMMX    MWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM .   8Z  MMM7.    ,     a7 MMMMMMZM B,                              MMWBBBBBBBBBBBBBBBBBBBB@2"
+QUACK ENTER
+QUACK STRING "       MMMMMMZ  :MMMM0                    ::2MMMMMMMM     XMWMMMMMMMMMM8XMMMMMMMMMMMWaX7 raSW.    8M: Z; ZMM.         ;@MZMXaMaMMMMa                            2MWBBBBBBBBBBBBBBBBBBBBWM"
+QUACK ENTER
+QUACK STRING "       MMMMMMMMMMMMMMr                 ; X:,@MMMMMMMMZM. .MMMMMMMMMMB0Mi    ,:;;i. :,       .     WMM8MWrBMMi          rMWMMMMMMM@@Ma                          .MMWBBBBBBBBBBBBBBBBBBBBW0"
+QUACK ENTER
+QUACK STRING "       MMMMMMMMMMMMMMW  ,Z  X;0      ;Wa MMMMMMMMMMMMMM, ;8MMMMMMM@2 ,MB X          W80   2M8M2   0MMWMMMMMM            rMMMMMM 2X 2MB                         BMWBBBBBBBBBBBBBBBBBBBBBM:"
+QUACK ENTER
+QUACK STRING "       MMMMMMMMMMMMMM:   .  87:    .;WM7 MMMMMMMMMMMMMM. 2MMMMMMMWS  2MMMM;         r@:X@ZM@ MM  rMMMMMMMMM7             .MM.  i@MMMMMM                       .MMWBBBBBBBBBBBBBBBBBBBBWW"
+QUACK ENTER
+QUACK STRING "       MMMMMMMMMMMMMa       :       ;.MW MMMMMMMMMMWMMMri 0MMMMMMMM  0MM .   a.      2  XS. i@ZX BMMMMMMMMMX               ZXBZ:rMMMMMMM2X ;S2a. 7i           ,a7WWBBBBBBBBBBBBBBBBBBBMi"
+QUACK ENTER
+QUACK STRING "       @MMMMMB 2MMMW 7                   MMW7:aMMS; 7WB0Z:rMMMMMMM     ;    rBX      XMMWMMMMMX02 MMMMMMMMMMZ             8MMMMMMMB00@MMM8;MMM;ZM0.          7: 2WBBBBBBBBBBBBBBBBBBBWB"
+QUACK ENTER
+QUACK STRING "                                                                           ,                                             ZMM@WWWB000BBW@MMMMM@;:;;          iM@@MWBBBBBBBBBBBBBBBBBBBM."
+QUACK ENTER
+QUACK STRING "                                                                           ,                             ;XXS8ZZ0Z       MMWWWBBBBBBBBBW@@@W@MMMMM          MMM@WBBBBBBBBBBBBBBBBBBBWa"
+QUACK ENTER
+QUACK STRING "       :..  .,         i:  i,:.  ,   . :,        ::    .:.,  .,  ,:             :,             ,:  ..   2MMr,MMM@M      ZMWBBBBBBBBBBBBBBBBBW@@MMr         0M@WWBBBBBBBBBBBBBBBBBBBWW"
+QUACK ENTER
+QUACK STRING "       r08i2Ziar2; X2 BXX. 7WS:  r0 ZiSXS2 0  0,8Xi8:  iSWr;B;r:aSXSZ; SXW2 XS ZX2S i8  rZ  B aa7; ;88i  @W.; ;. Z     ,MMWBBBBBBBBBBBBBBBBBBWW@M         iM@WBBBBBBBBBBBBBBBBBBBBB@."
+QUACK ENTER
+QUACK STRING "        XX SZ;Z.Zi ra Xrr,  8     7@i Z  0:0  0.ZX7a.    0  Wii,W   aZ;0XaSXX7:2  W :8  rZ  W ;Xr;  7X  aMXBM8@WBM     S.XWBBBBBBBBBBBBBBBBBBBBMi         MMWBBBBBBBBBBBBBBBBBBBBB@r"
+QUACK ENTER
+QUACK STRING "        SS S7 8 X2,a; i:SB  B,     B  0,iZ 8;:8 8.:Z     B .B,, 0i:;2i XXa iM; 8,rZ :B,,:8:rZ ::;@, X2  SMMMMMMWMM      X@WBBBBBBBBBBBBBBBBBBB@a         XM@BBBBBBBBBBBBBBBBBBBBB@S"
+QUACK ENTER
+QUACK STRING "        .. .   . :;.  i;i   :      :   ;;   ;;  .  :.    :  ;ii  rr      .  ,  .;i   ;;;  ;i  ,;;.  .,  2MMZZX@M@8    rMM@WBBBBBBBBBBBBBBBBBBWZ         ,MMWBBBBBBBBBBBBBBBBBBBBW2"
+QUACK ENTER
+QUACK STRING "                                                                                                        :X,    7SS     SMWBBBBBBBBBBBBBBBBBBBi         .MMWBBBBBBBBBBBBBBBBBBBW@X"
+QUACK ENTER
+QUACK STRING "                                                                                                                      aM@BBBBBBBBBBBBBBBBBBBB,        ;MMWBBBBBBBBBBBBBBBBBBBW@;"
+QUACK ENTER
+QUACK STRING "                                                                                                                     iMMWBBBBBBBBBBBBBBBBBBWMMMZ,   iBMMWBBBBBBBBBBBBBBBBBBWWB"
+QUACK ENTER
+QUACK STRING "                                                                                                                      MMWBBBBBBBBBBBBBBBBBBW@MMMMMMMMMMWBBBBBBBBBBBBBBBBBBW@S"
+QUACK ENTER
+QUACK STRING "                                                                                                                      ZMWWBBBBBBBBBBBBBBBBBWWW@MMMMMMWWBBBBBBBBBBBBBBBBBW@8"
+QUACK ENTER
+QUACK STRING "                                                                                                                       BM@WBBBBBBBBBBBBBBBBBBBWWWWWWWBBBBBBBBBBBBBBBBWW@8,"
+QUACK ENTER
+QUACK STRING "                                                                                                                        SM@WWWWBBBBBBBBBBBBBBBBBBBBBBBBBBWWWWBBBBBWW@@a."
+QUACK ENTER
+QUACK STRING "                                                                                                                          0M@B@WWWWWWWWWWBBBWBBBBBBBBBBBW@; BWWW@@@8r"
+QUACK ENTER
+QUACK STRING "                                                                                                                              B@@@MMM0 SMWW@BWWWWWWWWWW@Z  @MMWa;"
+QUACK ENTER
+QUACK STRING "                                                                                                                                   ,7  B2W8 Z@@MMM0XMM0:  X;"
+QUACK ENTER
+QUACK STRING "                                                                                                                                      ."
+QUACK ENTER
+QUACK ENTER
