@@ -4,6 +4,7 @@
 * Target: any
 * Category: ascii
 * Attackmode: HID
+* Prop: Darren Kitchen and Everyone at Hak5 past and present
 
 ## Change Log
 | Version | Changes                       |
