@@ -10,7 +10,7 @@ QUACK STRING open mailbox
 QUACK ENTER
 QUACK STRING read leaflet
 QUACK ENTER
-QUACK STRING drop leadlet
+QUACK STRING drop leaflet
 QUACK ENTER
 QUACK STRING north
 QUACK ENTER
@@ -281,7 +281,7 @@ QUACK STRING drop all but torch
 QUACK ENTER
 QUACK e
 QUACK ENTER
-QUACK take coffin and openm it
+QUACK take coffin and open it
 QUACK ENTER
 QUACK take sceptre
 QUACK ENTER
@@ -443,7 +443,7 @@ sleep 15
 QUACK ENTER
 QUACK look
 QUACK ENTER
-QUACK read lablel
+QUACK read label
 QUACK ENTER
 sleep 15
 QUACK ENTER
@@ -477,7 +477,7 @@ QUACK sand
 QUACK ENTER
 QUACK dig in sand
 QUACK ENTER
-QUACK sig sand
+QUACK dig sand
 QUACK ENTER
 QUACK take scarab
 QUACK ENTER
@@ -573,7 +573,7 @@ QUACK w
 QUACK ENTER
 QUACK n
 QUACK ENTER
-QUACK take jade figureine
+QUACK take jade figurine
 QUACK ENTER
 QUACK e
 QUACK ENTER
@@ -739,7 +739,7 @@ QUACK give egg to thief
 QUACK ENTER
 QUACK kill thief
 QUACK ENTER
-QUACK kill thirf
+QUACK kill thief
 QUACK ENTER
 QUACK take all
 QUACK ENTER
@@ -759,7 +759,7 @@ QUACK e
 QUACK ENTER
 QUACK i
 QUACK ENTER
-QUACK put challice, egg, torch and diamond in case
+QUACK put chalice, egg, torch and diamond in case
 QUACK ENTER
 QUACK e
 QUACK ENTER
