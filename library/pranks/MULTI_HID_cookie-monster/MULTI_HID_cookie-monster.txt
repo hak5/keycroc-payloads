@@ -1,0 +1,27 @@
+# Title:      	Cookie Monster
+# Description:  Quacks for a cookie
+# Author:       Cribbit
+# Version:      1.0
+# Category:     Prank
+# Mad Prop:     Unkown at Brown University, C. D. Tavares.
+MATCH start_monster
+crocKeys=/root/loot/croc_char.log
+msg=( "give me a cookie?" "I want a cookie!" "Come on: I want a cookie!" "GIVE ME A COOKIE!" "I NEED a cookie!!!!!" " Please, just ONE cookie, I promise I'll go away!!" "YOU BAGBITER, KEEP YOUR ******* COOKIES!!" )
+
+while :
+do
+	for i in "${msg[@]}"; do
+		QUACK LOCK
+		QUACK STRING "$i"
+		QUACK ENTER
+		QUACK UNLOCK
+		sleep 3
+		if tail -c 6 "$crocKeys" | grep -q cookie; then
+		    QUACK ENTER
+			QUACK STRING "COOKIE!!! OM NOM NOM!!!"
+			sleep 1
+			exit
+		fi
+	done
+done
+
