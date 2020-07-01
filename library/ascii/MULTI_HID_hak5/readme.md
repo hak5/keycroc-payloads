@@ -6,13 +6,14 @@
 * Attackmode: HID
 * Prop: Darren Kitchen and Everyone at Hak5 past and present
 
+## Description
+Replaces hak5 with ascii art version
+
 ## Change Log
 | Version | Changes                       |
 | ------- | ------------------------------|
 | 1.0     | Initial release               |
 
-## Description
-Replaces hak5 with ascii art version
 
 ## Match
 (?i)hak5
