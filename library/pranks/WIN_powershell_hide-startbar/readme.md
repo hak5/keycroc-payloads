@@ -5,13 +5,13 @@
 * Category: pranks
 * Attackmode: HID
 
+## Description
+Hides the Window Start bar
+
 ## Change Log
 | Version | Changes                       |
 | ------- | ------------------------------|
 | 1.0     | Initial release               |
-
-## Description
-Hides the Window Start bar
 
 ## Match
 * hide_start
