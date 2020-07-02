@@ -6,7 +6,7 @@
 # Mad Prop:     Unkown at Brown University, C. D. Tavares.
 MATCH start_monster
 crocKeys=/root/loot/croc_char.log
-msg=( "give me a cookie?" "I want a cookie!" "Come on: I want a cookie!" "GIVE ME A COOKIE!" "I NEED a cookie!!!!!" " Please, just ONE cookie, I promise I'll go away!!" "YOU BAGBITER, KEEP YOUR ******* COOKIES!!" )
+msg=( "give me a cookie?" "I want a cookie!" "Come on: I want a cookie!" "GIVE ME A COOKIE!" "I NEED a cookie!!!!!" "Please, just ONE cookie, I promise I'll go away!!" "YOU BAGBITER, KEEP YOUR ******* COOKIES!!" )
 
 while :
 do
