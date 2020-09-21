@@ -1,0 +1,15 @@
+# Description:   Setup your wifi with adding your ssid and passwd to this payload and place in key croc payloads then type wifisetup
+# Author:        spywill
+# Version:       1.1
+# Category:      Key Croc
+#
+#
+MATCH wifisetup
+LED SETUP
+QUACK STRING "$(sed -i '/^[WS]/d' /root/udisk/config.txt)"
+QUACK ENTER
+sleep 1
+QUACK STRING "$(sed -i '9 a WIFI_SSID YOUR-SSID-HERE\nWIFI_PASS YOUR-PASSWD-HERE\nSSH ENABLE' /root/udisk/config.txt)"
+QUACK ENTER
+sleep 1
+LED FINISH
