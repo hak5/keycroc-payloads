@@ -1,0 +1,17 @@
+# Title:        Punish @Everyone
+# Description:  Punish the user for typing @everyone with a high pitch sound  
+# Author:       Cribbit
+# Version:      1.0
+# Category:     pranks
+# Target:       Windows 7+
+# Attackmodes:	HID
+# Notes:        Beep takes a frequency between 37 and 32767 and a time. 
+
+MATCH (?i)@everyone
+
+QUACK LOCK
+QUACK GUI r
+sleep 5
+QUACK STRING "powershell -NoP -NonI -W Hidden .([console]::beep(8000,5000))"
+QUACK ENTER
+QUACK UNLOCK
