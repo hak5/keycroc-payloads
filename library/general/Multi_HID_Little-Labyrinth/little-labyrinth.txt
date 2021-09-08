@@ -52,7 +52,7 @@ good_bye () {
 
 dead () {
 	quack_line "Your Dead :-(" 1
-	quack_line "Could have been worst, you might of have died of dysentery"
+	quack_line "Could have been worst, you might have died of dysentery"
 	quack_line "Please try again !!" 1
 	good_bye
 }
@@ -119,8 +119,9 @@ room_start () {
 
 
 room1 () {
-	quack_line "The room is well lit with a small table there is something on it!" 1
-	quack_line "The exits are north east and west." 1
+	quack_line "The room is well lit with a small table." 1
+	quack_line "There is something on it!"
+	quack_line "The exits are north, east and west." 1
 	while true; do
 		command=$( wait_input )
 		case $command in
@@ -130,11 +131,11 @@ room1 () {
 			e ) room2 ;;
 			i )
 				if [[ $noob -eq 0 ]]; then
-					quack_line "oh it's NOOB LUBE!!" 1
-					quack_line "you apply it liberally"
+					quack_line "Oh it's NOOB LUBE!!" 1
+					quack_line "You apply it liberally."
 					noob=1
 				else
-					quack_line "you have use the whole tube" 1
+					quack_line "You have use the whole tube." 1
 				fi ;;
 			q )
 				good_bye
@@ -233,7 +234,7 @@ room5 () {
 }
 
 room6 () {
-	quack_line "It look like a bar!!!" 1
+	quack_line "It looks like a bar!!!" 1
 	quack_line "The exits are north and south." 1
 	while true; do
 		command=$( wait_input )
@@ -275,8 +276,8 @@ room7 () {
 
 room8 () {
 #0303
-	quack_line "Wow, lots of arcade machines" 1
-	quack_line "what is this 1984"
+	quack_line "Wow, lots of arcade machines." 1
+	quack_line "What is this 1984!"
 	quack_line "The exits are south and west." 1
 	while true; do
 		command=$( wait_input )
@@ -286,7 +287,7 @@ room8 () {
 			w ) room21 ;;
 			e ) wall_desc ;;
 			i )
-				quack_line "You play of the machines for a bit" 1 
+				quack_line "You play on the machines for a bit" 1 
 				quack_line "Then you notice a leaflet."
 				quack_line "Feed up of playing by yourself? Rent a player 2 with player2rentals.com" ;;
 			q )
@@ -308,7 +309,7 @@ room9 () {
 			w ) room27 ;;
 			e ) wall_desc ;;
 			i )
-				quack_line "oh, it the mini I bet it's BLT drive when AWOL" 1 ;;
+				quack_line "Oh, it the mini. I bet it's BLT drive went AWOL" 1 ;;
 			q )
 				good_bye
 				;;
@@ -319,7 +320,7 @@ room9 () {
 
 room10 () {
 	quack_line "You enter hallway you find a packed of" 1
-	quack_line "Conficker doodles"
+	quack_line "Conficker doodles!"
 	quack_line "The exits are south and west." 1
 	while true; do
 		command=$( wait_input )
@@ -353,7 +354,7 @@ room11 () {
 			i )
 				quack_line "You sit on the sofa." 1
 				quack_line "There is something next to you." 
-				quack_line "It's a Fail Bus Ticket" 
+				quack_line "It's a Fail Bus Ticket." 
 				quack_line "Fail Bus going nowhere at the speed of fail." ;;
 			q )
 				good_bye
@@ -396,10 +397,10 @@ room13 () {
 			i )
 				if [[ $cow -eq 0 ]]; then
 					quack_line "It's dangerous to go alone, take this!" 1
-					quack_line "a small plush COW!!!"
+					quack_line "A small plush COW!!!"
 					cow=1
 				else
-					quack_line "Hey! Listen! I gave you the cow" 1
+					quack_line "Hey! Listen! I gave you the cow." 1
 				fi ;;
 			q )
 				good_bye
@@ -646,8 +647,8 @@ room22 () {
 			n ) room33 ;;
 			s|w|e ) quack_line "FLAMINGOS, if only you had an action figure with kung-fu grip" 1 ;;
 			i )
-				quack_line "Strange this flamingo is made of plastic, with a label on it" 1
-				quack_line "property of Paul" ;;
+				quack_line "Strange this flamingo is made of plastic, with a label on it." 1
+				quack_line "Property of Paul" ;;
 			q )
 				good_bye
 				;;
@@ -668,8 +669,8 @@ room23 () {
 			w ) wall_desc ;;
 			e ) room32 ;;
 			i )
-				quack_line "You tap on the window" 1
-				quack_line "they show you their multi pass" ;;
+				quack_line "You tap on the window." 1
+				quack_line "They show you their multi pass." ;;
 			q )
 				good_bye
 				;;
@@ -688,16 +689,16 @@ room24 () {
 			n ) wall_desc ;;
 			s ) 
 				if [[ $pineapple -eq 0 ]]; then
-					quack_line "did that wall just wobble?" 1
+					quack_line "Did that wall just wobble?" 1
 				else
 					room30 
 				fi ;;
 			w ) room32 ;;
-			e ) quack_line "a poster, i heart pizza" 1 ;;
+			e ) quack_line "A poster, i heart pizza" 1 ;;
 			i )
 				if [[ $pineapple -eq 0 ]]; then
-					quack_line "the fruit it's a pineapple with a small button." 1
-					QUACK STRING "you push the button for 4 seconds"
+					quack_line "The fruit it's a pineapple with a small button." 1
+					QUACK STRING "You push the button for 4 seconds"
 					QUACK DELAY 100
 					QUACK .
 					QUACK DELAY 100
@@ -709,12 +710,12 @@ room24 () {
 					pineapple=1
 				else
 					case $fox in
-							1 ) quack_line "Stop pressing the button you are going to make the fox angry" 1 ;;
-							2 ) quack_line "the fox raises an eye brow" 1 ;;
-							3 ) quack_line "the fox is starting to snarl" 1 ;;
-							4 ) quack_line "they are reaching for their ban hammer" 1 ;;
+							1 ) quack_line "Stop pressing the button you are going to make the fox angry." 1 ;;
+							2 ) quack_line "The fox raises an eye brow." 1 ;;
+							3 ) quack_line "The fox is starting to snarl." 1 ;;
+							4 ) quack_line "They are reaching for their ban hammer." 1 ;;
 							* )
-								quack_line "they hit you on your head" 1
+								quack_line "They hit you on your head." 1
 								dead
 								;;
 					esac				
@@ -776,9 +777,9 @@ room26 () {
 }
 
 room27 () {
-	quack_line "IT'S ROOM, OK" 1
-	quack_line "You don't like the description" 
-	quack_line "Make a pull request"
+	quack_line "IT'S ROOM, OK." 1
+	quack_line "You don't like the description." 
+	quack_line "Make a pull request."
 	quack_line "The exits are north, east and west." 1
 	while true; do
 		command=$( wait_input )
@@ -851,7 +852,7 @@ room30 () {
 		command=$( wait_input )
 		case $command in
 			n ) room24 ;;
-			s ) quack_line "how weird there seem to be a framed motherboard hanging on this wall." 1 ;;
+			s ) quack_line "How weird there seem to be a framed motherboard hanging on this wall." 1 ;;
 			w ) wall_desc ;;
 			e ) room28 ;;
 			i )
