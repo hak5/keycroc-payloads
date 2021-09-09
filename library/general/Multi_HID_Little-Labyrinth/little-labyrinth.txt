@@ -892,7 +892,8 @@ room31 () {
 }
 
 room32 () {
-	quack_line "This is not a room nor a pipe." 1
+	quack_line "ce n'est pas une chambre." 1
+	quack_line "This is not a room nor a pipe." 
 	quack_line "The exits are south, east and west." 1
 	while true; do
 		command=$( wait_input )
