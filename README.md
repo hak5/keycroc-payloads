@@ -1,7 +1,7 @@
 
 # Payload Library for the Key Croc by Hak5
 
-This repository contains payloads and extensions for the Hak5 Bash Bunny. Community developed payloads are listed and developers are encouraged to create pull requests to make changes to or submit new payloads.
+This repository contains payloads and extensions for the Hak5 Key Croc. Community developed payloads are listed and developers are encouraged to create pull requests to make changes to or submit new payloads.
 
 ## About the Key Croc
 
@@ -10,8 +10,8 @@ The Key Croc by Hak5 is a keylogger armed with pentest tools, remote access and 
 
 -   [Purchase at Hak5](https://hak5.org/products/key-croc "Purchase at Hak5")
 -   [Documentation](https://docs.hak5.org/hc/en-us/categories/360003797793-Key-Croc "Documentation")
--   [Bash Bunny Forums](https://forums.hak5.org/forum/106-key-croc/ "Forums")
--   Discord:  [https://hak5.org/discord](https://hak5.org/discord)
+-   [Forums](https://forums.hak5.org/forum/106-key-croc/ "Forums")
+-   [Discord](https://hak5.org/discord "Discord")
 
 ![Key Croc](https://cdn.shopify.com/s/files/1/0068/2142/products/keycroc1b_300x.png.jpg)
 
