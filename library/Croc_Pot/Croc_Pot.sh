@@ -2,15 +2,15 @@
 #
 ##
 # Title:         Croc_Pot
-# Description:   Email KeyCroc INFO & Log files & Nmap scan Plus save to loot folder and more
+# Description:   Send E-mail, Status of keycroc, Basic Nmap, TCPdump, Install payload,
+#                SSH to HAK5 gear, Reverse ssh tunnel, and more
 # Author:        Spywill
-# Version:       1.5.2
+# Version:       1.5.3
 # Category:      Key Croc
 ##
 ##
 #----Payload  Variables
 ##
-DATE=$(date +%b-%d-%y---%r)
 LINE=$(perl -e 'print "=" x 80,"\n"')
 LINE_=$(perl -e 'print "*" x 10,"\n"')
 LINE_A=$(perl -e 'print "-" x 15,"\n"')
@@ -18,9 +18,8 @@ LINE_A=$(perl -e 'print "-" x 15,"\n"')
 #----Create Croc_Pot folders
 ##
 if [[ -d "/root/udisk/loot/Croc_Pot" && "/root/udisk/tools/Croc_Pot" ]]; then
-	sleep 1
+	LED B
 else
-	sleep 1
 	mkdir -p /root/udisk/loot/Croc_Pot /root/udisk/tools/Croc_Pot
 fi
 ##
@@ -95,12 +94,12 @@ fi
 	echo -ne "\n\n\e[41;38;5;232m${LINE}${clear}
 \e[40;31m${LINE_A}${clear}\e[40m»${clear}\e[40;31mKEYCROC${clear}\e[40m-${clear}\e[40;31mHAK${clear}\e[40m${array[0]} ${clear}\e[40m«${clear}\e[40;31m---------${clear}\e[41;38;5;232m${array[1]}${clear}\e[40m${yellow} $(hostname) IP: $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-) $(internet_test)         ${clear}
 \e[40;31m   DEVELOPED BY ${clear}\e[40mSPYWILL ${clear}\e[40m               ${clear}\e[41;38;5;232m§${clear}\e[40m${yellow} $(hostname) VER: $(cat /root/udisk/version.txt) *TARGET-PC:${green}$(OS_CHECK)   $(FILL_IN)${clear}
-\e[40;31m   DATE OF SCAN${clear}\e[40m ${DATE}${clear}\e[41;38;5;232mΩ${clear}\e[40m${yellow} $(hostname) keyboard: $(sed -n 9p /root/udisk/config.txt)           ${clear}
-\e[40;31m${LINE_A}${clear}\e[40;92m»CROC_POT«\e[40;31m--${clear}\e[40m${yellow}VER:1.5.2\e[40;31m---${clear}\e[41;38;5;232m${array[2]}${clear}\e[40m${yellow} CPU TEMP:$(cat /sys/class/thermal/thermal_zone0/temp)°C USAGE:$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}') MEM:$(free -m | awk 'NR==2{printf "%.2f%%", $3/$2*100 }')   ${clear}
+\e[40;31m   DATE OF SCAN${clear}\e[40m $(date +%b-%d-%y---%r)${clear}\e[41;38;5;232mΩ${clear}\e[40m${yellow} $(hostname) keyboard: $(sed -n 9p /root/udisk/config.txt)           ${clear}
+\e[40;31m${LINE_A}${clear}\e[40;92m»CROC_POT«\e[40;31m--${clear}\e[40m${yellow}VER:1.5.3\e[40;31m---${clear}\e[41;38;5;232m${array[2]}${clear}\e[40m${yellow} CPU TEMP:$(cat /sys/class/thermal/thermal_zone0/temp)°C USAGE:$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}') MEM:$(free -m | awk 'NR==2{printf "%.2f%%", $3/$2*100 }')   ${clear}
 \e[41;38;5;232m${LINE}${clear}\n\n"	
 }
 function croc_title_loot() {
-	echo -ne "\n${LINE}\n\t${LINE_A}>KEYCROC-HAK5<${LINE_A}\n\t\tDEVELOPED BY SPYWILL\n\t\tDATE OF SCAN-${DATE}\n\t${LINE_A}>CROC_POT<${LINE_A}\n${LINE}\n\n"
+	echo -ne "\n${LINE}\n\t${LINE_A}>KEYCROC-HAK5<${LINE_A}\n\t\tDEVELOPED BY SPYWILL\n\t\tDATE OF SCAN-$(date +%b-%d-%y---%r)\n\t${LINE_A}>CROC_POT<${LINE_A}\n${LINE}\n\n"
 }
 function invalid_entry() {
 	LED R
@@ -134,7 +133,7 @@ if [ "$(OS_CHECK)" = LINUX ]; then
 fi
 fi
 ##
-#----Ckeck for target PC ip
+#----Check for target PC ip
 ##
 function os_ip() {
 if [ "$(OS_CHECK)" = WINDOWS ]; then
@@ -163,13 +162,13 @@ function nmap_menu() {
 	local LOOT_NMAP=/root/udisk/loot/Croc_Pot/KeyCroc_NMAP.txt
 	echo -ne "$(Info_Screen '
 -Start some basic nmap scan and save to loot folder\n
--Enter IP for scan or default will be target pc ip\n'$(os_ip))${clear}\n\n"
+-Enter IP for scan or default will be target pc ip\n')${clear}$(os_ip)\n\n"
 ##
 #----Nmap User IP Input Function
 ##
 user_ip_f() {
 	read_all ENTER IP TO USE FOR NMAP SCAN AND PRESS [ENTER]
-if [[ "${r_a}" == +([0-9]).+([0-9]).+([0-9]).+([0-9]) ]]; then
+if [[ "${r_a}" =~ ^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))))$ ]]; then
 	IP_SETUP=${r_a}
 	echo -ne "\t${LINE_}\e[40m$(ColorGreen 'USING IP THAT WAS ENTER')${clear}${r_a}\n"
 else
@@ -4108,10 +4107,10 @@ function croc_edit_menu() {
 	LED B
 	croc_title
 ##
-#----Edit Payload files Function
+#----Edit all files Function
 ##
-edit_payload() {
-	cd /root/udisk/payloads
+edit_all() {
+	cd ${*}
 	ls -R --color=auto
 	ls -aRd $PWD/* --color=auto
 	echo ""
@@ -4123,34 +4122,22 @@ else
 fi
 }
 ##
+#----Edit Payload files Function
+##
+edit_payload() {
+	edit_all /root/udisk/payloads
+}
+##
 #----Edit Tools files Function
 ##
 edit_tools() {
-	cd /root/udisk/tools
-	ls -R --color=auto
-	ls -aRd $PWD/* --color=auto
-	echo ""
-	read_all ENTER THE FILE NAME TO EDIT AND PRESS [ENTER]
-if [ -e "${r_a}" ]; then
-	nano ${r_a}
-else
-	invalid_entry
-fi
+	edit_all /root/udisk/tools
 }
 ##
 #----Edit loot files Function
 ##
 edit_loot() {
-	cd /root/udisk/loot
-	ls -R --color=auto
-	ls -aRd $PWD/* --color=auto
-	echo ""
-	read_all ENTER THE FILE NAME TO EDIT AND PRESS [ENTER]
-if [ -e "${r_a}" ]; then
-	nano ${r_a}
-else
-	invalid_entry
-fi
+	edit_all /root/udisk/loot
 }
 ##
 #----Edit Config files Function
@@ -4166,16 +4153,7 @@ fi
 #----Edit Path To file Function
 ##
 user_file() {
-	cd
-	ls -aRd $PWD/* --color=auto
-	ls -R --color=auto
-	echo ""
-	read_all ENTER THE PATH TO FILE NAME TO EDIT AND PRESS [ENTER]
-if [ -e "${r_a}" ]; then
-	nano ${r_a}
-else
-	invalid_entry
-fi
+	edit_all
 }
 ##
 #----Edit remove file Function
@@ -4380,6 +4358,17 @@ MenuEnd
 function ssh_menu() {
 	LED B
 	clear
+#
+# Validate IP v4 or v6 address and start ssh to hak5 device
+#
+ip_check_ssh() {
+if [[ "${r_a}" =~ ^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))))$ ]]; then
+	ssh root@${r_a}
+else
+	echo -ne "\e[40;4;5m$(ColorRed 'USING DEFAULT IP')${clear}${1}"
+	ssh root@${1}
+fi
+}
 ##
 #----SSH check devices for connection
 ##
@@ -4406,7 +4395,7 @@ fi
 ##
 owl_check() {
 	local OWL_IP=$(arp -a | sed -ne '/00:00:00:00:00:00/p' | sed -e 's/.*(\(.*\)).*/\1/')  #place Owl mac here
-if [[ "${OWL_IP}" == +([0-9]).+([0-9]).+([0-9]).+([0-9]) ]]; then
+if [[ "${OWL_IP}" =~ ^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))))$ ]]; then
 	IP_O=${OWL_IP}
 else
 	IP_O=172.16.56.1
@@ -4433,7 +4422,7 @@ fi
 #----SSH get mac addresses
 ##
 get_mac () {
-	echo -ne "\e[40;93mMAC: ${green}$(arp -n ${1} | awk '/'${1}'/{print $3}' | sed -e 's/HWaddress//g')${clear}"
+	echo -ne "\e[40;93mMAC:${clear}\e[40;32m$(arp -n ${1} | awk '/'${1}'/{print $3}' | sed -e 's/HWaddress//g') ${clear}"
 }
 	echo -ne "$(Info_Screen '
 -SSH into your HAK5 gear\n
@@ -4441,12 +4430,12 @@ get_mac () {
 -Reverse ssh tunnel, Create SSH Public/Private Key\n
 -Ensure your devices are connected to the same local network As keycroc\n')${clear}\n"
 check_device $(os_ip) TARGET PC: $(public_ip) ; port_check $(os_ip)
-check_device 172.16.42.1 WIFI PINEAPPLE: ; get_mac 172.16.42.1 ; port_check 172.16.42.1
-check_device 172.16.32.1 SQUIRREL : ; get_mac 172.16.32.1 ; port_check 172.16.32.1
-check_device 172.16.84.1 TURTLE : ; get_mac 172.16.84.1 ; port_check 172.16.84.1
-shark_check ; check_device ${IP_F} SHARK JACK: ; get_mac ${IP_F} ; port_check ${IP_F}
-#owl_check ; check_device ${IP_O} OWL : $(get_mac) ; port_check ${IP_O}
-#check_device 172.16.64.1 BASH BUNNY: $(get_mac) ; port_check 172.16.64.1
+check_device 172.16.42.1 WIFI PINEAPPLE: $(get_mac "172.16.42.1") ; port_check 172.16.42.1
+check_device 172.16.32.1 SQUIRREL : $(get_mac "172.16.32.1") ; port_check 172.16.32.1
+check_device 172.16.84.1 TURTLE : $(get_mac "172.16.84.1") ; port_check 172.16.84.1
+shark_check ; check_device ${IP_F} SHARK JACK: $(get_mac) ${IP_F} ; port_check ${IP_F}
+#owl_check ; check_device ${IP_O} OWL : $(get_mac "${IP_O}") ; port_check ${IP_O}
+#check_device 172.16.64.1 BASH BUNNY: $(get_mac "172.16.64.1") ; port_check 172.16.64.1
 echo -ne "\e[48;5;202;30m${LINE}${clear}\n"
 ##
 #----SSH keycroc to target pc
@@ -4490,12 +4479,7 @@ ssh_pineapple() {
 	clear
 ssh_shell() {
 	read_all ENTER WIFI PINEAPPLE IP FOR SSH AND PRESS [ENTER]
-if [[ "${r_a}" == +([0-9]).+([0-9]).+([0-9]).+([0-9]) ]]; then
-	ssh root@${r_a}
-else
-	echo -ne "\e[40;4;5m$(ColorRed 'USING WIFI PINEAPPLE DEFAULT IP 172.16.42.1')${clear}"
-	ssh root@172.16.42.1
-fi
+	ip_check_ssh 172.16.42.1
 }
 ##
 #----SSH start wifi pineapple web UI
@@ -4581,48 +4565,28 @@ MenuEnd
 ##
 ssh_squirrel() {
 	read_all ENTER PACKET SQUIRREL IP FOR SSH AND PRESS [ENTER]
-if [[ "${r_a}" == +([0-9]).+([0-9]).+([0-9]).+([0-9]) ]]; then
-	ssh root@${r_a}
-else
-	echo -ne "\e[40;4;5m$(ColorRed 'USING PACKET SQUIRREL DEFAULT IP 172.16.32.1')${clear}"
-	ssh root@172.16.32.1
-fi
+	ip_check_ssh 172.16.32.1
 }
 ##
 #----SSH to lan turtle
 ##
 ssh_turtle() {
 	read_all ENTER LAN TURTLE IP FOR SSH AND PRESS [ENTER]
-if [[ "${r_a}" == +([0-9]).+([0-9]).+([0-9]).+([0-9]) ]]; then
-	ssh root@${r_a}
-else
-	echo -ne "\e[40;4;5m$(ColorRed 'USING LAN TURTLE DEFAULT IP 172.16.84.1')${clear}"
-	ssh root@172.16.84.1
-fi
+	ip_check_ssh 172.16.84.1
 }
 ##
 #----SSH to signal owl
 ##
 ssh_owl() {
 	read_all ENTER SIGNAL OWL IP FOR SSH AND PRESS [ENTER]
-if [[ "${r_a}" == +([0-9]).+([0-9]).+([0-9]).+([0-9]) ]]; then
-	ssh root@${r_a}
-else
-	echo -ne "\e[40;m$(ColorGreen 'SIGNAL OWL IP:')${clear}"${IP_O}
-	ssh root@${IP_O}
-fi
+	ip_check_ssh ${IP_O}
 }
 ##
 #----SSH to shark jack
 ##
 ssh_shark() {
 	read_all ENTER SHARK JACK IP FOR SSH AND PRESS [ENTER]
-if [[ "${r_a}" == +([0-9]).+([0-9]).+([0-9]).+([0-9]) ]]; then
-	ssh root@${r_a}
-else
-	echo -ne "\e[40;m$(ColorGreen 'SHARK JACK IP:')${clear}"${IP_F}
-	ssh root@${IP_F}
-fi
+	ip_check_ssh ${IP_F}
 }
 ##
 #----SSH to bash bunny
