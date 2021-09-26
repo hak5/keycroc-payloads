@@ -197,7 +197,7 @@ room4 () {
 			w ) wall_desc ;;
 			e ) wall_desc ;;
 			i )
-				quack_line "You stroke the cat, it purrs generally." 1 ;;
+				quack_line "You stroke the cat, it purrs gently." 1 ;;
 			q )
 				good_bye
 				;;
@@ -777,7 +777,7 @@ room26 () {
 }
 
 room27 () {
-	quack_line "IT'S ROOM, OK." 1
+	quack_line "IT'S A ROOM, OK." 1
 	quack_line "You don't like the description." 
 	quack_line "Make a pull request."
 	quack_line "The exits are north, east and west." 1
