@@ -2,7 +2,7 @@
 # Title:      	Little Labyrinth
 # Description:  Quacking text adventure
 # Author:       Cribbit
-# Version:      1.0
+# Version:      1.1
 # Category:     General
 # Prop:         Andrew Petro - BashVenture And All the Hak5 team!!!
 
@@ -18,6 +18,9 @@ pineapple=0
 fox=1
 damage=0
 fight=0
+toby=0
+sunglasses=0
+prescript=0
 
 quack_line () {
     if [[ $2 -eq 1 ]]; then
@@ -52,7 +55,7 @@ good_bye () {
 
 dead () {
 	quack_line "Your Dead :-(" 1
-	quack_line "Could have been worst, you might have died of dysentery"
+	quack_line "Could have been worst, you might have died of dysentery."
 	quack_line "Please try again !!" 1
 	good_bye
 }
@@ -119,6 +122,9 @@ room_start () {
 
 
 room1 () {
+	# https://www.youtube.com/watch?v=vsJn6Z34B8s
+	# 0402
+	# https://www.youtube.com/watch?v=teHRnEE0y4g
 	quack_line "The room is well lit with a small table." 1
 	quack_line "There is something on it!"
 	quack_line "The exits are north, east and west." 1
@@ -167,6 +173,7 @@ room2 () {
 }
 
 room3 () {
+	# https://www.youtube.com/watch?v=gb6YAhTnMX8
 	quack_line "The room has a high ceiling held up by four large pillars" 1
 	quack_line "The exits are north and east." 1
 	while true; do
@@ -213,18 +220,29 @@ room5 () {
 	quack_line "Well, it's not for you." 1 
 	quack_line "You're just looking at a text editor." 
 	quack_line "You'd have to turn your display brightness up to max." 
-	quack_line "And it still wouldn't be a bright and shiny as this." 
+	quack_line "And it still wouldn't be as bright and shiny as this." 
 	quack_line "It's so bright you can't see the exits." 1
 	while true; do
 		command=$( wait_input )
 		case $command in
-			n ) room14 ;;
+			n ) 
+				if [[ $sunglasses -eq 0 ]]; then
+					quack_line "It's so bright!!" 1
+					quack_line "You can't find the door!!" 
+				else
+					room14
+				fi ;;
 			s ) room3 ;;
 			w ) wall_desc;;
 			e ) wall_desc ;;
 			i )
-				quack_line "You search your pockets for sunglasses." 1 
-				quack_line "You don't have any." ;;
+				if [[ $sunglasses -eq 0 ]]; then 
+					quack_line "You search your pockets for sunglasses." 1 
+					quack_line "You don't have any."
+				else
+					quack_line "You look through the sunglasses." 1
+					quack_line "And see a door to the north."
+				fi ;;
 			q )
 				good_bye
 				;;
@@ -275,7 +293,9 @@ room7 () {
 }
 
 room8 () {
-#0303
+	# 0303
+	# https://www.youtube.com/watch?v=qRTruDjAeaI
+	# https://www.youtube.com/watch?v=-_ISnUhs1CE
 	quack_line "Wow, lots of arcade machines." 1
 	quack_line "What is this 1984!"
 	quack_line "The exits are south and west." 1
@@ -299,6 +319,7 @@ room8 () {
 }
 
 room9 () {
+	# https://www.youtube.com/watch?v=RfzKlge4los
 	quack_line "It's a store room. It's full of old MicroShaft products" 1
 	quack_line "The exits are west." 1
 	while true; do
@@ -319,15 +340,16 @@ room9 () {
 }
 
 room10 () {
-	quack_line "You enter hallway you find a packed of" 1
+	# https://www.youtube.com/watch?v=zUYq5FSv5Rs
+	quack_line "You enter a hallway and find a packet of" 1
 	quack_line "Conficker doodles!"
-	quack_line "The exits are south and west." 1
+	quack_line "The exit is south." 1
 	while true; do
 		command=$( wait_input )
 		case $command in
 			n ) wall_desc ;;
 			s ) room4 ;;
-			w ) room14 ;;
+			w ) wall_desc ;;
 			e ) wall_desc ;;
 			i )
 				quack_line "You look at the use by date 2009." 1
@@ -341,6 +363,8 @@ room10 () {
 }
 
 room11 () {
+	# 0310
+	# https://www.youtube.com/watch?v=umRFauwT7jI
 	quack_line "You enter what looks like a living room." 1
 	quack_line "That sofa looks comfy."
 	quack_line "The exits are north and south." 1
@@ -365,6 +389,7 @@ room11 () {
 }
 
 room12 () {
+	# https://www.youtube.com/watch?v=Qu8UHJdE8Gk
 	quack_line "There is someone standing in the corner, they look upset" 1
 	quack_line "The exits are north." 1
 	while true; do
@@ -375,7 +400,21 @@ room12 () {
 			w ) wall_desc ;;
 			e ) wall_desc ;;
 			i )
-				quack_line "They say their name is TobyToby and they are suffering from Borked Bits" 1 ;;
+				if [[ $prescript -eq 0 ]]; then
+					quack_line "They say their name is TobyToby and they are suffering from Borked Bits." 1
+					toby=1
+				elif [[ $prescript -eq 1 ]]; then
+					if [[ $toby -eq 0 ]]; then
+						quack_line "Their name is TobyToby and they are suffering from Borked Bits.." 1	
+					fi
+					quack_line "You give TobyToby the prescription." 1 
+					quack_line "In return he gives you some sunglasses." 1
+					sunglasses=1
+					prescript=2	
+				else	
+					quack_line "TobyToby is feeling better." 1	
+				fi
+				;;
 			q )
 				good_bye
 				;;
@@ -411,16 +450,16 @@ room13 () {
 }
 
 room14 () {
+	# https://www.youtube.com/watch?v=zno4lkg-Sfw
 	quack_line "Why, that's the second biggest network monkey" 1
 	quack_line "I've ever seen" 
-	quack_line "The exits are south, east and west." 1
+	quack_line "The exits are south and west." 1
 	while true; do
 		command=$( wait_input )
 		case $command in
-			n ) wall_desc ;;
+			n|e ) wall_desc ;;
 			s ) room5 ;;
 			w ) room15 ;;
-			e ) room10 ;;
 			i )
 				quack_line "You have a cuddle with the network monkey, and feel better about your predicament" 1 ;;
 			q )
@@ -433,6 +472,7 @@ room14 () {
 }
 
 room15 () {
+	# https://www.youtube.com/watch?v=Z5L3f1qb1VA
 	quack_line "Room 101." 1
 	quack_line "The exits are south and east." 1
 	while true; do
@@ -474,7 +514,11 @@ room16 () {
 
 }
 
-room17 () {
+room17 () {	
+	# 1803 - 1805
+	# https://www.youtube.com/watch?v=xLlwlVaRuik
+	# https://www.youtube.com/watch?v=Vsc-SA0g5Fo
+	# https://www.youtube.com/watch?v=WoX6oQwyb3c
 	quack_line "Not another hallway." 1
 	quack_line "It's like I'm running out of ideas for room descriptions."
 	quack_line "The exits are south and west." 1
@@ -486,7 +530,14 @@ room17 () {
 			w ) room7 ;;
 			e ) wall_desc ;;
 			i )
-				quack_line "There is nothing in this room." 1 ;;
+				if [[ $prescript -eq 0 ]]; then
+					quack_line "You find the best co-host Greg Dinosaur just hanging out." 1 
+					quack_line "He give you a prescription for a terabyte raid array." 1
+					prescript=1
+				else	
+					quack_line "Greg Dinosaur is still just hanging out." 1	
+				fi
+				;;
 			q )
 				good_bye
 				;;
@@ -498,7 +549,7 @@ room17 () {
 
 room18 () {
 	quack_line "I think you ought to know I'm feeling very depressed." 1
-	quack_line "Brain the size of a planet"
+	quack_line "Brain the size of a planet."
 	quack_line "And all you've got me doing is QUACKing out new room descriptions." 
 	quack_line "Who ever heard of a croc quacking?" 1
 	while true; do
@@ -520,7 +571,8 @@ room18 () {
 }
 
 room19 () {
-	quack_line "As you walk into the room the door lock behind you!" 1
+	# just watch series 1
+	quack_line "As you walk into the room, the door locks behind you!" 1
 	QUACK DELAY 500
 	quack_line "You start to see a faint red glow, then you hear:" 
 	QUACK DELAY 500
@@ -535,53 +587,53 @@ room19 () {
 		command=$( wait_input )
 		case $command in
 			i )	 
-				quack_line "EVIL SERVER goes from the attack" 1 
+				quack_line "EVIL SERVER goes from the attack!" 1 
 				((fight=fight+1))			
 				case $fight in
 					1 ) 
 						if [[ $noob -eq 0 ]]; then
-							quack_line "You didn't apply the noob lube you take a hit"
+							quack_line "You didn't apply the noob lube you take a hit."
 							((damage=damage+1))
 						else	
-							quack_line "The noob lube protected you from the hit"	
+							quack_line "The noob lube protected you from the hit."	
 						fi 
 						;;
 					2 ) 
 						if [[ $abs -eq 0 ]]; then
-							quack_line "You didn't find the special powers you take a hit"
+							quack_line "You didn't find the special powers you take a hit."
 							((damage=damage+1))
 						else	
-							quack_line "Your newly acquired abs protected you from the hit"	
+							quack_line "Your newly acquired abs protected you from the hit."	
 						fi 
 						;;
 					4 ) 
 						if [[ $free -eq 0 ]]; then
-							quack_line "Wait what you didn't get you free copy of nmap"
-							quack_line "Sorry, you take a hit"
+							quack_line "Wait what you didn't get you free copy of nmap."
+							quack_line "Sorry, you take a hit."
 							((damage=damage+1))
 						else	
-							quack_line "The copy of nmap protected you from the hit" 	
+							quack_line "The copy of nmap protected you from the hit." 	
 						fi 
 						;;
 					3 ) 
 						if [[ $cow -eq 0 ]]; then
-							quack_line "What you didn't get the cow" 
+							quack_line "What you didn't get the cow!" 
 							quack_line "What's wrong with you?" 
-							quack_line "You take a hit" 
+							quack_line "You take a hit." 
 							((damage=damage+1))
 						else	
-							quack_line "The Cow protected you from the hit" 	
+							quack_line "The Cow protected you from the hit." 	
 						fi 
 						;;
 					* )
 						if [[ $damage -gt 2 ]]; then
-							quack_line "You've taken to much damage" 
+							quack_line "You've taken to much damage!!!" 
 							dead
 						else
 							quack_line "You walk over, unplug him and leave through the door." 1	
 							QUACK DELAY 500
 							quack_line "That was a bit anticlimatic." 1	
-							quack_line "Thank you for playing" 
+							quack_line "Thank you for playing!" 
 							QUACK DELAY 500
 							ascii_art 	
 							good_bye
@@ -616,6 +668,7 @@ room20 () {
 }
 
 room21 () {
+	# https://www.youtube.com/watch?v=R-_1729sU8k
 	quack_line "It's a kitchen!!!" 1
 	quack_line "Maybe there is something to eat" 
 	quack_line "The exits are north and east." 1
@@ -639,6 +692,10 @@ room21 () {
 }
 
 room22 () {
+	# 411
+	# https://www.youtube.com/watch?v=HGdZRx-39mM
+	# 403
+	# https://www.youtube.com/watch?v=lkLV7xGIso0
 	quack_line "This room is full of flamingos" 1
 	quack_line "The exits are north." 1
 	while true; do
@@ -731,7 +788,9 @@ room24 () {
 }
 
 room25 () {
-#2316	
+	# 2316 
+	# You have to watch Sarah impression of Snubs
+	# https://www.youtube.com/watch?v=3WfjlvfOrcY
 	quack_line "There is a large tree in front of you." 1
 	quack_line "With a squirrel on one of the brunches." 
 	quack_line "The exits are north and east." 1
@@ -846,6 +905,7 @@ room29 () {
 }
 
 room30 () {
+	# https://www.youtube.com/watch?v=oIeKnB_5u2U
 	quack_line "This room seem to be made of fake bricks." 1
 	quack_line "The exits are north and east." 1
 	while true; do
@@ -866,6 +926,7 @@ room30 () {
 }
 
 room31 () {
+	# https://www.youtube.com/watch?v=6HWcgaRs9CM
 	quack_line "There is a girl she says she can give special powers." 1
 	quack_line "The exits are south." 1
 	while true; do
@@ -892,6 +953,7 @@ room31 () {
 }
 
 room32 () {
+	# Rene Magritte - The Treachery of Images
 	quack_line "ce n'est pas une chambre." 1
 	quack_line "This is not a room nor a pipe." 
 	quack_line "The exits are south, east and west." 1
@@ -914,6 +976,7 @@ room32 () {
 
 room33 () {
 	# 2601
+	# https://www.youtube.com/watch?v=daLhn8lIbGo
 	quack_line "The room you have entered is covered in some sort of drape." 1
 	quack_line "The exits are north, south and west." 1
 	while true; do
@@ -935,4 +998,3 @@ room33 () {
 }
 
 room_start
-
