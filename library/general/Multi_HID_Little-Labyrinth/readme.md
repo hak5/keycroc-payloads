@@ -10,6 +10,7 @@
 | Version | Changes                       |
 | ------- | ------------------------------|
 | 1.0     | Initial release               |
+| 1.1     | Added fetch quest             |
 
 ## Description
 Quacking text adventure

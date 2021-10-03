@@ -2,7 +2,7 @@
 # Title:      	Little Labyrinth
 # Description:  Quacking text adventure
 # Author:       Cribbit
-# Version:      1.0
+# Version:      1.1
 # Category:     General
 # Prop:         Andrew Petro - BashVenture And All the Hak5 team!!!
 
@@ -18,6 +18,9 @@ pineapple=0
 fox=1
 damage=0
 fight=0
+toby=0
+sunglasses=0
+prescript=0
 
 quack_line () {
     if [[ $2 -eq 1 ]]; then
@@ -52,7 +55,7 @@ good_bye () {
 
 dead () {
 	quack_line "Your Dead :-(" 1
-	quack_line "Could have been worst, you might have died of dysentery"
+	quack_line "Could have been worst, you might have died of dysentery."
 	quack_line "Please try again !!" 1
 	good_bye
 }
@@ -222,13 +225,24 @@ room5 () {
 	while true; do
 		command=$( wait_input )
 		case $command in
-			n ) room14 ;;
+			n ) 
+				if [[ $sunglasses -eq 0 ]]; then
+					quack_line "It's so bright!!" 1
+					quack_line "You can't find the door!!" 
+				else
+					room14
+				fi ;;
 			s ) room3 ;;
 			w ) wall_desc;;
 			e ) wall_desc ;;
 			i )
-				quack_line "You search your pockets for sunglasses." 1 
-				quack_line "You don't have any." ;;
+				if [[ $sunglasses -eq 0 ]]; then 
+					quack_line "You search your pockets for sunglasses." 1 
+					quack_line "You don't have any."
+				else
+					quack_line "You look through the sunglasses." 1
+					quack_line "And see a door to the north."
+				fi ;;
 			q )
 				good_bye
 				;;
@@ -329,13 +343,13 @@ room10 () {
 	# https://www.youtube.com/watch?v=zUYq5FSv5Rs
 	quack_line "You enter a hallway and find a packet of" 1
 	quack_line "Conficker doodles!"
-	quack_line "The exits are south and west." 1
+	quack_line "The exit is south." 1
 	while true; do
 		command=$( wait_input )
 		case $command in
 			n ) wall_desc ;;
 			s ) room4 ;;
-			w ) room14 ;;
+			w ) wall_desc ;;
 			e ) wall_desc ;;
 			i )
 				quack_line "You look at the use by date 2009." 1
@@ -386,7 +400,21 @@ room12 () {
 			w ) wall_desc ;;
 			e ) wall_desc ;;
 			i )
-				quack_line "They say their name is TobyToby and they are suffering from Borked Bits" 1 ;;
+				if [[ $prescript -eq 0 ]]; then
+					quack_line "They say their name is TobyToby and they are suffering from Borked Bits." 1
+					toby=1
+				elif [[ $prescript -eq 1 ]]; then
+					if [[ $toby -eq 0 ]]; then
+						quack_line "Their name is TobyToby and they are suffering from Borked Bits.." 1	
+					fi
+					quack_line "You give TobyToby the prescription." 1 
+					quack_line "In return he gives you some sunglasses." 1
+					sunglasses=1
+					prescript=2	
+				else	
+					quack_line "TobyToby is feeling better." 1	
+				fi
+				;;
 			q )
 				good_bye
 				;;
@@ -425,14 +453,13 @@ room14 () {
 	# https://www.youtube.com/watch?v=zno4lkg-Sfw
 	quack_line "Why, that's the second biggest network monkey" 1
 	quack_line "I've ever seen" 
-	quack_line "The exits are south, east and west." 1
+	quack_line "The exits are south and west." 1
 	while true; do
 		command=$( wait_input )
 		case $command in
-			n ) wall_desc ;;
+			n|e ) wall_desc ;;
 			s ) room5 ;;
 			w ) room15 ;;
-			e ) room10 ;;
 			i )
 				quack_line "You have a cuddle with the network monkey, and feel better about your predicament" 1 ;;
 			q )
@@ -503,7 +530,14 @@ room17 () {
 			w ) room7 ;;
 			e ) wall_desc ;;
 			i )
-				quack_line "You find the best co-host Greg Dinosaur just hanging out." 1 ;;
+				if [[ $prescript -eq 0 ]]; then
+					quack_line "You find the best co-host Greg Dinosaur just hanging out." 1 
+					quack_line "He give you a prescription for a terabyte raid array." 1
+					prescript=1
+				else	
+					quack_line "Greg Dinosaur is still just hanging out." 1	
+				fi
+				;;
 			q )
 				good_bye
 				;;
@@ -553,53 +587,53 @@ room19 () {
 		command=$( wait_input )
 		case $command in
 			i )	 
-				quack_line "EVIL SERVER goes from the attack" 1 
+				quack_line "EVIL SERVER goes from the attack!" 1 
 				((fight=fight+1))			
 				case $fight in
 					1 ) 
 						if [[ $noob -eq 0 ]]; then
-							quack_line "You didn't apply the noob lube you take a hit"
+							quack_line "You didn't apply the noob lube you take a hit."
 							((damage=damage+1))
 						else	
-							quack_line "The noob lube protected you from the hit"	
+							quack_line "The noob lube protected you from the hit."	
 						fi 
 						;;
 					2 ) 
 						if [[ $abs -eq 0 ]]; then
-							quack_line "You didn't find the special powers you take a hit"
+							quack_line "You didn't find the special powers you take a hit."
 							((damage=damage+1))
 						else	
-							quack_line "Your newly acquired abs protected you from the hit"	
+							quack_line "Your newly acquired abs protected you from the hit."	
 						fi 
 						;;
 					4 ) 
 						if [[ $free -eq 0 ]]; then
-							quack_line "Wait what you didn't get you free copy of nmap"
-							quack_line "Sorry, you take a hit"
+							quack_line "Wait what you didn't get you free copy of nmap."
+							quack_line "Sorry, you take a hit."
 							((damage=damage+1))
 						else	
-							quack_line "The copy of nmap protected you from the hit" 	
+							quack_line "The copy of nmap protected you from the hit." 	
 						fi 
 						;;
 					3 ) 
 						if [[ $cow -eq 0 ]]; then
-							quack_line "What you didn't get the cow" 
+							quack_line "What you didn't get the cow!" 
 							quack_line "What's wrong with you?" 
-							quack_line "You take a hit" 
+							quack_line "You take a hit." 
 							((damage=damage+1))
 						else	
-							quack_line "The Cow protected you from the hit" 	
+							quack_line "The Cow protected you from the hit." 	
 						fi 
 						;;
 					* )
 						if [[ $damage -gt 2 ]]; then
-							quack_line "You've taken to much damage" 
+							quack_line "You've taken to much damage!!!" 
 							dead
 						else
 							quack_line "You walk over, unplug him and leave through the door." 1	
 							QUACK DELAY 500
 							quack_line "That was a bit anticlimatic." 1	
-							quack_line "Thank you for playing" 
+							quack_line "Thank you for playing!" 
 							QUACK DELAY 500
 							ascii_art 	
 							good_bye
