@@ -1,6 +1,6 @@
 # Little Labyrinth
 * Author: Cribbit 
-* Version: 1.0
+* Version: 1.1
 * Target: any
 * Category: General
 * Attackmode: HID
@@ -10,6 +10,7 @@
 | Version | Changes                       |
 | ------- | ------------------------------|
 | 1.0     | Initial release               |
+| 1.1     | Added fetch quest             |
 
 ## Description
 Quacking text adventure
