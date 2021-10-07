@@ -31,6 +31,10 @@
   - Second way to start Croc_Pot.sh is type in anywhere **crocpot** this will start Croc_Pot.sh script automatically.
   - It is recommended to start Croc_Pot.sh script with typing in **crocpot** as this payload will collect some data off the target pc. Some of the info that it will collect will be Target pc (ip address, current user name, pc host name, ssid and passwd, mac address), This info will be used in the Croc_Pot.sh script. 
   - **NOTE:** When running **crocpot** scan takes about 30-40 sec to start because of OS detection then Croc_Pot will start.
+  - **TIPS:** When Starting Croc_Pot on new target pc
+    - 1: Run Getonline payload to connect the keycroc to the target pc wifi.
+    - 2: Run CrocUnlock payload to get the target pc passwd.
+    - 3: Then type in anywhere crocpot.
 
 ## SSH MENU :
 
