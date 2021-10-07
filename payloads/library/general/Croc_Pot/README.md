@@ -34,6 +34,10 @@
 
 ## SSH MENU :
 
+ * Automatically Accepts SSH Fingerprint with Command Line Options
+   - Croc_Pot in some of ssh options will automatically accept the SSH servers fingerprint and add it to the known hosts file we can pass the StrictHostKeyChecking no option to SSH. Example ssh -o "StrictHostKeyChecking no" HOST@IP
+   - **NOTE:** Automatically accepting the SSH fingerprint effectively bypasses the security put in place by SSH. You should be careful using this, especially on untrusted networks, including the public internet.
+
 ### SSH TO HAK5 GEAR
  * Ensure all hak5 gear is connected to the same local network as your keycroc
    - Recommended to setup ssh PUBLIC AND PRIVATE KEY to each of your hak5 gear, SSH to your gear Without Password
