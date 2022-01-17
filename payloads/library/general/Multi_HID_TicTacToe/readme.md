@@ -11,7 +11,9 @@
 | 1.0     | Initial release |
 
 ## Description
-Play tic-tac-toe / noughts and crosses with the croc
+Play tic-tac-toe / noughts and crosses with the croc. 
+
+Open a text editor, start the game and enjoy.
 
 ## Config
 Set the language file path on line 15'ish
