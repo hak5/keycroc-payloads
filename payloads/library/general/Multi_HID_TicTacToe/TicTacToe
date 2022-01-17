@@ -1,0 +1,432 @@
+#!/bin/bash
+# Title:      	Tic-tac-toe / noughts and crosses
+# Description:  Play noughts and crosses with the croc
+# Author:       Cribbit
+# Version:      1.0
+# Category:     General
+# Prop:         Artificial Intelligence by Bert van Dam
+
+# Matches
+
+MATCH (?i)tic[- ]tac[- ]toe
+MATCH (?i)noughts (and|\&) crosses
+
+####################### Config #######################
+# Language file
+lfile=/usr/local/croc/lib/languages/gb.json
+# if null or not found default to bad english ;-)
+if [ -z "$lfile" ] || [ ! -f "$lfile" ] ; then
+	lfile=/usr/local/croc/lib/languages/us.json
+fi
+##################### End Config #####################
+
+#     0 1 2 3 4 5 6 7 8
+game=(0 0 0 0 0 0 0 0 0)
+currX=10
+currY=2
+crocsMove=100
+crocwin=0
+# raw log path
+rawlog=/root/loot/croc_raw.log
+
+usersMove() {
+	# get the current line count
+	cnt=$(wc -l "$rawlog" | awk {'print $1'})
+	KEYPRESSED=""
+	# loop the loop
+	while : ; do
+		# get the current line count
+		cnt2=$(wc -l "$rawlog" | awk {'print $1'})
+		# compaire the first with the secound
+		if [ "$cnt" -ne "$cnt2" ]; then
+			# get the differnce
+			dif=$((cnt2-cnt))
+			# read each line
+			while read -r line
+			do
+				# cut line down to 8 char
+				key=${line:0:8}
+				# see if the the last 2 are not zeros
+				if [[ ${key:6:2} != "00" ]] ; then
+					# extract the key name
+					# WARNING if there is an escape char this will be pass out i.e "\"": "02,00,34", = \"
+					KEYPRESSED=$(grep $key $lfile | sed 's/^[^"]*"\([^:]*\)".*/\1/')
+					QUACK LOCK
+					case $KEYPRESSED in
+						'UPARROW' ) ((currY--)) ;;
+						'DOWNARROW' ) ((currY++)) ;;
+						'LEFTARROW' ) 
+								if [ $currX -eq 1 ]; then
+									((currY--))
+									currX=10
+								else
+									((currX--))
+								fi ;;
+						'RIGHTARROW' ) 
+								if [ $currX -eq 10 ]; then
+									((currY++))
+									currX=1
+								else
+									((currX++))
+								fi ;;
+						'x' )
+								# fix if they use delete
+								echo "X $currX Y $currY"
+								if [[ '2 5 8' == *$currX* ]]; then
+									((currX++))
+								fi
+								# change cursor to array pos
+								pos=$((((currX/3)+(currY*3))-1))
+								echo "pos $pos"
+								if [[ $pos -gt -1 ]] && [[ $pos -lt 9 ]]; then
+									if [[ ${game[$pos]} -ne 10 ]]; then
+											game[$pos]=1
+											QUACK UNLOCK
+											return 1
+									else
+											echo "Zero"
+											QUACK BACKSPACE
+											QUACK O
+									fi
+								fi
+								;;
+					esac
+					QUACK UNLOCK
+				fi
+			done <<< "$(tail --lines $dif $rawlog)"
+			# reset count
+			cnt=$cnt2
+		fi
+	done
+}
+
+writeMove () {
+	# Convert array to screen
+	crocX=3
+	crocY=0
+	if [[ $1 -eq 3 ]] || [[ $1 -eq 4 ]] || [[ $1 -eq 5 ]]; then
+		crocY=1
+	elif [[ $1 -eq 6 ]] || [[ $1 -eq 7 ]] || [[ $1 -eq 8 ]]; then
+		crocY=2
+	fi
+
+	if [[ $1 -eq 1 ]] || [[ $1 -eq 4 ]] || [[ $1 -eq 7 ]]; then
+		crocX=6
+	elif [[ $1 -eq 2 ]] || [[ $1 -eq 5 ]] || [[ $1 -eq 8 ]]; then
+		crocX=9
+	fi
+	# move x
+	while [ $currX -ne $crocX ]
+	do
+		if [[ $currX -lt $crocX ]]; then
+			QUACK RIGHTARROW
+			((currX++))
+		else
+			QUACK LEFTARROW
+			((currX--))
+		fi
+	done
+
+	# move y
+	while [ $currY -ne $crocY ]
+	do
+		if [[ $currY -lt $crocY ]]; then
+			QUACK DOWNARROW
+			((currY++))
+		else
+			QUACK UPARROW
+			((currY--))
+		fi
+	done
+
+	# at location
+	QUACK BACKSPACE
+	QUACK O
+}
+
+spaceInRow () {
+	if [[ $1 -eq 1 ]]; then
+		if [[ ${game[0]} -eq 0 ]]; then
+			crocsMove=0
+		elif [[ ${game[1]} -eq 0 ]]; then
+			crocsMove=1
+		elif [[ ${game[2]} -eq 0 ]]; then
+			crocsMove=2
+		fi
+	elif [[ $1 -eq 2 ]]; then
+		if [[ ${game[3]} -eq 0 ]]; then
+			crocsMove=3
+		elif [[ ${game[4]} -eq 0 ]]; then
+			crocsMove=4
+		elif [[ ${game[5]} -eq 0 ]]; then
+			crocsMove=5
+		fi
+	else
+		if [[ ${game[6]} -eq 0 ]]; then
+			crocsMove=6
+		elif [[ ${game[7]} -eq 0 ]]; then
+			crocsMove=7
+		elif [[ ${game[8]} -eq 0 ]]; then
+			crocsMove=8
+		fi
+	fi
+}
+
+spaceInCol () {
+	if [[ $1 -eq 1 ]]; then
+		if [[ ${game[0]} -eq 0 ]]; then
+			crocsMove=0
+		elif [[ ${game[3]} -eq 0 ]]; then
+			crocsMove=3
+		elif [[ ${game[6]} -eq 0 ]]; then
+			crocsMove=6
+		fi
+	elif [[ $1 -eq 2 ]]; then
+		if [[ ${game[1]} -eq 0 ]]; then
+			crocsMove=1
+		elif [[ ${game[4]} -eq 0 ]]; then
+			crocsMove=4
+		elif [[ ${game[7]} -eq 0 ]]; then
+			crocsMove=7
+		fi
+	else
+		if [[ ${game[2]} -eq 0 ]]; then
+			crocsMove=2
+		elif [[ ${game[5]} -eq 0 ]]; then
+			crocsMove=5
+		elif [[ ${game[8]} -eq 0 ]]; then
+			crocsMove=8
+		fi
+	fi
+}
+
+spaceInDia () {
+    	if [[ $1 -eq 1 ]]; then
+		if [[ ${game[0]} -eq 0 ]]; then
+			crocsMove=0
+		elif [[ ${game[4]} -eq 0 ]]; then
+			crocsMove=4
+		elif [[ ${game[8]} -eq 0 ]]; then
+			crocsMove=8
+		fi
+	else
+		if [[ ${game[2]} -eq 0 ]]; then
+			crocsMove=2
+		elif [[ ${game[4]} -eq 0 ]]; then
+			crocsMove=4
+		elif [[ ${game[6]} -eq 0 ]]; then
+			crocsMove=6
+		fi
+	fi
+}
+sumTotals ()
+{
+    sumRow1=$((${game[0]} + ${game[1]} + ${game[2]}))
+    sumRow2=$((${game[3]} + ${game[4]} + ${game[5]}))
+    sumRow3=$((${game[6]} + ${game[7]} + ${game[8]}))
+    sumCol1=$((${game[0]} + ${game[3]} + ${game[6]}))
+    sumCol2=$((${game[1]} + ${game[4]} + ${game[7]}))
+    sumCol3=$((${game[2]} + ${game[5]} + ${game[8]}))
+    sumDia1=$((${game[0]} + ${game[4]} + ${game[8]}))
+    sumDia2=$((${game[2]} + ${game[4]} + ${game[6]}))
+    total=$(($sumRow1 + $sumRow2 + $sumRow3))
+}
+
+playGame () {
+	while true; do
+		usersMove
+		#echo "$game"
+       		sumTotals
+		crocsMove=100
+
+		# Have they won
+		if [ $sumRow1 -eq 3 ] || [ $sumRow2 -eq 3 ] || [ $sumRow3 -eq 3 ] || [ $sumCol1 -eq 3 ] || [ $sumCol2 -eq 3 ] || [ $sumCol3 -eq 3 ] || [ $sumDia1 -eq 3 ] || [ $sumDia2 -eq 3 ]; then
+			endgame 1
+		fi
+
+		# Game On
+
+		# 1 - Can I win
+		if [[ $sumRow1 -eq 20 ]]; then
+			spaceInRow 1
+		elif [[ $sumRow2 -eq 20 ]]; then
+			spaceInRow 2
+		elif [[ $sumRow3 -eq 20 ]]; then
+			spaceInRow 3
+		elif [[ $sumCol1 -eq 20 ]]; then
+			spaceInCol 1
+		elif [[ $sumCol2 -eq 20 ]]; then
+			spaceInCol 2
+		elif [[ $sumCol3 -eq 20 ]]; then
+			spaceInCol 3
+		elif [[ $sumDia1 -eq 20 ]]; then
+			spaceInDia 1
+		elif [[ $sumDia2 -eq 20 ]]; then
+			spaceInDia 2
+		fi
+
+		if [ $crocsMove -ne 100 ]; then
+			crocwin=1
+		fi
+
+		# 2 - Can they win
+		if [ $crocsMove -eq 100 ]; then
+			if [[ $sumRow1 -eq 2 ]]; then
+				spaceInRow 1
+			elif [[ $sumRow2 -eq 2 ]]; then
+				spaceInRow 2
+			elif [[ $sumRow3 -eq 2 ]]; then
+				spaceInRow 3
+			elif [[ $sumCol1 -eq 2 ]]; then
+				spaceInCol 1
+			elif [[ $sumCol2 -eq 2 ]]; then
+				spaceInCol 2
+			elif [[ $sumCol3 -eq 2 ]]; then
+				spaceInCol 3
+			elif [[ $sumDia1 -eq 2 ]]; then
+				spaceInDia 1
+			elif [[ $sumDia2 -eq 2 ]]; then
+				spaceInDia 2
+			fi
+		fi
+
+		# 3 - Double change
+		if [ $crocsMove -eq 100 ]; then
+			if [[ $(($sumRow1 + $sumCol1)) -eq 20 ]] && [[ ${game[0]} -eq 0 ]]; then
+				crocsMove=0
+			elif [[ $(($sumRow1 + $sumCol2)) -eq 20 ]] && [[ ${game[1]} -eq 0 ]]; then
+				crocsMove=1
+			elif [[ $(($sumRow1 + $sumCol3)) -eq 20 ]] && [[ ${game[2]} -eq 0 ]]; then
+				crocsMove=2
+			elif [[ $(($sumRow2 + $sumCol1)) -eq 20 ]] && [[ ${game[3]} -eq 0 ]]; then
+				crocsMove=3
+			elif [[ $(($sumRow2 + $sumCol2)) -eq 20 ]] && [[ ${game[4]} -eq 0 ]]; then
+				crocsMove=4
+			elif [[ $(($sumRow2 + $sumCol3)) -eq 20 ]] && [[ ${game[5]} -eq 0 ]]; then
+				crocsMove=5
+			elif [[ $(($sumRow3 + $sumCol1)) -eq 20 ]] && [[ ${game[6]} -eq 0 ]]; then
+				crocsMove=6
+			elif [[ $(($sumRow3 + $sumCol2)) -eq 20 ]] && [[ ${game[7]} -eq 0 ]]; then
+				crocsMove=7
+			elif [[ $(($sumRow3 + $sumCol3)) -eq 20 ]] && [[ ${game[8]} -eq 0 ]]; then
+				crocsMove=8
+			elif [[ $(($sumCol1 + $sumDia1)) -eq 20 ]] && [[ ${game[0]} -eq 0 ]]; then
+				crocsMove=0
+			elif [[ $(($sumCol2 + $sumDia1)) -eq 20 ]] && [[ ${game[4]} -eq 0 ]]; then
+				crocsMove=4
+			elif [[ $(($sumCol3 + $sumDia1)) -eq 20 ]] && [[ ${game[8]} -eq 0 ]]; then
+				crocsMove=8
+			elif [[ $(($sumCol1 + $sumDia2)) -eq 20 ]] && [[ ${game[6]} -eq 0 ]]; then
+				crocsMove=6
+			elif [[ $(($sumCol2 + $sumDia2)) -eq 20 ]] && [[ ${game[4]} -eq 0 ]]; then
+				crocsMove=4
+			elif [[ $(($sumCol3 + $sumDia2)) -eq 20 ]] && [[ ${game[2]} -eq 0 ]]; then
+				crocsMove=2
+			elif [[ $(($sumRow1 + $sumDia1)) -eq 20 ]] && [[ ${game[0]} -eq 0 ]]; then
+				crocsMove=0
+			elif [[ $(($sumRow2 + $sumDia1)) -eq 20 ]] && [[ ${game[4]} -eq 0 ]]; then
+				crocsMove=4
+			elif [[ $(($sumRow3 + $sumDia1)) -eq 20 ]] && [[ ${game[8]} -eq 0 ]]; then
+				crocsMove=8
+			elif [[ $(($sumRow1 + $sumDia2)) -eq 20 ]] && [[ ${game[2]} -eq 0 ]]; then
+				crocsMove=2
+			elif [[ $(($sumRow2 + $sumDia2)) -eq 20 ]] && [[ ${game[4]} -eq 0 ]]; then
+				crocsMove=4
+			elif [[ $(($sumRow3 + $sumDia2)) -eq 20 ]] && [[ ${game[6]} -eq 0 ]]; then
+				crocsMove=6
+			fi
+		fi
+
+		# 4 - I'm in the center. user has two diagonals either side
+		if [ $crocsMove -eq 100 ]; then
+			if [ $total -eq 12 ] && [[ ${game[4]} -eq 10 ]] ; then
+				if [[ $sumDia1 -eq 12 ]] || [[ $sumDia2 -eq 12 ]]; then
+					crocsMove=3
+				fi
+			fi
+		fi
+
+		# 5 - Take the middle
+		if [ $crocsMove -eq 100 ] && [[ ${game[4]} -eq 0 ]]; then
+			crocsMove=4
+		fi
+
+		# 6 - Take a corner
+		if [ $crocsMove -eq 100 ]; then
+			if [[ ${game[0]} -eq 0 ]]; then
+				crocsMove=0
+			elif [[ ${game[2]} -eq 0 ]]; then
+				crocsMove=2
+			elif [[ ${game[6]} -eq 0 ]]; then
+				crocsMove=6
+			elif [[ ${game[8]} -eq 0 ]]; then
+				crocsMove=8
+			fi
+		fi
+
+		# 7 - Pick a empty space
+		if [ $crocsMove -eq 100 ]; then
+			for i in {0..8}
+			do
+				if [[ ${game[$i]} -eq 0 ]]; then
+					crocsMove=$i
+				fi
+			done
+		fi
+
+		#WriteMove
+		if [ $crocsMove -ne 100 ]; then
+			game[$crocsMove]=10
+			writeMove $crocsMove
+		else
+			endgame 0
+		fi
+
+		if [ $crocwin -ne 0 ]; then
+			endgame 2
+		fi
+
+	done
+}
+
+endgame ()
+{
+	QUACK CONTROL-END
+	QUACK ENTER
+	QUACK ENTER 
+	if [[ $1 -eq 1 ]]; then
+		QUACK STRING "Congratulations you won the game!"
+	elif [[ $1 -eq 2 ]]; then
+		QUACK STRING "Unlucky, I won the game!"
+	else
+		QUACK STRING "It's draw"
+	fi
+
+	QUACK ENTER
+	QUACK STRING 'Thank you for playing'
+	QUACK ENTER
+	exit
+}
+
+start ()
+{
+	QUACK ENTER
+	QUACK STRING "Welcome"
+	QUACK ENTER
+	QUACK STRING "You move first"
+	QUACK ENTER
+	QUACK STRING "Move the text cursor / caret using the arrow keys one press at a time"
+	QUACK ENTER
+	QUACK STRING "Do not hold down the keys. Or we will lose where we are."
+	QUACK ENTER
+	QUACK STRING "Use backspace on an under score then press x"
+	QUACK ENTER
+	QUACK STRING "[_][_][_]"
+	QUACK ENTER
+	QUACK STRING "[_][_][_]"
+	QUACK ENTER
+	QUACK STRING "[_][_][_]"
+	playGame
+}
+
+start
