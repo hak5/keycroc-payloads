@@ -15,6 +15,7 @@ Play tic-tac-toe / noughts and crosses with the croc
 
 ## Config
 Set the language file path on line 15'ish
+
 `lfile=/usr/local/croc/lib/languages/gb.json`
 
 ## Match
