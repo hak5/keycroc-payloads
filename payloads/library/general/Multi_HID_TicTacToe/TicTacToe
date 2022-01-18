@@ -14,11 +14,12 @@ MATCH (?i)noughts (and|\&) crosses
 ####################### Config #######################
 # Language file
 lfile=/usr/local/croc/lib/languages/gb.json
+##################### End Config #####################
+
 # if null or not found default to bad english ;-)
 if [ -z "$lfile" ] || [ ! -f "$lfile" ] ; then
 	lfile=/usr/local/croc/lib/languages/us.json
 fi
-##################### End Config #####################
 
 #     0 1 2 3 4 5 6 7 8
 game=(0 0 0 0 0 0 0 0 0)
@@ -71,20 +72,20 @@ usersMove() {
 								fi ;;
 						'x' )
 								# fix if they use delete
-								echo "X $currX Y $currY"
+								# echo "X $currX Y $currY"
 								if [[ '2 5 8' == *$currX* ]]; then
 									((currX++))
 								fi
 								# change cursor to array pos
 								pos=$((((currX/3)+(currY*3))-1))
-								echo "pos $pos"
+								# echo "pos $pos"
 								if [[ $pos -gt -1 ]] && [[ $pos -lt 9 ]]; then
 									if [[ ${game[$pos]} -ne 10 ]]; then
 											game[$pos]=1
 											QUACK UNLOCK
 											return 1
 									else
-											echo "Zero"
+											# echo "Zero"
 											QUACK BACKSPACE
 											QUACK O
 									fi
@@ -235,8 +236,7 @@ sumTotals ()
 playGame () {
 	while true; do
 		usersMove
-		#echo "$game"
-       		sumTotals
+		sumTotals
 		crocsMove=100
 
 		# Have they won
@@ -399,7 +399,7 @@ endgame ()
 	elif [[ $1 -eq 2 ]]; then
 		QUACK STRING "Unlucky, I won the game!"
 	else
-		QUACK STRING "It's draw"
+		QUACK STRING "It's a draw"
 	fi
 
 	QUACK ENTER
@@ -419,7 +419,7 @@ start ()
 	QUACK ENTER
 	QUACK STRING "Do not hold down the keys. Or we will lose where we are."
 	QUACK ENTER
-	QUACK STRING "Use backspace on an under score then press x"
+	QUACK STRING "Use backspace on an underscores then press x"
 	QUACK ENTER
 	QUACK STRING "[_][_][_]"
 	QUACK ENTER
