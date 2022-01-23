@@ -1,0 +1,74 @@
+#!/bin/bash
+#
+# Title:            Wireless Recon
+# Description:
+#                   Gets useful information about 
+#                   nearby WiFi access points
+#                   with the "Key Croc".
+#
+# Author:           TW-D
+# Version:          1.0
+# Target:           Any
+# Category:         Recon
+# Attackmode:       HID
+#
+# TESTED ON
+# ===============
+# Ubuntu 20.04.3 LTS with "Logitech Keyboard K120"
+#
+# STATUS
+# ===============
+# Magenta solid ................................... SETUP
+# Yellow single blink ............................. ATTACK
+# White fast blink ................................ CLEANUP
+# Green 1000ms VERYFAST blink followed by SOLID ... FINISH
+#
+
+######## TRIGGER ########
+
+MATCH __wireless-recon
+
+######## INITIALIZATION ########
+
+readonly IW_SCAN="$(iw wlan0 scan | egrep --extended-regexp 'BSS ([[:xdigit:]]{1,2}:)|signal: |SSID: |\* Manufacturer: |\* Model Number: |\* Serial Number: |\* Device name: ')"
+
+######## SETUP ########
+
+LED SETUP
+
+export DUCKY_LANG=us
+
+######## ATTACK ########
+
+LED ATTACK
+
+QUACK DELAY 1000
+
+QUACK ENTER
+QUACK DELAY 500
+
+while IFS= read -r ap; do 
+    info=$(echo "${ap}" | sed -e 's/^[ \t]*//')
+    QUACK DELAY 300
+    QUACK STRING "${info}"
+    QUACK DELAY 300
+    QUACK ENTER
+done <<< "${IW_SCAN}"
+
+QUACK DELAY 1000
+
+######## CLEANUP ########
+
+LED CLEANUP
+
+rm -r /root/loot/*
+
+######## FINISH ########
+
+LED FINISH
+
+sync
+
+######## OFF ########
+
+LED OFF
