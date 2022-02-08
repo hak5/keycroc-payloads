@@ -1,0 +1,74 @@
+#!/bin/bash
+#
+# Title:            Nmap Recon
+# Description:
+#                   Ports Scanning with Nmap.
+#
+# Author:           TW-D
+# Version:          1.0
+# Target:           Any
+# Category:         Recon
+# Attackmode:       RNDIS_ETHERNET
+#
+# TESTED ON
+# ===============
+# Ubuntu 20.04.3 LTS with "Logitech Keyboard K120"
+#
+# STATUS
+# ===============
+# Magenta solid ................................... SETUP
+# Yellow single blink ............................. ATTACK
+# White fast blink ................................ CLEANUP
+# Green 1000ms VERYFAST blink followed by SOLID ... FINISH
+#
+
+######## TRIGGER ########
+
+MATCH __nmap-recon
+
+######## INITIALIZATION ########
+
+readonly KEYCROC_LOOT="/root/loot/scan-output_${RANDOM}.xml"
+readonly NMAP_COMMAND="nmap -Pn -sT -p1-65535 -sV --script=\"banner\" -O -T4 -oX ${KEYCROC_LOOT} --open --webxml"
+
+######## SETUP ########
+
+LED SETUP
+
+##
+# (Windows) ATTACKMODE RNDIS_ETHERNET
+# or
+# (Mac and Linux) ATTACKMODE ECM_ETHERNET
+##
+ATTACKMODE RNDIS_ETHERNET
+
+sleep 7
+
+GET_VARS
+
+######## ATTACK ########
+
+LED ATTACK
+
+if [ -n "${TARGET_IP}" ]
+then
+    /bin/bash -c "${NMAP_COMMAND} ${TARGET_IP}" > /dev/null
+fi
+
+######## CLEANUP ########
+
+LED CLEANUP
+
+sync
+
+######## FINISH ########
+
+LED FINISH
+
+ATTACKMODE OFF
+
+######## OFF ########
+
+LED OFF
+
+reboot --force
