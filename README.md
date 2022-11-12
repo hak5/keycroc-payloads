@@ -149,7 +149,7 @@ The **Professional** and **Teams Editions** are for commercial use with standard
 <p align="center">
 <a href="https://shop.hak5.org/products/c2"><img src="https://cdn.shopify.com/s/files/1/0068/2142/files/teams1.png?v=1614035533"></a>
 <br/>
-<i> Hak5 Cloud C² Web Interface
+<i> Hak5 Cloud C² Web Interface</i>
 </p>
 
 
@@ -163,10 +163,11 @@ With multiple Hak5 devices deployed at a client site, aggregated data provides a
 
 
 <p align="center">
-<a href="https://shop.hak5.org/products/c2"><img src="https://cdn.shopify.com/s/files/1/0068/2142/files/teams2.png?v=1614035564"></a>
+<a href="https://shop.hak5.org/products/c2"><img src="https://cdn.shopify.com/s/files/1/0068/2142/files/teams2.png?v=1614035564"/></a>
 <br/>
 <i> Hak5 Cloud C² Web Interface - Teams Edition - Sites </i>
 </p>
+
 
 Hak5 Cloud C² Teams edition comes full of features designed to help you manage **all** of your remote Hak5 devices with ease:
  - Multi-User
