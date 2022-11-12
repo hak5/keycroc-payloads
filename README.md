@@ -79,7 +79,7 @@ More than just recording and streaming keystrokes online, it exploits the target
 
 By emulating trusted devices like serial, storage, HID and Ethernet, it opens multiple attack vectors – from keystroke injection to network hijacking.
 
-Imagine capturing credentials and systematically using them to exfiltrate data. Or pentest from anywhere, live in a web browser with [Cloud C2](https://shop.hak5.org/products/c2 "Cloud C2").
+Imagine capturing credentials and systematically using them to exfiltrate data. Or pentest from anywhere, live in a web browser with [Hak5 Cloud C²](https://shop.hak5.org/products/c2 "Hak5 Cloud C²").
 
 It's simple too. A hidden button turns it into a flash drive, where changing settings is just editing a text file. And with a root shell your favorite pentest tools like nmap, responder, impacket and metasploit are at the ready.
 
@@ -93,22 +93,13 @@ It's simple too. A hidden button turns it into a flash drive, where changing set
 </p>
 
 # About DuckyScript™
-
-## Legacy DuckyScript (1.0)
-Hak5 introduced Keystroke Injection in 2010 with the USB Rubber Ducky™. This technique, developed by Hak5 founder Darren Kitchen, was his weapon of choice for automating mundane tasks at his IT job — fixing printers, network shares and the like.
-Today the USB Rubber Ducky is a hacker culture icon, synonymous with the keystroke injection technique it pioneered. It’s found its way into the hearts and toolkits of Cybersecurity and IT pros the world over — including many movies and TV shows!
-Core to its success is its simple language, DuckyScript™. Originally just three commands, it could be learned by anyone—regardless of experience—in minutes.
-
 <b> With the Key Croc in 2020, DuckyScript 2.0 has been introduced.</b>
-## DuckyScript 2.0
 
 While many of the Hak5 Tools run various versions of DuckyScript; like the [Bash Bunny](https://shop.hak5.org/products/bash-bunny) and even the [officially licenced DuckyScript compatible devices from O.MG](https://shop.hak5.org/collections/mischief-gadgets/ "O.MG") - the Key Croc uses an `INTERPRETED` version of DuckyScript
 
 _Interpreted DuckyScript means the payload runs on the device straight from `source code` (the code you write e.g. `QUACK STRING test`)._
 
-_Compiled DuckyScript means that there is both `source code` and an `inject.bin` generated from the source code. (DuckyScript 1.0 for the USB Rubber Ducky was "encoded" rather than "compiled" - references to either mean the same)_
-
-The files in this repository are _the source code_ for your payloads and run _directly on the Key Croc_ no compilation required - simply place your `payload.txt` in the appropriate directory and you're ready to go!
+The files in this repository are _the source code_ for your payloads and run _directly on the device_ **no compilation required** - simply place your `payload.txt` in the appropriate directory and you're ready to go!
 
 <h1><a href="https://payloadstudio.hak5.org">Build your payloads with PayloadStudio</a></h1>
 <p align="center">
@@ -148,6 +139,43 @@ Due to the nature of supporting **real time decoding** and **real time MATCH pay
 For example, while performing Keystroke Injection - you may only ever require the `1` from the number row, or the right `GUI` key. The Key Croc on the other hand needs to not only know how to interpret _the entire keyboard_ but also a large variety of keyboard combinations to make matching and triggering on payloads work as you would expect it to; accurately and without delay. For these reasons, the Key Croc's language files are monolithic, statically and programatically generated to provide the absolute best possible experience.
 
 The default language is US <a href='https://github.com/hak5/keycroc-payloads/blob/master/languages/us.json'>(languages/us.json)</a>
+
+
+<h1><a href='https://shop.hak5.org/products/c2'>Hak5 Cloud C² </a></h1>
+Cloud C² makes it easy for pen testers and IT security teams to deploy and manage fleets of Hak5 gear from a simple cloud dashboard. 
+
+Cloud C² is available as an instant download. **A free license for Community Edition is available which is not for commercial use and comes with community support.**
+The **Professional** and **Teams Editions** are for commercial use with standard support.
+<p align="center">
+<a href="https://shop.hak5.org/products/c2"><img src="https://cdn.shopify.com/s/files/1/0068/2142/files/teams1.png?v=1614035533"></a>
+<br/>
+<i> Hak5 Cloud C² Web Interface
+</p>
+
+
+Cloud C² is a **self-hosted** web-based command and control suite for networked Hak5 gear that lets you **pentest from anywhere.**
+
+Linux, Mac and Windows computers can host the Cloud C² server while Hak5 gear such as the WiFi Pineapple, LAN Turtle and Packet Squirrel can be provisioned as clients.
+
+Once you have the Cloud C² server running on a public-facing machine (such as a VPS) and the Hak5 devices are provisioned and deployed, you can login to the Cloud C² web interface to manage these devices as if you were directly connected.
+
+With multiple Hak5 devices deployed at a client site, aggregated data provides a big picture view of the wired and wireless environments.
+
+
+<p align="center">
+<a href="https://shop.hak5.org/products/c2"><img src="https://cdn.shopify.com/s/files/1/0068/2142/files/teams2.png?v=1614035564"></a>
+<br/>
+<i> Hak5 Cloud C² Web Interface - Teams Edition - Sites </i>
+</p>
+
+Hak5 Cloud C² Teams edition comes full of features designed to help you manage **all** of your remote Hak5 devices with ease:
+ - Multi-User
+ - Multi-Site
+ - Role-Based Access Control
+ - Advanced Auditing
+ - Tunneling Services including web Terminal and WiFi Pineapple web interface proxy
+
+<a href="https://shop.hak5.org/products/c2">Learn More</a>
 
 <h1><a href='https://payloadhub.com'>Contributing</a></h1>
 
@@ -235,4 +263,8 @@ Hak5 LLC products and technology are only available to BIS recognized license ex
 
 # Disclaimer
 Generally, payloads may execute commands on your device. As such, it is possible for a payload to damage your device. Payloads from this repository are provided AS-IS without warranty. While Hak5 makes a best effort to review payloads, there are no guarantees as to their effectiveness. As with any script, you are advised to proceed with caution.
+
+
+
+
 
