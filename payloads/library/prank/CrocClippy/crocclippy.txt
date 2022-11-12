@@ -1,0 +1,48 @@
+# Title: CrocClippy
+# Description: Triggered when the user hits ENTER after a sudo or ssh command,
+# sends a CTRL-C to cancel their command followed by drawing an ASCII Clippy
+# that asks them if they want help with the command that we just blocked them from executing.
+# Because that's what clippy is known for.
+# Developed on a livestream shortly after the release of the KeyCroc
+# Author: Korben, Darren, Chat
+# Version: 1.0
+# Category: Key Croc / Prank
+#
+#
+MATCH sudo (.*?)\[ENTER\]
+MATCH ssh (.*?)@[\d\D]*\[ENTER\]
+MATCH ssh (.*?)\[ENTER\]
+QUACK CONTROL c
+QUACK STRING 'cat << EOF'
+QUACK ENTER
+QUACK STRING ' ________________'
+QUACK ENTER
+QUACK STRING ' I see you wanted to run'
+QUACK ENTER
+QUACK STRING "$LOOT"
+QUACK ENTER
+QUACK STRING ' Can I help you with that?'
+QUACK STRING ' ----------------'
+QUACK ENTER
+QUACK STRING ' \'
+QUACK ENTER
+QUACK STRING '  \'
+QUACK ENTER
+QUACK STRING '     __'
+QUACK ENTER
+QUACK STRING '    /  \'
+QUACK ENTER
+QUACK STRING '    |  |'
+QUACK ENTER
+QUACK STRING '    @  @'
+QUACK ENTER
+QUACK STRING '    |  |'
+QUACK ENTER
+QUACK STRING '    || |/'
+QUACK ENTER
+QUACK STRING '    || ||'
+QUACK ENTER
+QUACK STRING '    |\_/|'
+QUACK ENTER
+QUACK STRING '    \___/'
+QUACK CONTROL-c
