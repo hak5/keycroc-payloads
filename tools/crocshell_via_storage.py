@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os, time, codecs
+import os, time
 
 def init_ps():
     os.system("rm /root/udisk/out.txt.* > /dev/null 2>&1")
