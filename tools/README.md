@@ -69,7 +69,7 @@ Allows the Croc to establish a reverse-shell on air-gapped systems. The Croc wil
 
 ### Prevent the system to go to sleep
 
-Sends a `SHIFT` keypress each 55 seconds if there is no keyboard activity
+Sends a `SHIFT` keypress each 50 seconds if there is no keyboard activity
 
 	root@croc:~# python udisk/tools/prevent_sleep.py 
 	Sending SHIFT keypress for the 1. time!
