@@ -66,3 +66,22 @@ Allows the Croc to establish a reverse-shell on air-gapped systems. The Croc wil
 
 	CrocSHELL> exit
 	root@croc:~# 
+
+### Prevent the system to go to sleep
+
+Sends a `SHIFT` keypress each 55 seconds if there is no keyboard activity
+
+	root@croc:~# python udisk/tools/prevent_sleep.py 
+	Sending SHIFT keypress for the 1. time!
+	Sending SHIFT keypress for the 2. time!
+	...
+	Sending SHIFT keypress for the 897. time!
+	^C
+	root@croc:~#
+
+You can also run the command in background and log out 
+
+	root@croc:~# python udisk/tools/prevent_sleep.py &
+	[1] 9219
+	root@croc:~#
+
