@@ -85,3 +85,14 @@ You can also run the command in background and log out
 	[1] 9219
 	root@croc:~#
 
+### Upload files without network or storage interactions
+
+This allow you to upload a file without triggering many DLP systems
+
+	root@croc:~/udisk/tools# python fileupload_via_quack.py bob.exe "D:\Z1.exe"
+	OPENING powershell.exe
+	SENDING CHUNK 1 / 481 ... DONE
+	SENDING CHUNK 2 / 481 ... DONE
+	...
+	SENDING CHUNK 481 / 481 ... DONE
+	DONE IN 1727.92612386 SEC.
