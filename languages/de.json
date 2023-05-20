@@ -18,7 +18,7 @@
     "__comment":"A = LeftShift + a, { = LeftShift + [",
     "__comment":" ",
     "__comment":"German umlauts added by Simon Dankelmann",
-    "__comment":"CTRL-ALT+DEL, ARTGR and various shortcuts added by Mark B.",
+    "__comment":"CTRL-ALT+DEL, ARTGR, BACKSPACE and various shortcuts added by Mark B.",
     "a":"00,00,04",
     "b":"00,00,05",
     "c":"00,00,06",
@@ -159,6 +159,7 @@
     "GUI":"08,00,00",
     "WINDOWS":"08,00,00",
     "COMMAND-OPTION":"12,00,00",
+    "BACKSPACE":"00,00,2a",
     "@":"40,00,14",
     "{":"40,00,24",
     "[":"40,00,25",
@@ -179,7 +180,6 @@
     "Ä":"02,00,34",
     "Ö":"02,00,33",
     "Ü":"02,00,2f",
-
     "CTRL-a":"01,00,04",
     "CTRL-b":"01,00,05",
     "CTRL-c":"01,00,06",
@@ -216,7 +216,6 @@
     "CTRL-8":"01,00,25",
     "CTRL-9":"01,00,26",
     "CTRL-0":"01,00,27",
-
     "CTRL-ALT-a":"05,00,04",
     "CTRL-ALT-b":"05,00,05",
     "CTRL-ALT-c":"05,00,06",
@@ -253,7 +252,6 @@
     "CTRL-ALT-8":"05,00,25",
     "CTRL-ALT-9":"05,00,26",
     "CTRL-ALT-0":"05,00,27",
-    
     "CTRL-SHIFT-a":"03,00,04",
     "CTRL-SHIFT-b":"03,00,05",
     "CTRL-SHIFT-c":"03,00,06",
@@ -290,7 +288,6 @@
     "CTRL-SHIFT-8":"03,00,25",
     "CTRL-SHIFT-9":"03,00,26",
     "CTRL-SHIFT-0":"03,00,27",
-    
     "ALT-SHIFT-a":"06,00,04",
     "ALT-SHIFT-b":"06,00,05",
     "ALT-SHIFT-c":"06,00,06",
