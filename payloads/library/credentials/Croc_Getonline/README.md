@@ -29,6 +29,7 @@ After install plug into target and type in anywhere:
    - **`getonline_P`**  MATCH word for entering ATTACKMODE HID SERIAL
    - **`getonline_A`**  MATCH word for entering ATTACKMODE HID AUTO_ETHERNET
    - **`getonline_X`**  MATCH word for Remove Croc_Getonline payload, contents and reboot
+   - **`getonline_T`**  MATCH word for Stopping ICMP/PORT alert
 
 * **LED STATUS**
   - **`LED WHITE`** Entering ATTACKMODE
@@ -37,6 +38,7 @@ After install plug into target and type in anywhere:
   - **`LED GREEN`** Successful connection to wifi access point
   - **`LED RED`** Payload failed
   - **`LED CYAN`** Performing recon scan
+  - **`LED RED FLASH`** ICMP/PORT alert
 
 **NOTE:** for linux edit payload for password needed for sudo permission.
 
@@ -45,29 +47,25 @@ After install plug into target and type in anywhere:
 Editing payload variable options:
 - **`option=0`**
 
-This option will run payload as normal, attempt to connect Keycroc to wifi access point.
+   - This option will run payload as normal, attempt to connect Keycroc to wifi access point.
 
 - **`option=1`**
 
-This option will run payload as normal, after a successful connection open terminal on target and start ssh session. 
-
-( EDIT PAYLOAD FOR KEYCROC PASSWORD )
+   - This option will run payload as normal, after a successful connection open terminal on target and start ssh session. 
+   - ( EDIT PAYLOAD FOR KEYCROC PASSWORD )
 
 - **`option=2`**
 
-This option will run payload as normal, after a successful connection attempt a connection to remote_host using SSH. 
-
-( EDIT PAYLOAD FOR REMOTE_HOST, USER_NAME, IP, PASSWORD ON REMOTE_HOST ENTER THIS COMMAND "ssh root@localhost -p port#" )
-
-SSHPASS is a requirement for this option, payload will attempt to install if not installed.
+   - This option will run payload as normal, after a successful connection attempt a connection to remote_host using SSH. 
+   - ( EDIT PAYLOAD FOR REMOTE_HOST, USER_NAME, IP, PASSWORD ON REMOTE_HOST ENTER THIS COMMAND "ssh root@localhost -p port#" )
+   - SSHPASS is a requirement for this option, payload will attempt to install if not installed.
 
 - **`option=3`**
 
-This option will run payload as normal, after a successful connection attempt a connection to remote_host using netcat. 
+   - This option will run payload as normal, after a successful connection attempt a connection to remote_host using netcat. 
+   - ( EDIT PAYLOAD FOR REMOTE_HOST, IP START LISTENER ON REMOTE_HOST WITH THIS COMMAND "nc -lnvp PORT# -s IP_REMOTE_HOST" )
 
-( EDIT PAYLOAD FOR REMOTE_HOST, IP START LISTENER ON REMOTE_HOST WITH THIS COMMAND "nc -lnvp PORT# -s IP_REMOTE_HOST" )
-
-* **RECON SCAN OPTION**
+* **Configuring RECON scan with recon=on andrecon=off**
 
 The options recon=off and recon=on play a key role in performing basic recon scans using Nmap, Iw, and Curl.
 
@@ -80,6 +78,19 @@ The options recon=off and recon=on play a key role in performing basic recon sca
 
   - Initiates basic network reconnaissance scans.
   - Utilizes Nmap, Iw, and Curl to gather essential network information and save to /root/udisk/tools/Target_SSID.txt.
+
+* **Configuring ICMP and Port Alerts with alert=on and alert=off**
+
+- **`alert=on`**
+ 
+   - ICMP Alert: It blocks outgoing ICMP and UDP packets with specific destination ports (33434 and 33534) for a minute and then restores the original firewall rules.
+   - Port Alert: It drops incoming TCP packets with the SYN flag set for a minute and then restores the original firewall rules.
+
+- **`alert=off`**
+
+   - If alert is set to off, the script does nothing ( : represents a null command in bash ). No alerts are set up.
+
+To summarize, ICMP and Port alerts when alert=on by using the icmp_alert() and port_alert() functions, respectively. It saves the current firewall rules to a backup file and runs the alert functions in the background, storing their respective PIDs in temporary files. If alert=off, the script does nothing related to alerts.
 
 ## PAYLOAD INFO :
 
@@ -130,4 +141,4 @@ s/\n(\S+).*/ \1/ match on the appended hold space and replace it by a space and 
 
 11{..} executes the commands between the ellipses on the eleventh line of config.txt.
 G append the contents of hold space to the pattern space using a newline as a separator.
-s/\n\S+// match on the appended hold space and remove the newline and the first column, thus leaving a space and the second column. 
+s/\n\S+// match on the appended hold space and remove the newline and the first column, thus leaving a space and the second column.
