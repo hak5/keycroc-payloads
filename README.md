@@ -190,7 +190,7 @@ Hak5 Cloud C² Teams edition comes full of features designed to help you manage 
 Once you have developed your payload, you are encouraged to contribute to this repository by submitting a Pull Request. Reviewed and Approved pull requests will add your payload to this repository, where they may be publically available.
 
 # Please adhere to the following best practices and style guides when submitting a payload.
-### Purely Desctructive payloads will not be accepted. No, it's not "just a prank".
+### Purely destructive payloads will not be accepted. No, it's not "just a prank".
 
 Payloads should be submitted to the most appropriate category directory. These include credentials, exfiltration, phishing, prank, recon, etc.
 
