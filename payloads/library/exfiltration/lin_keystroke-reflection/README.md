@@ -9,7 +9,7 @@
 
 ## Description
 
-Implementation of the "Keystroke Injection" technique for file exfiltration.
+Implementation of the "Keystroke Reflection" technique for file exfiltration.
 
 The table below presents an estimation of the time taken for a specific number of bytes :
 
