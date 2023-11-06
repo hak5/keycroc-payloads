@@ -3,7 +3,7 @@
 # Title:            "Linux" Keystroke Reflection
 # Description:
 #                   Implementation of the 
-#                   "Keystroke Injection" technique 
+#                   "Keystroke Reflection" technique 
 #                   for file exfiltration.
 #
 # Author:           TW-D
