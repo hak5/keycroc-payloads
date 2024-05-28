@@ -1,7 +1,7 @@
 ###############################RemoteDeskCroc#####################################
 #	Version 1.0
 # OS: Windows / Linux(?) (Not tested with Powershell on Linux)
-# Author: 0iphor13
+# Author: 0i41E
 # Discription: This payload will give you screen access to your victims machine. 
 #   Combined with KeyCrocs ability to type in commands, you have basically RemoteDesktop.
 #
