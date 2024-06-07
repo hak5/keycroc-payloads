@@ -1,7 +1,7 @@
 #######################################################SpearPhishCroc############################################################
 #	Version 1.0
 #       OS: Windows
-#       Author: 0iphor13
+#       Author: 0i41E
 #       Idea and code based on Invoke-CredentialsPhish from Nikhil Mittal
 ################Trigger a popup, demanding for valid credentials, popup can't be closed without valid credentials################
 MATCH phishy	
