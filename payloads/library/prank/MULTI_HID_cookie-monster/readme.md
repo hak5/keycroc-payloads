@@ -10,7 +10,7 @@
 start_monster
 
 ## :book: Description
-Recreates the 1969 program from Brown University. This version types messages asking for a cookie. until the user type `cookie`.
+Recreates the 1969 program from Brown University. This version types messages asking for a cookie. Until the user type `cookie`.
 
 ## :placard: Change Log
 | Version | Changes                       |
