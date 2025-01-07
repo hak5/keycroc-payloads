@@ -1,4 +1,4 @@
-# :gem: Pebbles?
+# :gem: Pebbles
 - Author: Cribbit
 - Version: 1.0
 - Target: Mutli OS (GUI based text editior) 
