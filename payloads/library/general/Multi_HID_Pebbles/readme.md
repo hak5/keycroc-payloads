@@ -10,13 +10,13 @@
 pebbles
 
 ## :book: Description
-Welcome to the game of pebbles base off of the game NIM.
-You vs the Croc.
+Welcome to the game of pebbles base off of the game NIM.<br/>
+You vs the Croc.<br/>
 You move first, the object of the game is not to take the last pebble.
 
 So after loading onto your croc. Open up a text editor and type `pebbles`
 
-The more games you play the smarter the croc will seem to get.
+The more games you play the smarter the croc will seem to get as it builds up knowledge.
 
 ## :mag: Match
 resetbrain (play the game but resets any knowledge it has built up)
