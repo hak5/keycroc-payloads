@@ -1,0 +1,157 @@
+#!/bin/bash
+# Title:      	Pebbles
+# Description:  Pebbles a game based off of Nim. Nim is a mathematical game of strategy in which two players take turns removing (or "nimming") objects from distinct heaps or piles. On each turn, a player must remove at least one object, and may remove upto 3 of objects off of the pile. The goal of the game is to avoid taking the last object.
+# Author:       Cribbit
+# Version:      1.0
+# Category:     General
+# Prop:         Dragorn for his help with bash arrays and Bert van Dam's book on AI
+# Thanks:       To Hak5 for their 20 year of passing knowledge out into the world and the Hak5 discord members for their friendship, knowledge and support.
+
+## Matches
+MATCH pebbles
+MATCH resetbrain
+
+## Fixed variables
+# location of charlog
+char=/root/loot/croc_char.log
+# where the array (it knowledge) is stored when not running
+brainFile=/root/brain.hak
+# array of decisions
+# basiclly if it has a one it can choose this move.
+# because bash does not have a multi dimensional array we cheat a little and have 3 (largest number of pebbles that can be taken) times the total number of pebbles (21) 
+# so 21 * 3 = 63 => [0..62]
+brainArray=( 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 )
+max=21
+pebbles=$max
+takken=0
+running=true
+lastpos=0
+move=0
+
+save_tofile () {
+	printf "%s\n" "${brainArray[@]}" > $brainFile
+}
+
+# check for brain file. if it exist loads
+# else save current
+if [ -e $brainFile ] && [[ "$LOOT" == "pebbles" ]]; then
+	mapfile -t brainArray < $brainFile
+else
+	save_tofile
+fi
+
+quack_line () {
+    if [[ $2 -eq 1 ]]; then
+        QUACK ENTER
+    fi
+    QUACK STRING "$1"
+    QUACK ENTER
+}
+
+quack_cmds () {
+	quack_line "Please take 1, 2 or 3 pebbles" 1
+}
+
+wait_input () {
+   # echo waiting
+	QUACK STRING "> "
+	cnt=$(wc -m "$char" | awk {'print $1'})
+	while : ; do
+		cnt2=$(wc -m "$char" | awk {'print $1'})
+		if [ "$cnt" -ne "$cnt2" ]; then
+			break
+		fi
+		sleep .5
+	done
+	tail -c 1 "$char"
+}
+
+check_input()
+{
+	while true; do
+		command=$( wait_input )
+		case $command in
+			1 | 2 | 3 ) takken=$command
+				break ;;
+			q )	good_bye ;;
+			* ) quack_cmds ;;
+		esac
+	done
+}
+
+another_game()
+{
+    quack_line "Do you want another game (y/n)?" 1
+	while true; do
+		command=$( wait_input )
+		case $command in
+			y )
+				running=true
+				pebbles=$max
+				lastpos=0
+				break
+				;;
+			* )	good_bye ;;
+		esac
+	done
+}
+pebbles_left()
+{
+    quack_line "pebbles left: $pebbles" 1
+}
+
+good_bye () {
+	quack_line "Good Bye" 1
+	exit
+}
+
+run ()
+{
+    check_input
+    if [ "$pebbles" -le "$takken" ]; then
+        quack_line "I have won!" 1
+        quack_line "Commiserations better luck next time."
+		running=false
+    else
+        pebbles=$(($pebbles-$takken))
+        pebbles_left
+        move=0
+	for i in {1..3}
+	do
+		pos=$(((((i-1)*max)+pebbles)-1))
+		if [[ ${brainArray[$pos]} -eq 1 ]] ; then
+			move=$i
+			lastpos=$pos
+		fi
+	done
+        if [[ "$move" -eq 0 || $(($pebbles - $move)) -le 0 ]] ; then
+            quack_line "Congratulations you have won!" 1
+            quack_line "I will learn from my mistake."
+            brainArray[$lastpos]=0
+            save_tofile
+            running=false
+        else
+            pebbles=$(($pebbles - $move))
+            quack_line "I take: $move"
+            pebbles_left
+        fi
+    fi
+}
+
+play_game()
+{
+    while true; do
+        quack_line "Welcome to the game of pebbles base off of the game NIM" 1
+        quack_line "You vs Me"
+        quack_line "You move first, the object of the game is not to take the last pebble"
+        pebbles_left
+        quack_cmds
+        while [ "$running" == true ]; do
+            run
+        done
+        QUACK DELAY 200
+        another_game
+    done 
+}
+
+play_game
