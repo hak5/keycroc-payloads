@@ -5,7 +5,7 @@
 # Version:      1.0
 # Category:     General
 # Prop:         Dragorn for his help with bash arrays and Bert van Dam's book on AI
-# Thanks:		To Hak5 for their 20 year of passing knowledge out into the world and the Hak5 discord members for their friendship, knowledge and support.
+# Thanks:       To Hak5 for their 20 year of passing knowledge out into the world and the Hak5 discord members for their friendship, knowledge and support.
 
 ## Matches
 MATCH pebbles
@@ -128,8 +128,8 @@ run ()
             quack_line "Congratulations you have won!" 1
             quack_line "I will learn from my mistake."
             brainArray[$lastpos]=0
-			save_tofile
-			running=false
+            save_tofile
+            running=false
         else
             pebbles=$(($pebbles - $move))
             quack_line "I take: $move"
@@ -145,7 +145,7 @@ play_game()
         quack_line "You vs Me"
         quack_line "You move first, the object of the game is not to take the last pebble"
         pebbles_left
-		quack_cmds
+        quack_cmds
         while [ "$running" == true ]; do
             run
         done
