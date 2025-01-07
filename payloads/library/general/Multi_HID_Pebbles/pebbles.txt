@@ -15,7 +15,7 @@ MATCH resetbrain
 # location of charlog
 char=/root/loot/croc_char.log
 # where the array (it knowledge) is stored when not running
-brainFile=/root/loot/brain.hak
+brainFile=/root/brain.hak
 # array of decisions
 # basiclly if it has a one it can choose this move.
 # because bash does not have a multi dimensional array we cheat a little and have 3 (largest number of pebbles that can be taken) times the total number of pebbles (21) 
@@ -26,8 +26,6 @@ pebbles=$max
 takken=0
 running=true
 lastpos=0
-row=1
-column=1
 move=0
 
 save_tofile () {
@@ -82,27 +80,27 @@ check_input()
 }
 
 another_game()
-{	
+{
     quack_line "Do you want another game (y/n)?" 1
 	while true; do
 		command=$( wait_input )
 		case $command in
-			y ) 
+			y )
 				running=true
 				pebbles=$max
-				lastpos=0 ;;
-				break ;;
+				lastpos=0
+				break
+				;;
 			* )	good_bye ;;
 		esac
 	done
 }
 pebbles_left()
 {
-    QUACK ENTER
-    QUACK STRING pebbles left: $pebbles
+    quack_line "pebbles left: $pebbles" 1
 }
 
-good_bye () {	
+good_bye () {
 	quack_line "Good Bye" 1
 	exit
 }
@@ -112,29 +110,29 @@ run ()
     check_input
     if [ "$pebbles" -le "$takken" ]; then
         quack_line "I have won!" 1
-        quack_line "Commiserations better luck next time." 0
+        quack_line "Commiserations better luck next time."
 		running=false
     else
         pebbles=$(($pebbles-$takken))
         pebbles_left
         move=0
-		for i in {1..3}
-		do
-			pos=$(((((i-1)*max)+pebbles)-1))
-            if [[ ${brainArray[$pos]} -eq 1 ]] ; then
-                move=$i
-                lastpos=$pos
-            fi
-		done
-        if [ "$move" -eq 0 -o ($(($pebbles - $move)) -eq 0) ] ; then
+	for i in {1..3}
+	do
+		pos=$(((((i-1)*max)+pebbles)-1))
+		if [[ ${brainArray[$pos]} -eq 1 ]] ; then
+			move=$i
+			lastpos=$pos
+		fi
+	done
+        if [[ "$move" -eq 0 || $(($pebbles - $move)) -le 0 ]] ; then
             quack_line "Congratulations you have won!" 1
-            quack_line "I will learn from my mistake." 1
+            quack_line "I will learn from my mistake."
             brainArray[$lastpos]=0
 			save_tofile
 			running=false
         else
             pebbles=$(($pebbles - $move))
-            quack_line "I take: $move" 1
+            quack_line "I take: $move"
             pebbles_left
         fi
     fi
