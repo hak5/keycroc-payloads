@@ -15,7 +15,7 @@
 
 * **TESTED ON**
   - Windows 10
-  - Raspberry pi 4
+  - Raspberry pi 5 bookworm
   - linux parrot os
   - Sorry no support for MAC OS
 
