@@ -12,7 +12,7 @@ croc_listen
 ## :book: Description
 Sends keystrokes from one croc to another.
 
-This is a PoC basicly me playing with netcat. It's quite slow!!
+This is a PoC basically me playing with netcat. It's quite slow!!
 
 ### Listener
 On the listener use ‘croc_listen’ this will set up. This will create a netcat listener on the port and pass the incoming traffic to QUACK KEYCODE.
